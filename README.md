@@ -1,52 +1,38 @@
 # SAYCEP — SA Youth Career and Employment Platform
 
-An AI-driven career and employment platform for South African youth — pitched as "LinkedIn-like." School project, solo developer, running Feb–Nov 2026.
+An AI-driven career and employment platform for South African youth. University project (ISJ107V), solo developer.
 
-Status: planning/proposal stage. Nothing has been coded yet. See [STATUS.md](STATUS.md).
-
-**Presentation begins beginning of October 2026**, built on 10 functional requirements (Assignment 2 — see [docs/functional-requirements.md](docs/functional-requirements.md)). Project data must come from Kaggle, or from a lecturer-approved alternative — see the data sourcing rule in [docs/architecture.md](docs/architecture.md).
+**Working demo due beginning of October 2026.** Nothing is coded yet. Current state and next actions: [STATUS.md](STATUS.md). Building from this repo: start at [CLAUDE.md](CLAUDE.md).
 
 ## What it is
 
-SAYCEP helps two kinds of users:
+SAYCEP serves two kinds of user: a student already enrolled in a qualification who needs help planning what comes next, and a young person with no qualification who needs direction, including trade and artisan routes rather than only degree ones. Detail in [docs/user-profiles.md](docs/user-profiles.md).
 
-1. A student already enrolled in a qualification who needs help planning their career path.
-2. An unqualified young person who needs direction — including trade/artisan paths, not just degree routes.
+## Modules
 
-Full detail on both profiles: [docs/user-profiles.md](docs/user-profiles.md).
+Five are specified. Two are being built for October — the Career Pathway Builder (the central hub) and the skills gap analyser, which share a single data spine. The CV builder/scorer, opportunity matching engine and interview prep chatbot are documented but not implemented. See [docs/architecture.md](docs/architecture.md).
 
-## Core modules
+## Data
 
-Five modules, with the Career Pathway Builder as the central hub the other four feed into:
+All system data comes from Kaggle, per course requirement. South African labour statistics are cited as background in the written proposal only and never loaded into the system. The dataset shortlist is in [docs/data-sources.md](docs/data-sources.md) and **none of it is verified yet** — that's the first job.
 
-1. **Career Pathway Builder** (central)
-2. **CV builder / scorer**
-3. **Skills gap analyser**
-4. **Opportunity matching engine**
-5. **Interview prep chatbot**
+## Assessment
 
-Architecture and tech stack: [docs/architecture.md](docs/architecture.md).
+Assignment 2 is at least 10 functional requirements, and the presentation is built on them with questions drawn directly from them. Four are worked as examples, the rest are to be drafted: [docs/functional-requirements.md](docs/functional-requirements.md). The written proposal follows a rubric — sections in [docs/proposal-outline.md](docs/proposal-outline.md).
 
-## Repo layout
+## Layout
 
 ```
 saycep/
-├── backend/        # Node.js API (placeholder — not started)
-├── frontend/        # React client (placeholder — not started)
-├── ml-service/     # Python ML microservice (placeholder — not started)
-├── docs/
-│   ├── proposal-outline.md         # rubric structure for the written proposal
-│   ├── architecture.md              # tech stack + module breakdown + data sourcing rule
-│   ├── user-profiles.md             # the two target user profiles
-│   ├── functional-requirements.md   # Assignment 2 — 10+ functional requirements
-│   └── timeline.md                  # phases, Feb–Nov 2026, presentation date
-└── STATUS.md       # what's actually done vs. still on paper
+├── CLAUDE.md       # start here when building
+├── STATUS.md       # current state, next actions
+├── backend/        # FastAPI service (not built)
+├── frontend/       # React client (not built)
+└── docs/
+    ├── functional-requirements.md   # Assignment 2
+    ├── data-sources.md              # Kaggle decision + shortlist
+    ├── architecture.md              # demo vs production, data spine
+    ├── timeline.md                  # three-week plan with gates
+    ├── proposal-outline.md          # written proposal rubric
+    └── user-profiles.md             # the two target users
 ```
-
-## Proposal / rubric
-
-The written proposal has to be built against a marking rubric. Section-by-section breakdown: [docs/proposal-outline.md](docs/proposal-outline.md).
-
-## Timeline
-
-Feb–Nov 2026, seven phases. Details (and gaps to fill in): [docs/timeline.md](docs/timeline.md).

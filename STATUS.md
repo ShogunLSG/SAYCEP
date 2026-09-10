@@ -1,29 +1,32 @@
 # Status
 
-**As of September 2026: nothing coded yet.** This repo exists to capture the planning context gathered so far, so it isn't lost, and to give the project a place to grow into.
+**As of 10 September 2026: nothing coded. Working demo due beginning of October.** Roughly three weeks.
+
+## Decided
+
+- **Data: hybrid.** System data from Kaggle; South African statistics cited as written background only, never loaded into the system. Avoids the consultation dependency. (`docs/data-sources.md`)
+- **Demo stack: monolith.** Single FastAPI service + SQLite + React. The original Node + separate Python ML microservice design stays as the documented production architecture but is not what gets built. (`docs/architecture.md`)
+- **Scope: two modules built, three specified.** Career Pathway Builder and skills gap analyser get built — they share one data spine, which is why they're the cheap pair. CV scorer, opportunity matching and interview chatbot are documented only.
+- Five core modules, two user profiles, and the proposal rubric structure — all unchanged from the original plan.
 
 ## Done
-- Problem framing agreed at a high level (LinkedIn-style career platform for SA youth)
-- Tech stack chosen (Node.js, React, Python ML microservice, LLM API, ESSA API, TVET/SETA dataset)
-- Five core modules identified
-- Two target user profiles identified
-- Rubric structure for the written proposal identified (sections 2.1, 2.2.1, 2.2.2, 2.3, 3.1, 3.5)
+- Repo and pack structure, with `CLAUDE.md` as the entry point for building
+- Kaggle dataset shortlist assembled
+- FR-1 to FR-4 worked as examples, with the criteria for the rest
+- Three-week plan with weekly gates
 
-## Not started
-- Proposal writing (all rubric sections are still empty — see `docs/proposal-outline.md`)
-- Seven-phase timeline breakdown (see `docs/timeline.md`)
-- Any actual code (backend, frontend, ml-service are empty placeholders)
+## Not done
+- **Kaggle datasets unverified.** Columns and row counts not confirmed — schemas render client-side and need a logged-in session. Nothing should be built until this is done.
+- **FR-5 onward not drafted.** Yours to write; the presentation is questioned directly on these.
+- All code. Backend, frontend, data loading — none of it exists.
+- Proposal writing: every rubric section still empty (`docs/proposal-outline.md`)
 - SMART goals and the five success criteria
-- Architecture decisions: LLM provider, service communication, auth, hosting
-- Assignment 2: the 10 functional requirements (see `docs/functional-requirements.md`) — nothing drafted yet
-- Data-sourcing decision: confirm a Kaggle dataset for the TVET/SETA and ESSA-equivalent data, or book the lecturer consultation to get simulated data approved (see `docs/architecture.md`)
+- Open calls: LLM provider (may not be needed), auth approach for the demo, whether hosting is required
 
-## Fixed deadline
-**Presentation begins beginning of October 2026**, built on the 10 functional requirements.
+## Do these first
 
-## Suggested next step
-Two things are now time-critical ahead of October, and probably in this order:
-1. Settle the data source (Kaggle dataset, or lecturer consultation for simulated data) — this affects what the functional requirements can actually promise.
-2. Draft the 10 functional requirements, since the presentation depends on them directly.
+1. **Confirm the exact presentation date and what "working demo" means** — local run or deployed URL. This changes the plan more than anything else and it's a one-message question.
+2. **Verify the Kaggle datasets** and record real columns in `docs/data-sources.md`. Everything downstream depends on what's actually in them.
+3. **Draft FR-5 onward** against the four tests in `docs/functional-requirements.md`.
 
-The proposal's problem/opportunity sections (2.2.1, 2.2.2) still need drafting too, but they don't block the presentation the way the above two do.
+Week 1 gate: real data queryable in SQLite, and 10+ requirements written. Week 2 doesn't start without both.

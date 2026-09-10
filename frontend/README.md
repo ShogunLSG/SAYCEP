@@ -1,10 +1,12 @@
 # Frontend
 
-Placeholder for the React client.
+React. Not yet built.
 
-Nothing built yet. Expected screens/components once work starts, one per core module (see `../docs/architecture.md`):
-- Career Pathway Builder (central hub)
-- CV builder / scorer
-- Skills gap analyser
-- Opportunity matching engine
-- Interview prep chatbot
+Screens needed for the October demo, and no more than these:
+- Profile capture, with the two paths (enrolled student / school-leaver)
+- Target occupation selection
+- Skills gap view — missing skills, split essential vs desirable
+- Pathway view — ordered steps, skills named per step
+- Source dataset labels on occupation and skill records (FR-4)
+
+Anything not on the demo path stays unbuilt until after October.
