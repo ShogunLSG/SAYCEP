@@ -34,5 +34,9 @@ saycep/
     ├── architecture.md              # demo vs production, data spine
     ├── timeline.md                  # three-week plan with gates
     ├── proposal-outline.md          # written proposal rubric
-    └── user-profiles.md             # the two target users
+    ├── user-profiles.md             # the two target users
+    ├── DECISIONS.md                 # append-only ADR log
+    ├── BACKLOG.md                   # noticed, deliberately deferred
+    ├── plans/                       # approach docs awaiting approval
+    └── archive/                     # the superseded August plan
 ```
