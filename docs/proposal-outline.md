@@ -18,7 +18,9 @@ What specific problem SAYCEP solves — the disconnect between youth (both quali
 
 *(not yet drafted)*
 
-Why this is worth building now — market gap, target audience size, alignment with public data sources (ESSA, TVET/SETA).
+Why this is worth building now — market gap, target audience size.
+
+*Careful here.* An earlier draft of this outline pointed at ESSA and TVET/SETA as the public data sources to align with. The system no longer uses either (ADR-0002 in `DECISIONS.md`), so claiming that alignment in the proposal would contradict what the demo actually does. The South African statistics in `data-sources.md` are the citable background; the system's own data is Kaggle-sourced.
 
 ## 2.3 Expected solution
 
