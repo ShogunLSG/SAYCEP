@@ -16,19 +16,124 @@ Be ready to state this distinction clearly if asked — it's the honest answer t
 
 The proposal originally named the ESSA public API and a curated TVET/SETA dataset. Neither is on Kaggle. The authoritative South African labour-market data lives with StatsSA and the World Bank, not Kaggle, so building the system on it would have required the consultation route and a decision that couldn't be guaranteed before the October presentation. The hybrid avoids that risk.
 
-## Kaggle shortlist (verify before relying on any of these)
+## Kaggle shortlist — verified 10 September 2026
 
-Schemas could not be confirmed without a logged-in session — Kaggle renders dataset previews client-side. **Open each one, check the actual columns and row count, and record them in the table below before building anything on them.**
+All five opened and inspected in a browser. Schemas render publicly; no login was
+needed. Two of the five are unusable for their intended purpose and the intended
+spine has a defect that reaches FR-2. Detail below the table.
 
-| Dataset | Intended use | Verified? |
+| Dataset | Intended use | Verdict |
 |---|---|---|
-| [Jobs and Skills Mapping for Career Analysis](https://www.kaggle.com/datasets/emaadakhter/jobs-and-skills-mapping-for-career-analysis) | The role↔skill spine — feeds both built modules | ☐ |
-| [Skill & Career Recommendation Dataset](https://www.kaggle.com/datasets/tea340yashjoshi/skill-and-career-recommendation-dataset) | Pathway recommendation logic | ☐ |
-| [Resume Dataset](https://www.kaggle.com/datasets/saugataroyarghya/resume-dataset) | CV scorer, if built | ☐ |
-| [Resume and Job Description](https://www.kaggle.com/datasets/sayyedfaizan95/resume-and-job-description) | CV↔role matching, if built | ☐ |
-| [Job Posting Data in South Africa](https://www.kaggle.com/datasets/techsalerator/job-posting-data-in-south-africa) | Opportunity matching — **check first**, vendor-published sets are often a small teaser sample for a paid product | ☐ |
+| [Jobs and Skills Mapping for Career Analysis](https://www.kaggle.com/datasets/emaadakhter/jobs-and-skills-mapping-for-career-analysis) | The role↔skill spine | ⚠️ **Usable with a caveat** — skills field has no delimiter, no importance data |
+| [Skill & Career Recommendation Dataset](https://www.kaggle.com/datasets/tea340yashjoshi/skill-and-career-recommendation-dataset) | Pathway recommendation logic | ❌ **Not a role↔skill map** — student aptitude scores. Possible fit for school-leaver intake instead |
+| [Resume Dataset](https://www.kaggle.com/datasets/saugataroyarghya/resume-dataset) | CV scorer, if built | ✅ **Best of the five** — 9,544 rows, 35 columns, usability 10.00, documented |
+| [Resume and Job Description](https://www.kaggle.com/datasets/sayyedfaizan95/resume-and-job-description) | CV↔role matching, if built | ⚠️ Tagged synthetic; **license Unknown** |
+| [Job Posting Data in South Africa](https://www.kaggle.com/datasets/techsalerator/job-posting-data-in-south-africa) | Opportunity matching | ❌ **Mislabelled — not South African** |
 
-Record real column names and row counts here as each is verified. Requirements that promise something the data can't deliver are the ones that fall apart under questioning.
+### 1. Jobs and Skills Mapping for Career Analysis
+
+`formatted_jobs.csv`, 176.59 kB. Six columns, ~970 rows. MIT licence, usability
+6.47, last updated a year ago.
+
+| Column | Notes |
+|---|---|
+| `ID_num` | 1–970 |
+| `job_title` | 896 unique across ~970 rows — **roughly one row per occupation** |
+| `Short_description` | 930 unique |
+| `Skills_required` | 918 unique — see the defect below |
+| `Industry` | Technology 20%, Marketing 10%, other 70% across 679 further values |
+| `Pay_grade` | Average 56%, High 29%, remainder across 140 further values |
+
+**Defect — the skills field has no delimiter.** The data card documents
+`Skills_required` as semicolon-separated. It is not. Across 108 distinct rows
+loaded from the preview, **zero** contained a semicolon. Every one looked like:
+
+> `Problem Solving Logical Reasoning Attention to Detail Team Collaboration Critical Thinking`
+
+Five multi-word skills run together with nothing but spaces between them. There is
+no reliable way to split that back into skills — a parser cannot know whether
+`Problem Solving Logical Reasoning` is two skills or three. The two
+semicolon-separated examples on the data card (rows 648 and 970) are not
+representative of anything visible in the file.
+
+**Second defect — no importance field.** The schema in `architecture.md` has
+`occupation_skills(occupation_id, skill_id, importance)` for essential vs
+desirable. Nothing in this dataset carries importance. And because each
+occupation appears roughly once, the rule FR-2 suggests — a skill is essential if
+it appears in more than X% of records *for that occupation* — has no frequency to
+compute. One record per occupation means every skill appears in 100% of them.
+
+**Third — the skills are generic.** What is present is largely soft skills
+(Problem Solving, Communication, Attention to Detail) rather than the concrete,
+teachable competencies a pathway step would name. Trade and artisan coverage was
+not confirmed.
+
+### 2. Skill & Career Recommendation Dataset
+
+`Dataset Project 404.xlsx`, 808 kB, 56 columns. Row count unconfirmed — Kaggle
+cannot preview the file ("There are no tables in this selection"). Usability 5.88,
+Open Database licence, two years old.
+
+Not a role↔skill mapping. It is one row per *student*: eight
+multiple-intelligence scores (Linguistic, Musical, Bodily,
+Logical-Mathematical, Spatial-Visualization, Interpersonal, Intrapersonal,
+Naturalist), eight performance indicators (P1–P8, valued AVG/POOR/BEST), a
+`Course`, and a single recommended `Job Profession`.
+
+It cannot populate `occupation_skills`. It *could* serve the school-leaver intake
+path in FR-3, where capture has to be interest- or aptitude-based because there is
+no qualification to infer from — this is precisely an aptitude instrument. Being
+`.xlsx` it needs `openpyxl`; minor.
+
+### 3. Resume Dataset
+
+`resume_data.csv`, 17 MB. **35 columns, 9,544 rows**, both stated on the data
+card. Usability **10.00** — the only well-documented dataset of the five.
+Licence: Attribution-NonCommercial 4.0 International (fine for coursework; note
+the non-commercial term).
+
+Columns seen: `address`, `career_objective`, `skills`,
+`educational_institution_name`, `degree_names`, `passing_years`, and 29 more.
+
+Worth more than its "CV scorer" slot suggests. It carries a real `skills`
+vocabulary at volume alongside `degree_names` — the qualification→skills link the
+enrolled-student profile needs.
+
+### 4. Resume and Job Description
+
+`resume_dataset_1200.csv`, 507 kB, 14 columns, ~1,200 rows (967 unique names).
+Usability 5.29. Tagged **Synthetic** by the uploader. **Licence: Unknown** — worth
+avoiding in assessed work where provenance is the thing being examined.
+
+Columns: `Name`, `Age`, `Gender`, `Education_Level`, `Field_of_Study`, `Degrees`,
+`Institute_Name`, `Graduation_Year`, `Experience_Years`, `Current_Job_Title`, +4.
+
+### 5. Job Posting Data in South Africa
+
+`Job Posting.csv`, 39.36 MB, 21 columns, ~9,900 unique postings dated March to
+September 2024. Apache 2.0, usability 5.29.
+
+**The data is not South African.** The suspicion recorded here was that this would
+be a thin teaser for a paid product. The file is substantial, but mislabelled:
+
+- `Location` — the single most common value is **Bangalore, India** (6%). A sample
+  row reads `Indiana, United States`. South Africa does not appear among the
+  frequent values.
+- `Website Domain` — **bosch.com 55%, zf.com 34%**. Two German industrial groups
+  account for 89% of every posting in a dataset titled for South Africa.
+- `Ticker` — **100% null**. An entirely empty column.
+
+The data card's own text ends by inviting you to email the vendor for a quote. The
+Kaggle upload appears to be a global scrape of two companies' career pages with a
+country name attached to it.
+
+Unusable for opportunity matching, and worth knowing about for its own sake: it is
+a clean example of why the verification step exists.
+
+---
+
+Requirements that promise something the data can't deliver are the ones that fall
+apart under questioning. Two of these would have done exactly that.
 
 ## Background statistics (proposal section 2.1 only)
 
