@@ -139,3 +139,86 @@ The system processes Kaggle-sourced data. The South African framing lives in the
 problem statement and the design decisions, not in the data the system ingests.
 State the distinction plainly — it shows the rule was understood rather than
 worked around.
+
+---
+
+## ADR-0003 — The O*NET 29.0 Database is the data spine
+
+**Date:** 2026-09-10
+**Status:** Accepted
+**Relates to:** ADR-0002, `data-sources.md`, `plans/data-spine.md`, FR-1 to FR-4
+
+### Context
+
+Verifying the five shortlisted datasets (recorded in `data-sources.md`) left the
+intended spine unusable as specified: its skills field has no delimiter, and with
+roughly one row per occupation there is no within-occupation frequency from which
+to derive essential versus desirable. A hybrid was briefly adopted — occupation
+catalogue from one dataset, skill importance inferred from resume frequencies in
+another — and written up as a plan.
+
+That hybrid had two weaknesses. It rested on an unproven join between job titles
+and resume roles, and the essential/desirable threshold would have been invented
+rather than measured. It also left the school-leaver profile thin, because the
+resume data skews technical and carries little trade or artisan coverage.
+
+Searching Kaggle for trade coverage surfaced the full O*NET database, published
+under CC BY 4.0 by the U.S. Department of Labor. It resolves all three problems
+at once, and it is on Kaggle, so ADR-0002 is satisfied without a consultation.
+
+### Decision
+
+The data spine is the **O*NET 29.0 Database**, obtained from Kaggle
+(`emarkhauser/onet-29-0-database`).
+
+### Verification
+
+File structure was confirmed against O*NET's own published data dictionary at
+onetcenter.org, not assumed. Reading that documentation is not a second data
+source — the data itself comes from the Kaggle copy.
+
+| File | Rows | What it gives |
+|---|---|---|
+| `Occupation Data.txt` | 1,016 | SOC code, title, description |
+| `Skills.txt` | 61,530 | Skill ratings per occupation, `Scale ID` of IM (Importance) or LV (Level), plus confidence intervals |
+| `Job Zones.txt` | 923 | Preparation level 1–5 per occupation |
+| `Related Occupations.txt` | 18,460 | 10 primary + 10 supplemental related occupations, with a relatedness tier and an `Index` ordering them by expert review |
+
+### Why this over the hybrid
+
+- **FR-2's threshold stops being invented.** O*NET publishes an Importance rating
+  per skill per occupation from an occupational survey. The essential/desirable
+  split becomes a cut on a published scale rather than a percentage we chose. The
+  question "why that number?" gets a defensible answer.
+- **FR-1's ordering gets a provenance.** `Related Occupations.txt` is ordered by
+  expert review. Pathway steps can cite that instead of a similarity heuristic
+  we would then have to justify.
+- **FR-3's second profile becomes buildable.** `Job Zones.txt` grades occupations
+  1–5 by required preparation. Zones 1–2 are the non-degree routes the
+  school-leaver profile exists to serve. `Interests.txt` supplies a RIASEC
+  interest inventory for aptitude-based intake where no qualification exists.
+- **Trade and artisan coverage.** O*NET covers the full occupational
+  classification. The data dictionary's own worked example is SOC 47-2231.00, a
+  construction trade.
+- **FR-4 gets its strongest form.** "O*NET 29.0, U.S. Department of Labor, CC BY
+  4.0, dated" is a better provenance label than any other candidate offered.
+- **The join risk disappears.** Every file keys on the O*NET-SOC code. No fuzzy
+  title matching anywhere.
+
+### Consequences
+
+- The hybrid plan is superseded before anything was built on it. That plan lived
+  in `plans/data-spine.md` and is rewritten, not archived — nothing depended on it.
+- **The data is United States occupational data.** This does not worsen the
+  position ADR-0002 already established: the South African framing lives in the
+  problem statement, not in what the system ingests. It arguably improves it,
+  since an authoritative government source is easier to defend than an anonymous
+  synthetic CSV. Be ready to say so.
+- Loading is more work — around 30 tab-delimited files rather than two CSVs — but
+  the joins are clean rather than fuzzy, so the risk is lower even as the effort
+  rises.
+- `Skills.txt` carries `Recommend Suppress` and `Not Relevant` flags. Rows so
+  marked are low-precision and must be filtered, or the gap analyser will present
+  ratings the source itself does not stand behind.
+- The Resume Dataset stays a candidate for the CV scorer if that module is ever
+  built. The other four from the original shortlist are now unused.

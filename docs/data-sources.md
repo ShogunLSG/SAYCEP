@@ -16,11 +16,51 @@ Be ready to state this distinction clearly if asked — it's the honest answer t
 
 The proposal originally named the ESSA public API and a curated TVET/SETA dataset. Neither is on Kaggle. The authoritative South African labour-market data lives with StatsSA and the World Bank, not Kaggle, so building the system on it would have required the consultation route and a decision that couldn't be guaranteed before the October presentation. The hybrid avoids that risk.
 
-## Kaggle shortlist — verified 10 September 2026
+## The spine: O*NET 29.0 (decided 10 September 2026)
+
+**Source:** [O*NET Database on Kaggle](https://www.kaggle.com/datasets/emarkhauser/onet-29-0-database)
+· CC BY 4.0 · usability 10.00 · U.S. Department of Labor, Employment and Training
+Administration.
+
+Found by searching Kaggle for trade and artisan coverage, after the original
+shortlist left the school-leaver profile with almost nothing to stand on. It
+replaces the shortlist as the system's data spine — see ADR-0003 in
+`DECISIONS.md` for the reasoning and the full comparison.
+
+Structure confirmed against O*NET's published data dictionary at onetcenter.org.
+Reading that documentation is not a second data source; the data itself comes
+from the Kaggle copy.
+
+| File | Rows | Gives us |
+|---|---|---|
+| `Occupation Data.txt` | 1,016 | SOC code, title, description |
+| `Skills.txt` | 61,530 | Importance (IM) and Level (LV) ratings per skill per occupation, with confidence intervals |
+| `Job Zones.txt` | 923 | Preparation level 1–5 — the degree vs non-degree distinction |
+| `Related Occupations.txt` | 18,460 | 10 primary + 10 supplemental related occupations, ordered by expert review |
+| `Interests.txt` | — | RIASEC inventory, for school-leaver intake |
+
+Two flags in `Skills.txt` must be respected on load: `Recommend Suppress` marks
+low-precision ratings and `Not Relevant` marks skills that don't apply. Rows
+marked `Y` get dropped, or the system will present numbers its own source won't
+stand behind.
+
+**It is United States data.** That does not worsen the position ADR-0002 already
+took — the South African framing lives in the problem statement, not in what the
+system ingests. An authoritative government dataset is easier to defend than an
+anonymous synthetic CSV. Be ready to say exactly that.
+
+---
+
+## Original shortlist — verified 10 September 2026, now superseded
+
+Kept because the verification is what led to O*NET, and because "why aren't you
+using the South African job postings dataset?" has a specific answer that belongs
+on the record.
 
 All five opened and inspected in a browser. Schemas render publicly; no login was
-needed. Two of the five are unusable for their intended purpose and the intended
-spine has a defect that reaches FR-2. Detail below the table.
+needed. Two are unusable for their intended purpose and the intended spine has a
+defect that reaches FR-2. Only the Resume Dataset remains a candidate — for the
+CV scorer, if that module is ever built.
 
 | Dataset | Intended use | Verdict |
 |---|---|---|
