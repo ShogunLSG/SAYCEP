@@ -4,6 +4,8 @@ An AI-driven career and employment platform for South African youth — pitched 
 
 Status: planning/proposal stage. Nothing has been coded yet. See [STATUS.md](STATUS.md).
 
+**Presentation begins beginning of October 2026**, built on 10 functional requirements (Assignment 2 — see [docs/functional-requirements.md](docs/functional-requirements.md)). Project data must come from Kaggle, or from a lecturer-approved alternative — see the data sourcing rule in [docs/architecture.md](docs/architecture.md).
+
 ## What it is
 
 SAYCEP helps two kinds of users:
@@ -33,10 +35,11 @@ saycep/
 ├── frontend/        # React client (placeholder — not started)
 ├── ml-service/     # Python ML microservice (placeholder — not started)
 ├── docs/
-│   ├── proposal-outline.md   # rubric structure for the written proposal
-│   ├── architecture.md        # tech stack + module breakdown
-│   ├── user-profiles.md       # the two target user profiles
-│   └── timeline.md            # phases, Feb–Nov 2026
+│   ├── proposal-outline.md         # rubric structure for the written proposal
+│   ├── architecture.md              # tech stack + module breakdown + data sourcing rule
+│   ├── user-profiles.md             # the two target user profiles
+│   ├── functional-requirements.md   # Assignment 2 — 10+ functional requirements
+│   └── timeline.md                  # phases, Feb–Nov 2026, presentation date
 └── STATUS.md       # what's actually done vs. still on paper
 ```
 

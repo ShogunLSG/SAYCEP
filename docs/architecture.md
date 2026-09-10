@@ -13,6 +13,16 @@
 
 Nothing has been scaffolded yet beyond placeholder folders (`backend/`, `frontend/`, `ml-service/`).
 
+## Data sourcing rule (course requirement)
+
+Project data **must come from Kaggle**. If no suitable Kaggle dataset covers what a module needs (e.g. the TVET/SETA data, or ESSA-equivalent data), the process is:
+
+1. Request a consultation with the lecturer (in his office).
+2. Present the proposed own/simulated data.
+3. He decides whether the simulated data is acceptable, or which Kaggle dataset to use instead.
+
+**This means the ESSA public API and the curated TVET/SETA dataset above are provisional** — neither is confirmed as a Kaggle source. Before building the opportunity matching engine or skills gap analyser, check Kaggle for a suitable dataset (job postings, skills taxonomies, SA labour market data); if nothing fits, that consultation needs to happen before those modules can rely on real data.
+
 ## Core modules
 
 ### 1. Career Pathway Builder (central)
