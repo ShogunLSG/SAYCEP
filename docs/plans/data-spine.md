@@ -22,14 +22,11 @@ O*NET's published data dictionary, so the numbers below are known, not hoped for
 `Interests.txt` (RIASEC) is left for a later plan. It serves school-leaver intake,
 which is a screen, not the spine.
 
-## Step 0 — get the files (blocked on you)
+## Step 0 — get the files ✅ done 11 September
 
-Kaggle requires a login to download and signing in isn't something I'll do on your
-behalf. Either sign in at kaggle.com in the browser pane and tell me, or download
-the dataset yourself and unzip it into `backend/data/onet/`.
-
-`backend/data/` goes in `.gitignore`. Third-party data doesn't belong in the repo,
-and the loader rebuilds the database from scratch anyway.
+Downloaded and extracted to `backend/data/onet/` — 41 files, 97 MB uncompressed.
+`backend/data/` and `docs/Datasets/` are both gitignored; third-party data doesn't
+belong in the repo and the loader rebuilds the database from the files anyway.
 
 ## Step 1 — load it, verify the counts
 
@@ -42,18 +39,29 @@ because the CSVs on disk are the source of truth.
 
 Two things it must do that are easy to get wrong:
 
-**Filter the suppressed rows.** `Skills.txt` carries `Recommend Suppress` (low
-precision) and `Not Relevant` flags. Rows marked `Y` must be dropped. If they
-aren't, the gap analyser will show the user ratings that O*NET itself does not
-stand behind — and that is exactly the kind of thing that unravels when someone
-asks how confident the number is.
+**Handle the quality flags correctly — and they are not where this plan first
+assumed.** Checked against the real file:
+
+- `Recommend Suppress` is **never `Y` on an IM row** — 0 of 30,765. All 124
+  suppressed rows are LV. Filtering importance rows on this flag is a no-op.
+- `Not Relevant` is **`n/a` on every IM row**; it is carried on the LV row of the
+  pair. So excluding not-relevant skills means joining to the LV row, not
+  filtering the IM row. 3,302 pairs are affected.
+- Every one of those 3,302 has an importance of **2.0 or below** — so any
+  threshold above 2.0 excludes them anyway. Apply the filter regardless, because
+  correctness shouldn't depend on the threshold staying where it is today.
 
 **Keep only `Scale ID = 'IM'` for importance.** Each skill appears twice per
 occupation, once as IM (importance) and once as LV (level). They answer different
 questions. The gap analyser wants importance.
 
-Verification is a row count against the table above. If the numbers don't match
-after filtering, something is wrong with the load and we stop.
+**Row counts verified 11 September** — all four match the published dictionary
+exactly: 1,016 / 61,530 / 923 / 18,460, with IM and LV pairing at 30,765 each.
+
+**The usable catalogue is 879 occupations, not 1,016.** That many are complete
+across occupations, skills, job zones and related-occupations. The 137 without
+skills data must be excluded from target selection or the gap analyser will have
+nothing to say about them.
 
 ## Step 2 — schema
 

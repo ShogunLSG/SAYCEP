@@ -20,3 +20,7 @@ venv/
 
 # Logs
 *.log
+
+# Third-party data (O*NET etc) - rebuilt from source, never committed
+backend/data/
+docs/Datasets/
