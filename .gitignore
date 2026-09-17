@@ -24,3 +24,6 @@ venv/
 # Third-party data (O*NET etc) - rebuilt from source, never committed
 backend/data/
 docs/Datasets/
+
+# Generated database - rebuilt by backend/load_onet.py
+*.db

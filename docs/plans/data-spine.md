@@ -1,6 +1,6 @@
 # Plan — the data spine
 
-**Status:** awaiting your approval. Nothing built yet.
+**Status:** ✅ executed 17 September. Loader built, run and verified.
 **Decision this implements:** ADR-0003 — O*NET 29.0 as the spine.
 **Supersedes:** the hybrid plan of earlier today, superseded before any code.
 **Gate it serves:** Week 1 — real data queryable in SQLite.
@@ -114,12 +114,18 @@ awkward to write, the schema is wrong and the schema changes.
 is to a target is a walk across that graph, and FR-1 promises no fewer than three
 intermediate steps, each naming skills to acquire.
 
-**This is the part I'd expect to need a second pass.** Whether a clean three-step
-walk exists between arbitrary occupation pairs is a property of the graph, and I
-won't know until it's loaded. If it doesn't, the honest fallback is to order steps
-by Job Zone — 1 to 2 to 3 is a real progression a user can act on, and it reads
-well for the school-leaver profile in particular. Flagging it now so it isn't a
-surprise in week 2.
+**Resolved 17 September — no second pass needed.** The concern was whether a
+clean three-step walk exists across the graph. It does, everywhere: **all 879
+occupations have three or more reachable primary neighbours**, so FR-1's "no fewer
+than three intermediate steps" is satisfiable for every occupation in the
+catalogue. The Job Zone fallback is not required.
+
+Two properties worth knowing: 1,189 related-occupation rows (6.8%) point outside
+the usable catalogue and are dropped by the join, which is why a pathway's
+expert-review indices can start at 2 rather than 1. And 436 of 879 occupations
+have at least one primary neighbour in a *higher* job zone — upward progression
+exists for about half the catalogue, which matters when the pathway needs a
+direction.
 
 ## Open — yours to decide, after Step 1
 
