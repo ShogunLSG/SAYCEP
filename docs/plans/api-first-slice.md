@@ -1,6 +1,6 @@
 # Plan — the API and the first vertical slice
 
-**Status:** awaiting your approval. Nothing built yet.
+**Status:** FR-3 decision resolved 17 September (ADR-0004). Awaiting go on the build.
 **Depends on:** the data spine, built and loaded 17 September.
 **Gate it serves:** Week 2 — the demo path runs end to end, ugly but working.
 
@@ -69,10 +69,11 @@ yours to pick because it changes what FR-3 promises:
    Simplest to build, but it weakens FR-3, which promises a different initial
    skill profile for each.
 
-My recommendation is 1, with 2 layered on later if there's time — it keeps FR-3's
-promise intact and the pre-fill is genuinely useful rather than ceremonial. But
-option 3 is the honest choice if week 2 gets tight, and saying so in the
-presentation is better than a half-built option 1.
+**Decided 17 September: option 3**, once the real time budget was clear — four
+full days plus ten evenings. Both profiles self-assess against the same 35 skills;
+the divergence moves to target selection, where the school-leaver browses Job
+Zones 1–3 and the student searches directly. FR-3 is reworded and the reasoning is
+in ADR-0004. RIASEC intake is specified but not built.
 
 ## The threshold lives in one place
 

@@ -37,11 +37,20 @@ Four tests, all of which the worked examples pass:
 *Invites the question:* "How do you decide essential versus desirable?" — This is the design decision you own. A defensible rule: a skill appearing in more than a set percentage of records for that occupation is essential, below it desirable. **Pick the threshold, write it down, and be able to say why that number.**
 
 ### FR-3 — User profiles *(built)*
-> The system shall support two registration paths — enrolled student and unqualified school-leaver — and shall capture a different initial skill profile for each.
+> The system shall support two profile types — enrolled student and unqualified school-leaver — and shall present each with a different route to selecting a target occupation: direct search for the student, and browsing by required preparation level for the school-leaver.
 
-*Holds up because:* ties the code directly to the two user profiles in the proposal, so the design and the build tell the same story.
+*Holds up because:* two visibly different routes, both demonstrable on screen, both traceable to O*NET's Job Zone data (923 occupations graded 1–5 by preparation needed).
 
-*Invites the question:* "Why do the two paths need different capture?" — An enrolled student has a qualification to infer skills from; a school-leaver has no qualification, so entry has to be interest- or aptitude-based. That difference is the reason the second profile exists at all.
+*Invites the question:* "Why do the two paths diverge after capture rather than during it?" — Because skill capture is self-assessment against the same 35-skill taxonomy for everyone; there is no honest way to infer a person's skills from their qualification, and pretending otherwise would be inventing data. What genuinely differs is what you do next. An enrolled student already has direction and needs a target. A school-leaver needs to discover which occupations are reachable at all without a degree — which is exactly what browsing Job Zones 1 to 3 shows them, and that is 59% of the catalogue.
+
+*Data behind it:* `Job Zones.txt` — 923 occupations graded 1–5.
+
+> **Reworded 17 September, and this wording is yours to own.** The original said
+> the system would "capture a different initial skill profile for each", justified
+> by an enrolled student having a qualification to infer skills from. Loading the
+> data showed O*NET has no qualification-to-skills mapping, so that justification
+> could not have survived the question. See ADR-0004. Change the phrasing if it
+> does not sound like you — but do not put the old version back.
 
 ### FR-4 — Data provenance *(built)*
 > The system shall record and display the source dataset and publication date for every occupation and skill record presented to the user.

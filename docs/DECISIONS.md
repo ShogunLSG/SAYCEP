@@ -222,3 +222,62 @@ source — the data itself comes from the Kaggle copy.
   ratings the source itself does not stand behind.
 - The Resume Dataset stays a candidate for the CV scorer if that module is ever
   built. The other four from the original shortlist are now unused.
+
+
+---
+
+## ADR-0004 — Skill capture is shared; the two profiles diverge after it
+
+**Date:** 2026-09-17
+**Status:** Accepted
+**Relates to:** ADR-0003, FR-3, `plans/api-first-slice.md`, `user-profiles.md`
+
+### Context
+
+FR-3 originally promised a *different initial skill profile* for each of the two
+user types, justified by an enrolled student having a qualification to infer
+skills from and a school-leaver having none.
+
+Loading O*NET showed the first half of that cannot be built. O*NET carries the
+distribution of education levels held by people already *in* an occupation. It has
+no mapping from a qualification to the skills that qualification confers. Nothing
+in the Kaggle-sourced data does.
+
+A second factor: with the presentation in the first week of October, the real
+remaining budget is four full days plus ten evenings. An extra capture screen and
+its pre-fill logic is roughly a day of that.
+
+### Decision
+
+Both profile types capture skills the same way — self-assessment against O*NET's
+35-skill taxonomy. The two paths diverge at **target selection**: the enrolled
+student searches for a target directly; the school-leaver browses by Job Zone,
+which surfaces the occupations reachable without a degree.
+
+FR-3 is reworded accordingly.
+
+### Alternatives rejected
+
+- **Nearest-occupation pre-fill.** The student names their closest role and we
+  pre-fill skills from it. Preserves FR-3's original wording and was the
+  recommendation before the time budget was clear. Rejected on cost: an extra
+  screen and extra logic on the tightest weekend in the plan, and a half-built
+  version would be worse than a complete simple one.
+- **Education-level filtering.** Uses real O*NET data but captures no skills, so
+  it narrows targets without building a profile. Kept as a possible later
+  refinement of the school-leaver route.
+
+### Consequences
+
+- **The divergence is now visible rather than internal.** Two different screens
+  beats two different hidden capture rules — easier to demonstrate, and easier to
+  answer questions about.
+- **It is defensible on honesty grounds, which is stronger than the original.**
+  The answer to "why the same capture?" is that inferring someone's skills from
+  their qualification would be inventing data the source does not contain. That is
+  a better answer than the one it replaces.
+- **RIASEC intake is deferred.** `Interests.txt` scores all 923 occupations and
+  remains the right long-term answer for the school-leaver. Specified in the
+  proposal, not built for October. Say which is which.
+- FR-3's wording changed on assessed material. The change and its reason are
+  recorded here so the original can be explained if asked.
