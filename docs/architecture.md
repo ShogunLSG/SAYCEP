@@ -12,7 +12,7 @@ One service. One database file. One frontend.
 | Database | SQLite (file-based, no server to run) |
 | Frontend | React |
 | AI features | LLM API called from the backend |
-| Data | Kaggle CSVs loaded into SQLite at startup (see `data-sources.md`) |
+| Data | O*NET 29.0 text files, loaded into SQLite by `backend/load_onet.py` (see `data-sources.md`) |
 
 **Why this and not the original stack.** The proposal named Node.js plus a separate Python ML microservice plus React. That's three deployable services to wire, configure and debug. With a working demo due in roughly three weeks and one developer, three services is where the time goes — into plumbing rather than into anything demonstrable. Python is the better single choice because the Kaggle data work (loading CSVs, similarity scoring) is native to it, and SQLite removes a whole class of setup problems.
 
@@ -26,17 +26,44 @@ The original design stands as the target: Node.js or Python API, React frontend,
 
 Both built modules run off one structure, which is why they're the right pair to build:
 
-```
-occupations        (id, title, description, source_dataset, source_date)
-skills             (id, name, category, source_dataset, source_date)
-occupation_skills  (occupation_id, skill_id, importance)   -- essential vs desirable
-users              (id, profile_type, target_occupation_id)
-user_skills        (user_id, skill_id, level)
+**This is the schema as built** (17 September). It differs from the sketch this
+file originally carried, because the sketch predated knowing what was in the data:
+
+```sql
+occupations         (soc_code PK, title, description, job_zone, source_dataset)
+skills              (element_id PK, name, description, source_dataset)
+occupation_skills   (soc_code, element_id, importance, importance_scale_max,
+                     source_date, PK(soc_code, element_id))
+related_occupations (soc_code, related_soc_code, tier, sort_index)
+job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
+
+users               (id, profile_type, target_soc_code)   -- with the API
+user_skills         (user_id, element_id)                 -- with the API
 ```
 
-A gap is `occupation_skills` for the target minus `user_skills`. A pathway is that gap ordered into steps. One structure, two modules — that's the whole reason this pair is cheap to build together.
+What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
 
-The `source_dataset` / `source_date` columns exist so the system can show where every record came from. That directly answers the data-provenance concern behind the Kaggle rule (see FR-4 in `functional-requirements.md`).
+- **Invented integer ids became SOC codes.** O*NET keys everything on them; our own
+  ids would have added a mapping layer for nothing.
+- **`skills.category` dropped.** No source data supplies one.
+- **`user_skills.level` dropped.** Capture is "do you have this skill", which is
+  all the gap needs.
+- **`job_zone` added to occupations**, and `related_occupations` / 
+  `job_zone_reference` added outright. Neither existed in the sketch because
+  neither dataset behind it had the data. O*NET does, and they are what make FR-1's
+  pathway ordering and FR-3's non-degree routes possible.
+- **`importance` stores O*NET's raw 1–5 rating** rather than an essential/desirable
+  boolean, so the threshold stays a query-time decision.
+
+A gap is `occupation_skills` for the target minus `user_skills`. A pathway walks
+`related_occupations` in its expert-review order. One structure, two modules —
+that is the whole reason this pair is cheap to build together.
+
+The `source_dataset` / `source_date` columns exist so the system can show where
+every record came from. That directly answers the data-provenance concern behind
+the Kaggle rule (see FR-4 in `functional-requirements.md`). Note that `source_date`
+sits on `occupation_skills` rather than `skills`: O*NET dates the *rating*, and
+those dates genuinely span 2019 to 2024.
 
 ## Core modules
 
@@ -46,7 +73,7 @@ The `source_dataset` / `source_date` columns exist so the system can show where 
 
 ### Designed, not built
 3. **CV builder / scorer** — stretch goal if the core lands early; demos well but CV parsing is a time sink.
-4. **Opportunity matching engine** — blocked on whether the SA job postings dataset is usable.
+4. **Opportunity matching engine** — no longer blocked, but dead as designed: the SA job postings dataset was verified and is not South African (see `data-sources.md`). Specify it; there is no Kaggle data behind it.
 5. **Interview prep chatbot** — cheap to build with an LLM but shallow under questioning; low priority.
 
 Specify all five fully in the proposal. Build two properly. Say clearly in the presentation which is which — claiming more than is built is the fastest way to lose the room.
@@ -54,5 +81,5 @@ Specify all five fully in the proposal. Build two properly. Say clearly in the p
 ## Decisions still open
 
 - Which LLM API/provider (and whether the demo needs it at all — the two built modules may not)
-- Auth for the demo: likely none, or a hardcoded demo user. Real auth is production scope.
+- Auth for the demo: proposed as none — a profile is a row with an id. Reasoning in `plans/api-first-slice.md`. Real auth is production scope.
 - Hosting: local for the demo unless he requires a live URL — worth confirming.

@@ -1,8 +1,8 @@
 # SAYCEP — context for Claude Code
 
 Read this first, then `STATUS.md` for current state. This file is the entry point
-for building: it carries the constraints that aren't obvious from the code,
-because there isn't any code yet.
+for building: it carries the constraints that aren't obvious from the code itself.
+For how the code works and why it was built that way, see `docs/dev-guide.md`.
 
 ## What this is
 
@@ -45,12 +45,17 @@ boundaries clean in code so the split stays possible later.
 
 ## Stack
 
-Python (FastAPI), SQLite, React. LLM API from the backend if needed — the two
-built modules may not need one at all. Kaggle CSVs load into SQLite at startup.
+Python (FastAPI), SQLite, React. Standard library only so far — do not add a
+dependency without saying why. LLM API from the backend if needed; the two built
+modules may not need one at all.
 
-Data spine schema is in `docs/architecture.md`. Adjust it to fit the real dataset
-columns rather than forcing the data to fit; the schema was written before the
-datasets were verified.
+Data comes from the O*NET 29.0 text files, loaded by `backend/load_onet.py` into
+`backend/saycep.db`. That is a command you run, not something that happens at
+startup — the database is a derived artifact and rebuilding it is always correct.
+
+The schema in `docs/architecture.md` is now the schema as built, fitted to the
+real columns. It is no longer a sketch, so changing it is a load-bearing decision:
+say so rather than adjusting it in passing.
 
 ## How I want you to work
 
@@ -126,6 +131,7 @@ them from the system.
 ## Where things are
 
 - `STATUS.md` — what's done, what's not, what's next
+- `docs/dev-guide.md` — how the code works, what changed over the project, and why each approach was taken
 - `docs/functional-requirements.md` — Assignment 2, the spine of the presentation
 - `docs/data-sources.md` — the Kaggle decision and the dataset shortlist
 - `docs/architecture.md` — demo vs production architecture, data spine

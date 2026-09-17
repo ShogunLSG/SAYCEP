@@ -2,7 +2,7 @@
 
 An AI-driven career and employment platform for South African youth. University project (ISJ107V), solo developer.
 
-**Working demo due beginning of October 2026.** Nothing is coded yet. Current state and next actions: [STATUS.md](STATUS.md). Building from this repo: start at [CLAUDE.md](CLAUDE.md).
+**Working demo due beginning of October 2026.** The data spine is built and loaded; the API and frontend are not. Current state and next actions: [STATUS.md](STATUS.md). How it works and why: [docs/dev-guide.md](docs/dev-guide.md). Building from this repo: start at [CLAUDE.md](CLAUDE.md).
 
 ## What it is
 
@@ -14,7 +14,9 @@ Five are specified. Two are being built for October — the Career Pathway Build
 
 ## Data
 
-All system data comes from Kaggle, per course requirement. South African labour statistics are cited as background in the written proposal only and never loaded into the system. The dataset shortlist is in [docs/data-sources.md](docs/data-sources.md) and **none of it is verified yet** — that's the first job.
+All system data comes from Kaggle, per course requirement. South African labour statistics are cited as background in the written proposal only and never loaded into the system.
+
+The spine is the **O*NET 29.0 Database** (U.S. Department of Labor, CC BY 4.0, via Kaggle) — 879 occupations with importance-rated skills, job zones and an expert-ordered related-occupations graph. It replaced an earlier five-dataset shortlist after verification found two of those unusable. Detail in [docs/data-sources.md](docs/data-sources.md); the reasoning in [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Assessment
 
@@ -26,9 +28,11 @@ Assignment 2 is at least 10 functional requirements, and the presentation is bui
 saycep/
 ├── CLAUDE.md       # start here when building
 ├── STATUS.md       # current state, next actions
-├── backend/        # FastAPI service (not built)
+├── backend/
+│   └── load_onet.py            # builds saycep.db from the O*NET files
 ├── frontend/       # React client (not built)
 └── docs/
+    ├── dev-guide.md                # how it works, what changed, and why
     ├── functional-requirements.md   # Assignment 2
     ├── data-sources.md              # Kaggle decision + shortlist
     ├── architecture.md              # demo vs production, data spine
