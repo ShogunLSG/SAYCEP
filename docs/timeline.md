@@ -8,7 +8,7 @@ Solo developer. The proposal describes a Feb–Nov 2026 seven-phase plan; that s
 
 **Confirm first, before anything else:** the exact date, and what "working demo" means to him — a local run on your laptop, or a deployed URL. A demo due 1 October rather than 7 October is a quarter of the available time, and "deployed" adds a workstream that "local" doesn't. This one question changes the plan below more than any other decision, so ask it this week.
 
-## Three-week plan
+## Three-week plan *(superseded 17 September — see the revision below)*
 
 ### Week 1 — 10 to 17 September: data and requirements
 Nothing gets built on unverified data. This week is about removing that risk and locking the requirements.
@@ -45,3 +45,66 @@ Build-out to November: the CV scorer, then opportunity matching if the job posti
 ## Slippage rule
 
 If week 1 runs over, cut scope, not the gates. One module demoed properly with data you can account for beats two half-modules and a question you can't answer.
+
+
+---
+
+# Revised plan — 17 September
+
+Week 1 closed with the data gate met and the requirements gate not. Assuming the
+presentation falls in the **first week of October, planned against 1 October** —
+if it lands later that becomes slack rather than a reason to add scope.
+
+## The real budget
+
+14 calendar days, but the working time is **4 full days (two weekends) plus ten
+evenings**. Roughly six to seven effective days. The original plan assumed more
+than exists, so this is what fits.
+
+## What gets cut, now rather than later
+
+- **RIASEC interest intake is dropped from the demo.** It is the most interesting
+  unbuilt thing here and it is still the right answer for the school-leaver, but
+  it is a whole screen plus a matching algorithm. The school-leaver browses by Job
+  Zone instead — Zones 1–3 are 59% of the catalogue and that is a real answer.
+  Specify RIASEC in the proposal; say plainly it is designed and not built.
+- **Target selection is a search box, not a browse experience.** 879 occupations
+  with a filter by Job Zone. Nothing clever.
+- **No polish on anything off the demo path.**
+
+## Day by day
+
+**Fri 18 — decide.** FR-3 capture approach. One decision, unblocks everything.
+
+**Sat 19 / Sun 20 — the API.** FastAPI over `saycep.db`: occupations, skills,
+profiles, gap, pathway. Verified against real rows before any UI exists. This is
+the half that must not slip, because the frontend has nothing to show without it.
+
+**Mon 22 – Fri 25, evenings — FR-5 onward.** Six requirements, the other half of
+the Week 1 gate. Yours; nothing on the build side unblocks them. Evenings are the
+right slot because drafting does not need a long run of time.
+
+**Sat 26 / Sun 27 — the frontend.** Four screens: capture, target, gap, pathway.
+Ugly and working. If a screen is not on the demo path it does not get built.
+
+**Mon 28 – Tue 29, evenings — make it demoable.** Two seeded users, one per
+profile type, so the story lands. FR-4 provenance labels — cheap, visible, and
+they pre-empt the data question.
+
+**Wed 30 / Thu 1 — slides and rehearsal.** Slides built from the ten
+requirements, not from the code. Then run the demo start to finish without
+touching code. Twice.
+
+## The gate that matters now
+
+There is only one: **on 29 September the demo path runs end to end.** If it does
+not, the remaining time goes to making one module demo properly rather than two
+half-working. One module demoed well with data you can account for beats two
+half-modules and a question you cannot answer.
+
+## Known risk
+
+The frontend is the riskiest item, and it sits on the last weekend. Mitigation:
+React from a CDN in a single HTML file served by FastAPI — no npm, no build step,
+no toolchain to debug at 11pm on 27 September. Still React, still honest in the
+proposal, and it removes a category of problem rather than solving one.
