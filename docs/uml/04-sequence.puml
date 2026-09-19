@@ -1,0 +1,63 @@
+@startuml SAYCEP_Sequence
+' SAYCEP - Sequence Diagram (Assignment 2, Q4.4)
+' Core use case: UC-08 Generate Career Pathway (FR-08)
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor "School-Leaver" as User
+participant "Web UI" as UI <<user interface>>
+participant "SAYCEP API" as API <<application logic>>
+participant "Pathway Service" as PS <<application logic>>
+participant "Gap Analyser" as GA <<application logic>>
+participant "Recommendation Engine" as RE <<emerging technology>>
+participant "Occupation Repository" as Repo <<data service>>
+database "SQLite saycep.db" as DB
+
+User -> UI : request career pathway
+UI -> API : GET /profiles/{id}/pathway
+activate API
+
+API -> PS : generatePathway(profileId)
+activate PS
+
+PS -> Repo : findProfile(profileId)
+activate Repo
+Repo -> DB : SELECT profile and captured skills
+DB --> Repo : profile row
+Repo --> PS : Profile
+deactivate Repo
+
+PS -> GA : computeGap(profile, targetSocCode)
+activate GA
+GA -> Repo : findRequiredSkills(targetSocCode)
+activate Repo
+Repo -> DB : SELECT importance ratings
+DB --> Repo : occupation_skills rows
+Repo --> GA : OccupationSkill[]
+deactivate Repo
+GA -> GA : classify essential or desirable against threshold
+GA --> PS : SkillsGap
+deactivate GA
+
+PS -> Repo : findRelatedOccupations(targetSocCode)
+activate Repo
+Repo -> DB : SELECT related occupations in expert-review order
+DB --> Repo : related_occupations rows
+Repo --> PS : Occupation[]
+deactivate Repo
+
+PS -> RE : rank(profile, candidates)
+activate RE
+RE -> RE : build 35-dimensional skill vectors
+RE -> RE : cosineSimilarity(profileVector, occupationVector)
+RE --> PS : ordered Occupation[]
+deactivate RE
+
+PS -> PS : assemble Pathway of at least three steps
+PS --> API : Pathway
+deactivate PS
+
+API --> UI : 200 OK, pathway JSON with source dataset and date
+deactivate API
+UI --> User : display ordered pathway, skills per step, provenance
+@enduml

@@ -1,0 +1,53 @@
+@startuml SAYCEP_Activity
+' SAYCEP - Activity Diagram (Assignment 2, Q4.2)
+' End-to-end workflow: profile creation through to pathway display.
+skinparam ActivityBackgroundColor #FEFEFE
+
+start
+:Open SAYCEP;
+:Choose profile type;
+:Capture skill profile
+(self-assessment against 35 O*NET skills);
+
+if (Profile type?) then ([Enrolled Student])
+  :Search occupation catalogue by title;
+else ([School-Leaver])
+  :Filter catalogue to Job Zones 1-3
+  (no degree required);
+  #LightSkyBlue:Rank filtered occupations by
+  cosine similarity between the user's
+  skill vector and each occupation's
+  O*NET importance vector;
+  note right
+    **Emerging-technology step**
+    Recommendation Engine
+    FR-06 / TR-01, TR-02, TR-03
+  end note
+  :Present ranked recommendations;
+endif
+
+:Select target occupation;
+:Retrieve target skill requirements
+from Occupation Repository;
+:Compute skills gap
+(target skills minus captured skills);
+
+if (Gap empty?) then ([yes])
+  :Report target already met;
+  :Suggest a higher Job Zone target;
+  stop
+else ([no])
+  :Classify each missing skill as
+  essential or desirable against
+  the importance threshold;
+  :Retrieve related occupations
+  in expert-review order;
+  :Assemble pathway of at least
+  three intermediate steps;
+  :Display pathway with the skills
+  to acquire at each step;
+  :Display source dataset and
+  publication date for every record;
+  stop
+endif
+@enduml
