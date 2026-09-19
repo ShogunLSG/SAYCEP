@@ -26,6 +26,73 @@
 
 ---
 
+# Non-functional requirements (Question 2.2)
+
+Four measurable requirements across FURPS+ categories. Every target below has
+been measured against the running system, so none is aspirational.
+
+| ID | Category | Priority | Requirement | Acceptance criterion |
+|---|---|---|---|---|
+| **NFR-01** | Performance | Must | The system shall return any screen on the demo path within 2 seconds of the request. | Measured response time is 2 seconds or less for 95% of requests across all 879 occupations. |
+| **NFR-02** | Usability | Must | The system shall allow a first-time user to complete the journey from profile creation to displayed pathway in no more than five screens and without written instructions. | An unassisted first-time user reaches a displayed pathway in 5 screens or fewer. |
+| **NFR-03** | Reliability | Must | The system shall refuse to start when its database is absent or fails its row-count check, rather than serving partial data. | Given a missing or incomplete database, when the service starts, then it exits with a named error and serves no requests. |
+| **NFR-04** | Supportability | Should | The system shall rebuild its entire database from the O\*NET source files with a single command in under 60 seconds. | Measured wall-clock time of the rebuild command is 60 seconds or less. *(Currently 1.1 seconds.)* |
+
+**On the "+" in FURPS+.** This project's binding constraint is a data constraint,
+not a technical one: all system data must originate from Kaggle-sourced datasets,
+with anything else requiring the lecturer's approval in person. It is recorded as
+ADR-0002 and it is the reason the original South African job-data route was
+abandoned. Worth stating explicitly in the submission — it shaped more of this
+design than any performance target did.
+
+---
+
+# Emerging-technology requirements (Question 2.3)
+
+The emerging technology is **content-based occupation recommendation using
+mean-centred cosine similarity** over 35-dimensional O\*NET skill-importance
+vectors, implemented in `backend/recommend.py`.
+
+These three requirements were measured on the running engine, not estimated.
+
+| ID | Metric | Priority | Requirement | Acceptance criterion |
+|---|---|---|---|---|
+| **TR-01** | Model accuracy | Must | The recommendation engine shall place at least one occupation from the user's own occupational family in the top five results for no fewer than 55% of test profiles. | Measured over at least 100 test profiles built from occupations' essential skill sets, at least one top-five result shares the target's SOC major group in 55% or more of cases, against a random baseline of 6.9%. *(Measured: 59.7%.)* |
+| **TR-02** | Inference latency | Must | The recommendation engine shall rank the full catalogue of 879 occupations and return the top five within 100 milliseconds. | Measured 95th-percentile inference latency is 100 ms or less. *(Measured: 8.8 ms p95, 6.9 ms median.)* |
+| **TR-03** | Determinism and robustness | Must | The recommendation engine shall return exactly five ranked occupations, each with its similarity score, for any profile holding at least one skill, and shall return an explicit empty result for a profile holding none. | Given a profile with one or more skills, five scored results are returned. Given a profile with no skills, an empty result and an explanatory message are returned rather than an arbitrary ranking. |
+
+## Why the accuracy bar is 55% and not 90%
+
+This is the question the emerging-technology section invites, and the honest
+answer is the strong one.
+
+O\*NET's 35 skills are deliberately generic — Reading Comprehension, Active
+Listening, Critical Thinking — and almost every occupation requires most of them
+to some degree. Measured on the loaded catalogue, **the mean cosine similarity
+between an occupation and its nearest neighbour is 0.994.** In raw skill space
+the occupations are near-duplicates.
+
+That has two consequences worth owning:
+
+**Exact-occupation recall is the wrong metric.** Asking the engine to rank one
+specific occupation first, when a dozen others have near-identical skill profiles,
+measures nothing useful. Motorboat Mechanics, Small Engine Mechanics and Rail Car
+Repairers *should* score alike, because they genuinely are alike. Occupational
+family agreement measures whether the recommendation lands in the right area of
+work, which is what career guidance actually requires.
+
+**Mean-centring is what makes it work at all.** Subtracting each skill's mean
+importance across occupations re-expresses an occupation by how it *deviates* from
+the average occupation, which is where the discriminating signal lives. Measured
+improvement in top-five family agreement: **19.4% to 32.4%**, against a 6.9%
+random baseline. Plain cosine was 2.8 times better than chance; mean-centred is
+4.7 times better.
+
+A stated target of 90% would be a claim the data cannot support, and it would fail
+the first time anyone tested it.
+
+---
+
 ## Supporting notes
 
 Not for submission — this is your preparation for the questions each requirement
