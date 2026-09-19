@@ -1,89 +1,139 @@
-# Functional requirements (Assignment 2)
+# Functional requirements (Assignment 2, Question 2.1)
 
-At least 10 required. The October presentation is built on them and questions are drawn from them, so every one has to be something you can explain, defend and preferably point at running on screen.
+> **Drafted 19 September as a starting point — rewrite these in your own words.**
+> They are assessed and you are questioned on them directly. Every statement below
+> is grounded in what is actually in `saycep.db`, so the acceptance criteria are
+> testable rather than aspirational, but the phrasing should sound like you.
+>
+> IDs, actor names and component names match the four UML diagrams in `docs/uml/`.
+> The rubric marks that consistency, so if you renumber anything here, renumber it
+> there too.
 
-**How this file is meant to be used.** FR-1 to FR-4 below are worked in full — statement, why it holds up, and the question it invites — to establish the pattern. The rest are yours to draft. That split is deliberate: requirements you reasoned your way to are ones you can defend when he pushes, and requirements handed to you are ones you have to reverse-engineer your own thinking for, in the room, under questioning. Use the four as a template for form and rigour, not as text to pad out.
+## The ten requirements
+
+| ID | Priority | Requirement | Acceptance criterion |
+|---|---|---|---|
+| **FR-01** | Must | The system shall allow a user to create a profile by selecting one of two profile types: enrolled student or school-leaver. | **Given** a visitor on the profile creation screen, **when** they select a profile type and confirm, **then** the system creates a profile of that type and returns a unique profile identifier. |
+| **FR-02** | Must | The system shall allow a user to record which of the 35 O\*NET skills they currently hold, by self-assessment. | **Given** a user with a created profile, **when** they select any subset of the 35 skills and submit, **then** the system stores exactly those skills against that profile and no others. |
+| **FR-03** | Must | The system shall allow a user to select exactly one target occupation from the catalogue of 879 occupations. | **Given** a user with a captured skill profile, **when** they choose an occupation, **then** the system records that occupation's SOC code as the profile's target and replaces any target previously set. |
+| **FR-04** | Should | The system shall allow a user to search the occupation catalogue by title and return all matching occupations. | **Given** the catalogue is loaded, **when** a user enters a search term of at least two characters, **then** the system returns every occupation whose title contains that term, case-insensitively, or states explicitly that there are no matches. |
+| **FR-05** | Must | The system shall allow a user to filter the occupation catalogue by O\*NET Job Zone and shall display the preparation level description for the selected zone. | **Given** a user selects Job Zone 3, **when** the catalogue is displayed, **then** only the 209 occupations graded Job Zone 3 are listed, together with that zone's education, experience and training description. |
+| **FR-06** | Must | The system shall rank candidate occupations by cosine similarity between the user's 35-dimensional skill vector and each occupation's O\*NET importance vector, and shall display the five highest-ranked with their similarity scores. | **Given** a profile holding at least one captured skill, **when** the user requests recommendations, **then** the system returns exactly five occupations ordered by descending similarity score, each displaying its score to two decimal places. |
+| **FR-07** | Must | The system shall compare a user's captured skills against the skills required for their target occupation and shall display each missing skill classified as either essential or desirable. | **Given** a profile with captured skills and a target occupation, **when** the user views the skills gap, **then** the system lists every skill the target requires that the profile does not hold, each labelled *essential* where its O\*NET importance rating is 3.5 or above and *desirable* where it is below 3.5. |
+| **FR-08** | Must | The system shall generate an ordered pathway of no fewer than three intermediate steps between the user's current profile and their target occupation, each step naming the skills to be acquired at that step. | **Given** a profile with a target occupation, **when** the user requests a pathway, **then** the system displays at least three ordered steps, each identifying a named occupation and listing at least one skill to acquire. |
+| **FR-09** | Should | The system shall display the source dataset and publication date for every occupation and skill record presented to the user. | **Given** any occupation or skill shown on screen, **when** the user views it, **then** the source dataset name and that record's publication date are visible without further navigation. |
+| **FR-10** | Must | The system shall rebuild its occupation database from the O\*NET source files on demand, and shall abort the load if any source file's row count differs from the published reference count. | **Given** the O\*NET source files are present and intact, **when** the load command is run, **then** the system builds a database of 879 occupations, 35 skills and 27,463 importance ratings. **Given** any source file has an unexpected row count, **when** the load is run, **then** it aborts and names the offending file. |
+
+---
+
+## Supporting notes
+
+Not for submission — this is your preparation for the questions each requirement
+invites, and the evidence that each is traceable to real data.
+
+**FR-01 / FR-04 / FR-05 — the two profile types.**
+*Data behind it:* `Job Zones.txt`, 923 occupations graded 1–5; 879 in the loaded
+catalogue (Zone 1: 31, Zone 2: 285, Zone 3: 209, Zone 4: 204, Zone 5: 150).
+*Invites:* "Why do the two profiles need different routes?" — Because a
+school-leaver has no qualification to aim from and needs to discover what is
+reachable without a degree; Job Zones 1–3 are 545 of 923 occupations, so that is a
+substantial answer rather than a token one. An enrolled student already has
+direction and needs a target. Note that both capture skills identically — see
+ADR-0004 for why inferring skills from a qualification would have meant inventing
+data O\*NET does not contain.
+
+**FR-02 — skill capture.**
+*Data behind it:* O\*NET's skills taxonomy, 35 entries.
+*Invites:* "Why self-assessment?" — Because nothing in the dataset maps a person
+to their skills; only occupations to skills. Self-assessment is the honest input
+and it keeps the system's claims inside what the data supports.
+
+**FR-06 — the emerging technology.**
+*Data behind it:* 27,463 importance ratings across 879 occupations, giving each
+occupation a 35-dimensional vector.
+*Invites:* "Why cosine similarity and not a neural model?" — Because the feature
+space is 35 dimensions of already-curated survey data, there is no labelled
+training set to learn from, and cosine similarity on normalised vectors is the
+standard content-based recommendation approach for exactly this shape of problem.
+It is also fully explainable, which matters when a user asks why an occupation was
+suggested.
+
+**FR-07 — the threshold.**
+*Data behind it:* O\*NET Importance scale, 1–5.
+*Invites:* "Why 3.5?" — **This is the design decision you own, and 3.5 is a
+placeholder until you confirm it.** The argument for it: importance ratings cluster
+hard on whole numbers, and 3.0 alone holds 32.5% of all ratings, so a cut at 3.0
+would flip a third of the dataset depending on whether you write ≥ or >. 3.5 sits
+in the sparse gap between the 3.0 and 4.0 clusters. It also yields about 7.3
+essential skills per occupation, where a cut at 3.0 gives 14.4 — and fourteen
+"essential" skills is not a gap a user can act on.
+
+**FR-08 — the three-step minimum.**
+*Data behind it:* `Related Occupations.txt`, 18,460 links ordered by O\*NET's
+expert review. Verified: all 879 occupations have three or more reachable primary
+neighbours, so this requirement is satisfiable across the whole catalogue.
+*Invites:* "Where does the step order come from?" — From O\*NET's expert-review
+ordering, not a similarity heuristic of our own. That is a stronger answer than
+anything we could have derived.
+
+**FR-09 — provenance.**
+*Data behind it:* `source_dataset` on occupations and skills, `source_date` on
+each importance rating — real dates spanning June 2010 to August 2024.
+*Invites:* Nothing hostile. This requirement exists to create a good moment rather
+than survive a bad one: it answers the data-origin question before it is asked.
+
+**FR-10 — the loader.**
+*Data behind it:* O\*NET's published row counts — 1,016 / 61,530 / 923 / 18,460.
+*Invites:* "Why does a data load need to be a requirement?" — Because a partially
+downloaded file loads cleanly and produces a database that looks right and is
+quietly wrong. Failing loudly is the requirement.
+
+---
+
+## Renumbering from the earlier draft
+
+The earlier four requirements are preserved in substance and renumbered so that
+requirement IDs match the use cases in `docs/uml/01-use-case.puml`.
+
+| Was | Now |
+|---|---|
+| FR-1 Career Pathway Builder | **FR-08** |
+| FR-2 Skills gap analyser | **FR-07** |
+| FR-3 User profiles | **FR-01**, **FR-04**, **FR-05** |
+| FR-4 Data provenance | **FR-09** |
+
+New from the use-case model: FR-02, FR-03, FR-06, FR-10.
+
+---
 
 ## What makes a requirement defensible
 
-A functional requirement says what the system must **do**. "Fast", "secure", "user-friendly" are non-functional and don't belong here.
+A functional requirement says what the system must **do**. "Fast", "secure",
+"user-friendly" are non-functional and belong in Question 2.2.
 
-Four tests, all of which the worked examples pass:
+**Countable.** "No fewer than three intermediate steps" can be checked on screen.
+"A useful pathway" cannot.
 
-**Countable.** "No fewer than three intermediate steps" can be checked on screen. "A useful pathway" cannot.
+**Traceable to data.** You must be able to say which dataset makes it possible. A
+requirement the data cannot support is the one that collapses when he asks where
+the numbers come from.
 
-**Traceable to data.** You must be able to say which dataset makes it possible. A requirement the data can't support is the one that collapses when he asks where the numbers come from.
+**Demonstrable, or explicitly not.** Mark each as built or designed. Claiming
+something works when it does not is worse than saying it is specified but not
+implemented.
 
-**Demonstrable, or explicitly not.** Mark each one as built or designed. Claiming something works when it doesn't is worse than saying it's specified but not implemented.
+**Owns its design decision.** Every requirement hides a choice — a threshold, an
+ordering, a classification. Know what yours is and why.
 
-**Owns its design decision.** Every requirement hides a choice — a threshold, an ordering, a classification. Know what yours is and why. That's what the questions will be about.
+## Build status — say this plainly in the presentation
 
----
-
-## Worked examples
-
-### FR-1 — Career Pathway Builder *(built)*
-> The system shall allow a user to select a target occupation from the occupation catalogue and shall generate an ordered pathway of no fewer than three intermediate steps, each step naming the specific skills to be acquired at that step.
-
-*Holds up because:* countable (three steps), demonstrable, and traceable to the role↔skill mapping dataset.
-
-*Invites the question:* "Where do the intermediate steps come from?" — Answer: from skill-overlap distance between the user's current set and the target's required set, grouped into steps. Have the actual grouping rule ready.
-
-### FR-2 — Skills gap analyser *(built)*
-> The system shall compare a user's captured skill set against the skills required for their selected target occupation and shall display each missing skill classified as either essential or desirable.
-
-*Holds up because:* clear input, clear output, visible classification.
-
-*Invites the question:* "How do you decide essential versus desirable?" — This is the design decision you own. A defensible rule: a skill appearing in more than a set percentage of records for that occupation is essential, below it desirable. **Pick the threshold, write it down, and be able to say why that number.**
-
-### FR-3 — User profiles *(built)*
-> The system shall support two profile types — enrolled student and unqualified school-leaver — and shall present each with a different route to selecting a target occupation: direct search for the student, and browsing by required preparation level for the school-leaver.
-
-*Holds up because:* two visibly different routes, both demonstrable on screen, both traceable to O*NET's Job Zone data (923 occupations graded 1–5 by preparation needed).
-
-*Invites the question:* "Why do the two paths diverge after capture rather than during it?" — Because skill capture is self-assessment against the same 35-skill taxonomy for everyone; there is no honest way to infer a person's skills from their qualification, and pretending otherwise would be inventing data. What genuinely differs is what you do next. An enrolled student already has direction and needs a target. A school-leaver needs to discover which occupations are reachable at all without a degree — which is exactly what browsing Job Zones 1 to 3 shows them, and that is 59% of the catalogue.
-
-*Data behind it:* `Job Zones.txt` — 923 occupations graded 1–5.
-
-> **Reworded 17 September, and this wording is yours to own.** The original said
-> the system would "capture a different initial skill profile for each", justified
-> by an enrolled student having a qualification to infer skills from. Loading the
-> data showed O*NET has no qualification-to-skills mapping, so that justification
-> could not have survived the question. See ADR-0004. Change the phrasing if it
-> does not sound like you — but do not put the old version back.
-
-### FR-4 — Data provenance *(built)*
-> The system shall record and display the source dataset and publication date for every occupation and skill record presented to the user.
-
-*Holds up because:* it turns his data rule into a visible feature. Cheap to build — two columns and a label in the UI — and it pre-empts the provenance question instead of waiting to be caught by it.
-
-*Invites the question:* nothing hostile. This one creates a good moment rather than a risk, which is exactly why it's worth including.
-
----
-
-## Yours to draft (aim for 6+, giving 10+ total)
-
-Draft these against the four tests above. Suggested coverage, though the split is yours:
-
-**Two more on the built modules.** What else must the pathway builder or gap analyser *do* that isn't covered? Saving and resuming a pathway? Changing a target and seeing the gap recalculate? Re-ordering steps? These are the strongest additions because you can demo them.
-
-**Two on the CV builder / scorer.** What must it accept — uploaded file, or pasted text? What must it output — a numeric score, a set number of improvement suggestions, both? Mark as designed unless you actually build it.
-
-**Two on opportunity matching.** What does it match on — skills, location, qualification level? How many results, ranked how? Blocked until the SA job postings dataset is verified (`data-sources.md`), so this may have to be specified rather than built.
-
-**Optional, on the interview chatbot.** How many questions, tied to what, and does it evaluate the answer or just ask?
-
-### Template
-
-```
-### FR-n — <module> (built | designed)
-> The system shall ...
-
-Holds up because:
-Invites the question:
-Data behind it:
-```
+At the time of writing, the data spine (FR-10) is built and verified. FR-01 to
+FR-09 are specified and designed; the API and interface that deliver them are
+planned in `docs/plans/api-first-slice.md` and not yet built. State which is which
+rather than implying more than exists.
 
 ## Keep in sync
 
-These have to agree with proposal section 2.3 (expected solution) and with what's actually running by demo day. Three versions of the same story that don't match is a bad look; one story told consistently is most of the mark.
+These must agree with the UML diagrams in `docs/uml/`, with proposal section 2.3,
+and with whatever is actually running on demo day. One story told consistently is
+most of the mark.
