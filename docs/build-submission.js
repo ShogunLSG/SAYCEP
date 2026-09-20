@@ -165,8 +165,8 @@ const doc = new Document({
       new Paragraph({ spacing: { after: 600 }, alignment: AlignmentType.CENTER,
         children: [new TextRun({ text: "South African Youth Career and Employment Platform", italics: true, size: 24, color: "404040" })] }),
       table([3000, 6026], ["Field", "Detail"], [
-        ["Student name", "[YOUR NAME]"],
-        ["Student number", "[YOUR STUDENT NUMBER]"],
+        ["Student name", "Lesego Jan Malema Matsimela"],
+        ["Student number", "219045719"],
         ["Module code", "ISJ107V"],
         ["Assessment", "Assignment 2 — Individual"],
         ["Total marks", "50"],
