@@ -103,7 +103,8 @@ invites, and the evidence that each is traceable to real data.
 catalogue (Zone 1: 31, Zone 2: 285, Zone 3: 209, Zone 4: 204, Zone 5: 150).
 *Invites:* "Why do the two profiles need different routes?" — Because a
 school-leaver has no qualification to aim from and needs to discover what is
-reachable without a degree; Job Zones 1–3 are 545 of 923 occupations, so that is a
+reachable without a degree; Job Zones 1–3 are 525 of the 879 catalogued
+occupations, so that is a
 substantial answer rather than a token one. An enrolled student already has
 direction and needs a target. Note that both capture skills identically — see
 ADR-0004 for why inferring skills from a qualification would have meant inventing
