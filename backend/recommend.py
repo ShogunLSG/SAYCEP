@@ -27,10 +27,8 @@ Standard library only.
 import math
 import sqlite3
 import statistics
-from pathlib import Path
 
-DB = Path(__file__).resolve().parent / "saycep.db"
-ESSENTIAL_THRESHOLD = 3.5  # see FR-07; the one place this number lives
+from config import DB_PATH as DB, ESSENTIAL_THRESHOLD
 
 
 def load_vectors(con):

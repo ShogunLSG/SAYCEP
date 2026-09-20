@@ -4,9 +4,10 @@
 > five questions from decisions already made and recorded in this repository. It
 > is assessed work and you are questioned on it, so the phrasing should be yours.
 >
-> **Placeholders marked `[CITE]` need a real referenced statistic.** I have not
-> filled those in because I cannot verify South African labour figures from here,
-> and an invented number in an assessed document is worse than a gap.
+> **The unemployment figures are from Statistics South Africa's Quarterly Labour
+> Force Survey, Q1 2026, verified against statssa.gov.za.** Check them against the
+> latest release before submitting — a Q2 2026 figure of 47.4% for ages 15–34
+> appears in secondary reporting but I could not confirm it from StatsSA directly.
 >
 > Q2 lives in `functional-requirements.md` and is summarised here. Q4 diagrams are
 > in `docs/uml/` as PlantUML source with rendered PNG and SVG.
@@ -46,9 +47,7 @@ importance ratings; a user's self-assessed skill profile is compared against all
 
 ## 1.2 Problem statement (3)
 
-**The current problem.** South African youth unemployment is among the highest in
-the world, at `[CITE]`% for ages 15–34 `[CITE: source and year]`. But
-unemployment figures describe the symptom. The underlying problem this system
+**The current problem.** South African youth unemployment is among the highest in the world. In the first quarter of 2026, 60.9% of those aged 15–24 and 40.6% of those aged 25–34 were unemployed, against a national rate of 32.7% — 4.7 million unemployed young people out of 21.0 million aged 15–34 (Statistics South Africa, Quarterly Labour Force Survey, Q1 2026). The gradient matters more than the headline: the worst affected band is precisely the school-leaver this system is built for. But unemployment figures describe the symptom. The underlying problem this system
 addresses is narrower and more tractable: young people cannot see the route from
 where they are to work that exists. Career guidance is concentrated in
 better-resourced schools, it skews heavily toward university pathways, and it
