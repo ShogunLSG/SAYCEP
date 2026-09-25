@@ -21,16 +21,21 @@ How the skills at each step are chosen, which is the harder question:
 
   What actually separates them is *how much* of each skill is required. Moving
   from Boilermaker to Electrician does not add Troubleshooting; it raises the
-  importance of Troubleshooting from 3.25 to 4.00. So each step reports two
-  things:
+  importance of Troubleshooting from 3.25 to 4.00.
 
-    acquire -- skills the occupation needs at or above the essential threshold
-               that the user does not hold and no earlier step covered
-    develop -- skills whose required importance rises at this step, with the
-               before and after figures shown
+  So a step does not report "new skills" -- it reports the skills that matter
+  most *in that role*, ranked by O*NET importance, each badged with how it
+  relates to where the user is:
 
-  Every step on a real pathway names something under one heading or the other,
-  and the figures are O*NET's own rather than a rule we invented.
+    new    -- the user does not hold this skill at all
+    deeper -- the role demands more of it than the previous step did,
+              with O*NET's before and after figures
+    (none) -- already held and already at this level
+
+  A single ranked list rather than two filtered ones, because splitting by
+  "new" and "rising" leaves steps naming nothing whenever a user already holds
+  what an occupation needs -- which happens often, given how alike related
+  occupations are. Ranked by importance, a step always has something to say.
 """
 
 from config import ESSENTIAL_THRESHOLD, PATHWAY_INTERMEDIATE_STEPS
@@ -56,9 +61,7 @@ def generate_pathway(con, profile_id, soc_code):
         row = target if is_target else next(
             r for r in ordered if r["related_soc_code"] == step_soc)
 
-        acquire = _skills_to_acquire(con, step_soc, acquired)
-        develop = _skills_to_develop(con, step_soc, previous)
-        acquired |= {s["element_id"] for s in acquire}
+        focus = _step_focus(con, step_soc, held, previous)
 
         steps.append({
             "step": position,
@@ -67,8 +70,7 @@ def generate_pathway(con, profile_id, soc_code):
             "job_zone": row["job_zone"],
             "relatedness_tier": None if is_target else row["tier"],
             "expert_review_index": None if is_target else row["sort_index"],
-            "acquire": acquire,
-            "develop": develop,
+            "focus": focus,
             "is_target": is_target,
         })
         previous = step_soc
@@ -86,9 +88,9 @@ def generate_pathway(con, profile_id, soc_code):
         ),
         "skills_basis": (
             "Consecutive occupations on a pathway require very nearly the same "
-            "skills (measured cosine 0.987-0.996), so each step reports skills to "
-            "acquire outright and skills whose required importance rises at that "
-            "step, with O*NET's before and after ratings."
+            "skills (measured cosine 0.987-0.996), so each step lists the skills "
+            "that matter most in that role by O*NET importance, badged as new to "
+            "the user or as demanding more depth than the previous step."
         ),
     }
 
@@ -98,31 +100,30 @@ def _importance_map(con, soc_code):
             for r in repository.required_skills(con, soc_code)}
 
 
-def _skills_to_acquire(con, soc_code, already):
-    """Essential skills this occupation needs that nothing earlier covered."""
-    out = [
-        {"element_id": eid, "name": name, "importance": round(imp, 2)}
-        for eid, (name, imp) in _importance_map(con, soc_code).items()
-        if eid not in already and imp >= ESSENTIAL_THRESHOLD
-    ]
-    out.sort(key=lambda s: -s["importance"])
-    return out
+def _step_focus(con, soc_code, held_ids, previous_soc, top_n=6):
+    """The skills that matter most in this role, badged against the user."""
+    current = _importance_map(con, soc_code)
+    prior = _importance_map(con, previous_soc) if previous_soc else {}
 
-
-def _skills_to_develop(con, soc_code, previous_soc):
-    """Skills whose required importance rises against the previous step."""
-    if previous_soc is None:
-        return []
-    current, prior = _importance_map(con, soc_code), _importance_map(con, previous_soc)
     out = []
-    for eid, (name, imp) in current.items():
-        before = prior.get(eid, (name, 0.0))[1]
-        if imp - before >= MIN_MEANINGFUL_RISE:
-            out.append({"element_id": eid, "name": name,
-                        "from": round(before, 2), "to": round(imp, 2),
-                        "rise": round(imp - before, 2)})
-    out.sort(key=lambda s: -s["rise"])
-    return out
+    for element_id, (name, importance) in current.items():
+        before = prior.get(element_id, (name, None))[1]
+        rises = before is not None and importance - before >= MIN_MEANINGFUL_RISE
+        out.append({
+            "element_id": element_id,
+            "name": name,
+            "importance": round(importance, 2),
+            "essential": importance >= ESSENTIAL_THRESHOLD,
+            # A skill the user lacks is "new" outright; from/to describes a
+            # rising demand between roles and only makes sense for one they hold.
+            "badge": "new" if element_id not in held_ids else ("deeper" if rises else None),
+            "from": round(before, 2) if rises and element_id in held_ids else None,
+            "to": round(importance, 2) if rises and element_id in held_ids else None,
+        })
+
+    # Most important first; among equals, surface what the user still lacks.
+    out.sort(key=lambda s: (-s["importance"], s["badge"] != "new"))
+    return out[:top_n]
 
 
 def _rank_by_closeness(con, held_ids, candidates):

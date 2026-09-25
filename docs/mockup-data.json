@@ -1,0 +1,479 @@
+{
+ "profile_skills": [
+  "Operation and Control",
+  "Operations Monitoring",
+  "Equipment Maintenance",
+  "Active Listening",
+  "Critical Thinking",
+  "Monitoring"
+ ],
+ "skills": [
+  {
+   "id": "2.A.2.b",
+   "name": "Active Learning"
+  },
+  {
+   "id": "2.A.1.b",
+   "name": "Active Listening"
+  },
+  {
+   "id": "2.B.2.i",
+   "name": "Complex Problem Solving"
+  },
+  {
+   "id": "2.B.1.b",
+   "name": "Coordination"
+  },
+  {
+   "id": "2.A.2.a",
+   "name": "Critical Thinking"
+  },
+  {
+   "id": "2.B.3.j",
+   "name": "Equipment Maintenance"
+  },
+  {
+   "id": "2.B.3.c",
+   "name": "Equipment Selection"
+  },
+  {
+   "id": "2.B.3.d",
+   "name": "Installation"
+  },
+  {
+   "id": "2.B.1.e",
+   "name": "Instructing"
+  },
+  {
+   "id": "2.B.4.e",
+   "name": "Judgment and Decision Making"
+  },
+  {
+   "id": "2.A.2.c",
+   "name": "Learning Strategies"
+  },
+  {
+   "id": "2.B.5.b",
+   "name": "Management of Financial Resources"
+  },
+  {
+   "id": "2.B.5.c",
+   "name": "Management of Material Resources"
+  },
+  {
+   "id": "2.B.5.d",
+   "name": "Management of Personnel Resources"
+  },
+  {
+   "id": "2.A.1.e",
+   "name": "Mathematics"
+  },
+  {
+   "id": "2.A.2.d",
+   "name": "Monitoring"
+  },
+  {
+   "id": "2.B.1.d",
+   "name": "Negotiation"
+  },
+  {
+   "id": "2.B.3.h",
+   "name": "Operation and Control"
+  },
+  {
+   "id": "2.B.3.a",
+   "name": "Operations Analysis"
+  },
+  {
+   "id": "2.B.3.g",
+   "name": "Operations Monitoring"
+  },
+  {
+   "id": "2.B.1.c",
+   "name": "Persuasion"
+  },
+  {
+   "id": "2.B.3.e",
+   "name": "Programming"
+  },
+  {
+   "id": "2.B.3.m",
+   "name": "Quality Control Analysis"
+  },
+  {
+   "id": "2.A.1.a",
+   "name": "Reading Comprehension"
+  },
+  {
+   "id": "2.B.3.l",
+   "name": "Repairing"
+  },
+  {
+   "id": "2.A.1.f",
+   "name": "Science"
+  },
+  {
+   "id": "2.B.1.f",
+   "name": "Service Orientation"
+  },
+  {
+   "id": "2.B.1.a",
+   "name": "Social Perceptiveness"
+  },
+  {
+   "id": "2.A.1.d",
+   "name": "Speaking"
+  },
+  {
+   "id": "2.B.4.g",
+   "name": "Systems Analysis"
+  },
+  {
+   "id": "2.B.4.h",
+   "name": "Systems Evaluation"
+  },
+  {
+   "id": "2.B.3.b",
+   "name": "Technology Design"
+  },
+  {
+   "id": "2.B.5.a",
+   "name": "Time Management"
+  },
+  {
+   "id": "2.B.3.k",
+   "name": "Troubleshooting"
+  },
+  {
+   "id": "2.A.1.c",
+   "name": "Writing"
+  }
+ ],
+ "held": [
+  "2.B.3.h",
+  "2.B.3.g",
+  "2.B.3.j",
+  "2.A.1.b",
+  "2.A.2.a",
+  "2.A.2.d"
+ ],
+ "zones": [
+  {
+   "zone": 1,
+   "name": "Little or No Preparation Needed",
+   "count": 31,
+   "education": "Some of these occupations may require a high school diploma or GED certificate."
+  },
+  {
+   "zone": 2,
+   "name": "Some Preparation Needed",
+   "count": 285,
+   "education": "These occupations usually require a high school diploma."
+  },
+  {
+   "zone": 3,
+   "name": "Medium Preparation Needed",
+   "count": 209,
+   "education": "Most occupations in this zone require training in vocational schools, related on-the-job experience, or an associate's degree."
+  },
+  {
+   "zone": 4,
+   "name": "Considerable Preparation Needed",
+   "count": 204,
+   "education": "Most of these occupations require a four-year bachelor's degree, but some do not."
+  },
+  {
+   "zone": 5,
+   "name": "Extensive Preparation Needed",
+   "count": 150,
+   "education": "Most of these occupations require graduate school. For example, they may require a master's degree, and some require a Ph.D., M.D., or J.D. (law degree)."
+  }
+ ],
+ "recommendations": [
+  {
+   "soc": "51-8092.00",
+   "title": "Gas Plant Operators",
+   "score": 0.641
+  },
+  {
+   "soc": "51-9011.00",
+   "title": "Chemical Equipment Operators and Tenders",
+   "score": 0.64
+  },
+  {
+   "soc": "51-8012.00",
+   "title": "Power Distributors and Dispatchers",
+   "score": 0.634
+  },
+  {
+   "soc": "51-8093.00",
+   "title": "Petroleum Pump System Operators, Refinery Operators, and Gaugers",
+   "score": 0.63
+  },
+  {
+   "soc": "53-2012.00",
+   "title": "Commercial Pilots",
+   "score": 0.621
+  }
+ ],
+ "gap": {
+  "target": "Electricians",
+  "zone": 3,
+  "threshold": 3.5,
+  "source": "O*NET 29.0 (August 2024 release)",
+  "held": 6,
+  "total": 34,
+  "essential": 2,
+  "desirable": 26,
+  "missing": [
+   {
+    "name": "Troubleshooting",
+    "imp": 4.0,
+    "cls": "essential",
+    "date": "08/2022"
+   },
+   {
+    "name": "Repairing",
+    "imp": 3.5,
+    "cls": "essential",
+    "date": "08/2022"
+   },
+   {
+    "name": "Speaking",
+    "imp": 3.38,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Active Learning",
+    "imp": 3.25,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Installation",
+    "imp": 3.25,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Quality Control Analysis",
+    "imp": 3.25,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Judgment and Decision Making",
+    "imp": 3.25,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Reading Comprehension",
+    "imp": 3.12,
+    "cls": "desirable",
+    "date": "08/2022"
+   },
+   {
+    "name": "Coordination",
+    "imp": 3.12,
+    "cls": "desirable",
+    "date": "08/2022"
+   }
+  ]
+ },
+ "pathway": [
+  {
+   "step": 1,
+   "title": "Boilermakers",
+   "zone": 3,
+   "target": false,
+   "focus": [
+    {
+     "name": "Operations Monitoring",
+     "imp": 3.75,
+     "ess": true,
+     "badge": null,
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Operation and Control",
+     "imp": 3.62,
+     "ess": true,
+     "badge": null,
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Critical Thinking",
+     "imp": 3.5,
+     "ess": true,
+     "badge": null,
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Quality Control Analysis",
+     "imp": 3.38,
+     "ess": false,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Equipment Maintenance",
+     "imp": 3.38,
+     "ess": false,
+     "badge": null,
+     "f": null,
+     "t": null
+    }
+   ]
+  },
+  {
+   "step": 2,
+   "title": "Electrical Power-Line Installers and Repairers",
+   "zone": 2,
+   "target": false,
+   "focus": [
+    {
+     "name": "Troubleshooting",
+     "imp": 3.38,
+     "ess": false,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Active Listening",
+     "imp": 3.38,
+     "ess": false,
+     "badge": "deeper",
+     "f": 3.0,
+     "t": 3.38
+    },
+    {
+     "name": "Monitoring",
+     "imp": 3.25,
+     "ess": false,
+     "badge": null,
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Operations Monitoring",
+     "imp": 3.25,
+     "ess": false,
+     "badge": null,
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Operation and Control",
+     "imp": 3.25,
+     "ess": false,
+     "badge": null,
+     "f": null,
+     "t": null
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "title": "Electrical and Electronics Repairers, Commercial and Industrial Equipment",
+   "zone": 3,
+   "target": false,
+   "focus": [
+    {
+     "name": "Repairing",
+     "imp": 3.88,
+     "ess": true,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Operations Monitoring",
+     "imp": 3.88,
+     "ess": true,
+     "badge": "deeper",
+     "f": 3.25,
+     "t": 3.88
+    },
+    {
+     "name": "Troubleshooting",
+     "imp": 3.75,
+     "ess": true,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Quality Control Analysis",
+     "imp": 3.75,
+     "ess": true,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Critical Thinking",
+     "imp": 3.75,
+     "ess": true,
+     "badge": "deeper",
+     "f": 3.12,
+     "t": 3.75
+    }
+   ]
+  },
+  {
+   "step": 4,
+   "title": "Electricians",
+   "zone": 3,
+   "target": true,
+   "focus": [
+    {
+     "name": "Troubleshooting",
+     "imp": 4.0,
+     "ess": true,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Repairing",
+     "imp": 3.5,
+     "ess": true,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Speaking",
+     "imp": 3.38,
+     "ess": false,
+     "badge": "new",
+     "f": null,
+     "t": null
+    },
+    {
+     "name": "Active Listening",
+     "imp": 3.38,
+     "ess": false,
+     "badge": "deeper",
+     "f": 3.12,
+     "t": 3.38
+    },
+    {
+     "name": "Critical Thinking",
+     "imp": 3.38,
+     "ess": false,
+     "badge": null,
+     "f": null,
+     "t": null
+    }
+   ]
+  }
+ ]
+}
