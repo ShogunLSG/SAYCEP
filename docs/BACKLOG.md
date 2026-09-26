@@ -19,6 +19,21 @@ pen so nothing gets lost.
 
 ---
 
+- **Light gamification polish, only if time remains at the very end.** Discussed
+  26 September against the journey mockup (`docs/plans/` / the artifact, not
+  committed code). Explicitly *not* streaks, XP, badges or leaderboards — those
+  were considered and rejected: the school-leaver user is making a high-stakes
+  decision against a 60.9% unemployment rate for their age band, and comparable
+  real career apps (LinkedIn, Handshake) deliberately avoid that mechanic for
+  that reason. It would also add state with no functional requirement behind it
+  and risks breaking NFR-02's five-screen cap.
+  What's in scope, cheap, and stays on the shelf until the demo path is solid:
+  a satisfying tick animation on skill selection, the gap counts on the gap
+  screen visibly counting down as skills are ticked rather than snapping, and
+  a touch more weight on the pathway screen's completion checkmark. Hours, not
+  days — and only after FR-01 to FR-10 actually work end to end.
+  (Noticed 2026-09-26.)
+
 ## Cleared 2026-09-10
 
 The four items carried here from August all concerned the ESSA/Adzuna job-data
