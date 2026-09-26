@@ -1,0 +1,229 @@
+/* SAYCEP — one screen at a time.
+   Teal-blue carries the interface. Amber is spent on exactly one meaning,
+   "essential", so it reads at a glance on the gap screen. */
+
+:root{
+  --ground:#EEF1F5; --card:#FFFFFF; --sunk:#F1F4F8;
+  --ink:#161D25; --ink-2:#4A555F; --muted:#7E8994;
+  --line:#E1E6EC; --line-2:#EEF1F5;
+  --accent:#1D4E6F; --accent-ink:#153C56; --accent-soft:#E3EDF3; --accent-dim:#B9CBD8;
+  --essential:#A6520A; --essential-soft:#F6E9DC;
+  --ok:#2F6B4F; --ok-soft:#E2EFE8;
+  --danger:#9B2C2C; --danger-soft:#FBEAEA;
+  --shadow:0 1px 2px rgba(22,29,37,.04), 0 24px 48px -24px rgba(22,29,37,.3);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ground:#0D1216; --card:#171E26; --sunk:#121820;
+    --ink:#E7ECF1; --ink-2:#AFBAC5; --muted:#7E8A96;
+    --line:#28323C; --line-2:#1E2731;
+    --accent:#6FADD2; --accent-ink:#A9D2EA; --accent-soft:#17303F; --accent-dim:#2C4658;
+    --essential:#E0913F; --essential-soft:#3A2814;
+    --ok:#6FBF95; --ok-soft:#152A20;
+    --danger:#F08A8A; --danger-soft:#3A1818;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 24px 48px -24px rgba(0,0,0,.8);
+  }
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 15px/1.5 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  display:flex; align-items:center; justify-content:center; padding:24px 16px;
+}
+h1,h2,h3,h4{font-family:"Archivo", system-ui, sans-serif; letter-spacing:-.01em; text-wrap:balance; margin:0}
+button{font-family:inherit; font-size:inherit; color:inherit}
+input{font-family:inherit}
+.mono{font-family:"IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+#root{width:100%; display:flex; justify-content:center}
+
+/* ---------- frame ---------- */
+.app{
+  width:100%; max-width:460px; height:min(840px, calc(100vh - 48px));
+  background:var(--card); border:1px solid var(--line); border-radius:26px;
+  box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column;
+}
+@media (max-width:500px){
+  body{padding:0}
+  .app{max-width:none; height:100vh; height:100dvh; border-radius:0; border:0}
+}
+
+.top{padding:16px 20px 12px; flex:none}
+.toprow{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+.back{
+  width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--sunk);
+  color:var(--ink-2); display:grid; place-items:center; cursor:pointer; flex:none; padding:0;
+}
+.back svg{width:15px; height:15px}
+.back:disabled{visibility:hidden}
+.steplabel{flex:1; font-size:12.5px; color:var(--muted)}
+.steplabel b{color:var(--ink); font-weight:600}
+.brand{font:800 13px/1 "Archivo", sans-serif; letter-spacing:.08em; color:var(--accent)}
+.segments{display:flex; gap:5px}
+.seg{flex:1; height:4px; border-radius:2px; background:var(--line); overflow:hidden}
+.seg i{display:block; height:100%; width:0; background:var(--accent); transition:width .35s ease}
+.seg.on i{width:100%}
+
+.body{flex:1; overflow:hidden; position:relative}
+.pane{position:absolute; inset:0; overflow-y:auto; padding:8px 20px 24px}
+.pane.fwd{animation:in-right .32s cubic-bezier(.32,.72,0,1)}
+.pane.bwd{animation:in-left .32s cubic-bezier(.32,.72,0,1)}
+@keyframes in-right{from{transform:translateX(28px); opacity:0}}
+@keyframes in-left{from{transform:translateX(-28px); opacity:0}}
+@media (prefers-reduced-motion: reduce){ .pane.fwd,.pane.bwd{animation:none} }
+
+.kicker{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-ink); font-weight:600; margin:4px 0 5px}
+.title{font-size:23px; font-weight:700; line-height:1.2; margin-bottom:6px}
+.sub{font-size:14px; color:var(--ink-2); margin:0 0 20px; max-width:36ch}
+
+.foot{padding:12px 20px 18px; border-top:1px solid var(--line-2); flex:none}
+.picked{font-size:12.5px; color:var(--muted); margin:0 0 9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.picked b{color:var(--ink); font-weight:600}
+.cta{
+  width:100%; border:0; border-radius:13px; padding:14px; cursor:pointer;
+  background:var(--accent); color:#fff; font-weight:600; font-size:15px;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.cta svg{width:16px; height:16px}
+.cta:disabled{background:var(--accent-dim); cursor:not-allowed}
+.link{
+  display:block; width:100%; margin-top:8px; padding:6px; border:0; background:none;
+  color:var(--muted); font-size:13px; cursor:pointer;
+}
+
+.banner{
+  border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:14px;
+  background:var(--danger-soft); color:var(--danger); border:1px solid var(--danger);
+}
+.loading{color:var(--muted); font-size:13.5px; padding:24px 0; text-align:center}
+.prov{font-size:11px; color:var(--muted); margin-top:18px; padding-top:12px; border-top:1px solid var(--line-2)}
+
+/* ---------- step 1 ---------- */
+.choice{
+  width:100%; text-align:left; display:flex; gap:13px; align-items:flex-start;
+  border:1.5px solid var(--line); border-radius:15px; padding:17px 16px; margin-bottom:11px;
+  background:var(--card); cursor:pointer; transition:border-color .15s, background .15s;
+}
+.choice .ico{
+  width:40px; height:40px; border-radius:11px; background:var(--sunk); flex:none;
+  display:grid; place-items:center; font-size:19px;
+}
+.choice strong{display:block; font-size:15.5px; margin-bottom:3px}
+.choice p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.45}
+.choice .via{display:block; margin-top:8px; font-size:12px; color:var(--accent-ink); font-weight:600}
+.choice.on{border-color:var(--accent); background:var(--accent-soft)}
+.choice.on .ico{background:var(--accent)}
+.tick{
+  margin-left:auto; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line);
+  flex:none; display:grid; place-items:center; color:#fff;
+}
+.tick svg{width:12px; height:12px; opacity:0}
+.on .tick{background:var(--accent); border-color:var(--accent)}
+.on .tick svg{opacity:1}
+
+/* ---------- step 2 ---------- */
+.filter{position:relative; margin-bottom:13px}
+.filter svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--muted)}
+.filter input{
+  width:100%; border:1.5px solid var(--line); border-radius:11px; padding:10px 12px 10px 33px;
+  font-size:14px; background:var(--sunk); color:var(--ink);
+}
+.filter input::placeholder{color:var(--muted)}
+.chips{display:flex; flex-wrap:wrap; gap:7px}
+.chip{
+  border:1.5px solid var(--line); border-radius:999px; padding:8px 13px; cursor:pointer;
+  font-size:13px; color:var(--ink-2); background:var(--card); transition:background .12s, border-color .12s;
+}
+.chip.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500}
+.count{font-size:12.5px; color:var(--muted); margin-top:14px}
+.count b{color:var(--ink)}
+
+/* ---------- step 3 ---------- */
+.tabs{display:flex; background:var(--sunk); border-radius:11px; padding:3px; margin-bottom:16px}
+.tab{
+  flex:1; border:0; background:none; border-radius:9px; padding:8px 4px; cursor:pointer;
+  font-size:13px; font-weight:500; color:var(--ink-2);
+}
+.tab.on{background:var(--card); color:var(--ink); box-shadow:0 1px 3px rgba(22,29,37,.12)}
+.note{font-size:12.5px; color:var(--muted); margin:0 0 12px}
+.zones{display:flex; gap:6px; margin-bottom:10px}
+.zone{
+  flex:1; border:1.5px solid var(--line); border-radius:9px; padding:7px 2px; cursor:pointer;
+  background:var(--card); font-size:13px; font-weight:600; color:var(--ink-2);
+}
+.zone.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
+.zdesc{
+  font-size:12.5px; color:var(--ink-2); background:var(--sunk); border-left:2px solid var(--accent);
+  border-radius:9px; padding:10px 12px; margin:0 0 14px;
+}
+.zdesc b{color:var(--ink)}
+.list{display:flex; flex-direction:column}
+.occ{
+  width:100%; text-align:left; display:flex; align-items:center; gap:11px; cursor:pointer;
+  padding:11px 8px; border:0; border-bottom:1px solid var(--line-2); background:none; border-radius:9px;
+}
+.occ:hover{background:var(--sunk)}
+.occ.on{background:var(--accent-soft)}
+.occ .t{flex:1; min-width:0; font-size:13.5px}
+.occ .meta{display:block; font-size:11px; color:var(--muted)}
+.occ .tick{margin-left:0}
+.ring{position:relative; width:36px; height:36px; flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .bg{fill:none; stroke:var(--line); stroke-width:3.5}
+.ring .fg{fill:none; stroke:var(--accent); stroke-width:3.5; stroke-linecap:round}
+.ring span{position:absolute; inset:0; display:grid; place-items:center; font:600 10px "IBM Plex Mono", monospace; color:var(--accent-ink)}
+
+/* ---------- step 4 ---------- */
+.target{border:1px solid var(--line); border-radius:13px; padding:14px; background:var(--sunk); margin-bottom:16px}
+.target h3{font-size:16.5px; margin-bottom:2px}
+.target .meta{font-size:11px; color:var(--muted)}
+.stats{display:flex; gap:7px; margin-top:12px}
+.stat{flex:1; text-align:center; border:1px solid var(--line); border-radius:10px; padding:8px 4px; background:var(--card)}
+.stat b{display:block; font:700 20px/1.2 "IBM Plex Mono", monospace}
+.stat span{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.stat.e{border-color:var(--essential); background:var(--essential-soft)} .stat.e b{color:var(--essential)}
+.stat.h{border-color:var(--ok); background:var(--ok-soft)} .stat.h b{color:var(--ok)}
+.rows{display:flex; flex-direction:column; gap:10px}
+.row{display:grid; grid-template-columns:1fr auto; gap:3px 10px; align-items:center}
+.row .nm{display:flex; align-items:center; gap:7px; min-width:0; font-size:13.5px}
+.row .nm span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.row .val{font-size:12px; color:var(--ink-2)}
+.bar{grid-column:1/-1; height:6px; border-radius:3px; background:var(--sunk); overflow:hidden}
+.bar i{display:block; height:100%; background:var(--accent); opacity:.5}
+.row.ess .bar i{background:var(--essential); opacity:1}
+.tag{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; border-radius:4px; padding:2px 6px; flex:none}
+.tag.e{background:var(--essential-soft); color:var(--essential)}
+.tag.d{background:var(--sunk); color:var(--muted)}
+.more{
+  border:0; background:none; color:var(--accent-ink); font-weight:600; font-size:13px;
+  padding:10px 0 0; cursor:pointer;
+}
+.empty{text-align:center; padding:28px 8px; color:var(--ink-2); font-size:14px}
+.empty .big{font-size:34px; margin-bottom:6px}
+.rule{font-size:12px; color:var(--muted); margin:14px 0 0}
+
+/* ---------- step 5 ---------- */
+.steps{display:flex; flex-direction:column}
+.step{display:grid; grid-template-columns:24px 1fr; gap:0 12px}
+.rail{display:flex; flex-direction:column; align-items:center}
+.dot{
+  width:22px; height:22px; border-radius:50%; flex:none; border:1.5px solid var(--accent);
+  background:var(--card); color:var(--accent); font:600 11px/19px "IBM Plex Mono", monospace; text-align:center;
+}
+.step.target-step .dot{background:var(--accent); color:#fff}
+.rline{flex:1; width:1.5px; background:var(--line); margin:4px 0; min-height:18px}
+.sbody{padding-bottom:18px; min-width:0}
+.step:last-child .sbody{padding-bottom:0}
+.sh{display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; margin-bottom:7px}
+.sh h4{font-size:14px; font-weight:600}
+.zn{font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.pill{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; background:var(--accent); color:#fff; border-radius:4px; padding:2px 6px}
+.fs{display:flex; align-items:center; gap:7px; font-size:12.5px; margin-bottom:4px}
+.fs .n{flex:1; min-width:0}
+.bdg{font-size:9px; letter-spacing:.05em; text-transform:uppercase; font-weight:600; border-radius:3px; padding:1px 5px; flex:none}
+.bdg.new{background:var(--essential-soft); color:var(--essential)}
+.bdg.deeper{background:var(--accent-soft); color:var(--accent-ink)}
+.fs .v{font-size:11px; color:var(--muted); flex:none}
+.basis{font-size:12px; color:var(--muted); background:var(--sunk); border-radius:9px; padding:10px 12px; margin-top:18px}

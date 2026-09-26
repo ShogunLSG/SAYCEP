@@ -27,3 +27,6 @@ docs/Datasets/
 
 # Generated database - rebuilt by backend/load_onet.py
 *.db
+
+# Claude Code harness state (launch.json is project config and is kept)
+.claude/*.lock
