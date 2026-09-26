@@ -148,3 +148,7 @@ def set_target(con, profile_id, soc_code):
 
 def valid_skill_ids(con):
     return {r[0] for r in con.execute("SELECT element_id FROM skills")}
+
+
+def occupation_zones(con):
+    return dict(con.execute("SELECT soc_code, job_zone FROM occupations"))
