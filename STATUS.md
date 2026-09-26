@@ -1,44 +1,47 @@
 # Status
 
-**As of 17 September 2026: the data spine is built and loaded. Working demo due beginning of October.** Roughly two weeks.
+**As of 26 September 2026: the demo journey is built and runs end to end against the real data.** Presentation assumed first week of October, planned against 1 October.
 
 ## Decided
 
-- **Data source rule: Kaggle only.** System data from Kaggle; South African statistics cited as written background only, never loaded into the system. Avoids the consultation dependency. (ADR-0002)
-- **Data spine: O*NET 29.0**, taken from Kaggle. Replaced the original five-dataset shortlist after verification. Gives importance ratings per skill, job zones 1–5, and an expert-reviewed related-occupations graph. (ADR-0003, `docs/data-sources.md`)
-- **Demo stack: monolith.** Single FastAPI service + SQLite + React. The Node + separate Python ML microservice design stays as the documented production architecture but is not what gets built. (`docs/architecture.md`)
-- **Scope: two modules built, three specified.** Career Pathway Builder and skills gap analyser get built — they share one data spine, which is why they're the cheap pair.
-- Five core modules, two user profiles, and the proposal rubric structure — unchanged.
+- **Data source rule: Kaggle only.** South African statistics are cited as written background, never loaded. (ADR-0002)
+- **Data spine: O*NET 29.0**, from Kaggle — importance-rated skills, job zones, an expert-reviewed related-occupations graph. (ADR-0003)
+- **Skill capture is shared; the two profiles diverge at target selection.** O*NET has no qualification-to-skills mapping. (ADR-0004)
+- **Emerging technology: mean-centred cosine similarity** over 35-dimensional skill vectors, measured rather than asserted.
+- **Demo stack: monolith** — one FastAPI service serving both the API and the app, SQLite, React from a CDN.
+- **Scope: two modules built, three specified.**
 
 ## Done
 
-- Repo consolidated: the August dissertation-era plan merged with the September rescope, superseded material in `docs/archive/`
-- **All five shortlisted datasets verified.** Two are unusable — the "South Africa" job postings set is not South African, and the career-recommendation set is student aptitude scores, not a role↔skill map. Recorded in `docs/data-sources.md`
-- **O*NET found, verified and adopted.** File structures confirmed against O*NET's published data dictionary, not assumed
-- **Data spine built and loaded.** `backend/load_onet.py` rebuilds `saycep.db` from the O*NET files: 879 occupations, 35 skills, 27,463 skill ratings, 17,580 pathway links. Gap and pathway queries verified against real rows
-- **FR-1's open risk closed** — all 879 occupations have 3+ reachable primary neighbours, so the three-step promise holds catalogue-wide
-- FR-1 to FR-4 worked as examples, with the criteria for the rest
-- Three-week plan with weekly gates
+- **The journey.** Five screens, one at a time — who you are, your skills, pick a target, the gap, the route. Walked end to end in a browser against the real database. `?presenter` on the URL shows each screen's requirements.
+- **The API.** Eight endpoints, module names matching the sequence diagram. One connection per request, verified under 20 concurrent calls.
+- **All ten functional requirements are built and demonstrable.** FR-10 in the loader, FR-01 to FR-09 in the API and journey.
+- **Recommendation engine** measured at 59.7% occupational-family accuracy against a 6.9% baseline, and 8.8 ms p95 latency.
+- **Assignment 2 drafted** — all five questions, four UML diagrams, a formatted `.docx` with your name and verified StatsSA figures.
+- **Repo on GitHub**, private, at `ShogunLSG/SAYCEP`.
 
-## Not done
+## Not done — in order of what hurts most if left
 
-- **Presentation date still unconfirmed.** Untouched since this file was written, and still the single question that changes the plan most.
-- **FR-1 and FR-2 carry stale answers.** Both were written against the old dataset: FR-1 says pathway steps come from "skill-overlap distance", FR-2 says essential/desirable comes from "a set percentage of records". Under O*NET both answers changed — and they changed for the better — but the file still holds the old ones. Rehearsing those would go badly.
-- **FR-5 onward not drafted.** Yours to write; questioned directly on these.
-- **Opportunity-matching guidance is stale.** The drafting notes say it's blocked pending verification of the SA job postings dataset. That dataset is now verified and dead, so those requirements are specified-not-built regardless.
-- All code. Backend, frontend, data loading — none of it exists.
-- Proposal writing: every rubric section still empty (`docs/proposal-outline.md`)
-- SMART goals and the five success criteria
-- Open calls: LLM provider (may not be needed), auth approach for the demo, whether hosting is required
+1. **Presentation date still unconfirmed.** Everything is planned against 1 October; if it's earlier, the next item is all that fits.
+2. **Rehearsal.** The build works, which is not the same as the demo being ready. Run the path start to finish without touching code — twice, per the timeline's own gate. Use the demo script below so it's the same every time.
+3. **Slides.** Not started. Build them from the ten requirements, not from the code.
+4. **The demo needs internet.** React and `htm` load from a CDN. If the room is offline, the page shows an error instead of the app. Fix: bundle the three files (~150 KB) into `frontend/vendor/` — asks permission to download them first.
+5. **Assignment document, if not yet submitted:** it's my draft, not your voice; it asserts the 3.5 threshold as fact; and whether PlantUML counts as a "recognised UML tool" is unchecked.
+6. **FR-08's wording** says steps name skills "to be acquired". The build names skills to acquire *and* to deepen. Either reword or be ready to explain.
 
-## Do these first
+## The demo script
 
-1. **Confirm the exact presentation date and what "working demo" means** — local run or deployed URL. One message, and it changes the plan more than anything else. Still not done.
-2. **Draft FR-5 onward** — the remaining half of the Week 1 gate, and nothing on the build side unblocks it.
-3. **Pick the essential/desirable threshold** on O*NET's 1–5 importance scale. Not urgent: importance is stored raw and the label is derived at query time, so this is a config change whenever you decide.
+The path that's been verified, so rehearsal repeats it exactly:
 
-Week 1 gate: real data queryable in SQLite, and 10+ requirements written. Week 2 doesn't start without both.
+1. **I left school**
+2. Tick: Operation and Control · Operations Monitoring · Equipment Maintenance · Active Listening · Critical Thinking · Monitoring
+3. *For you* shows operator roles (Gas Plant Operators, 64%). Switch to *Search*, type "electric", pick **Electricians**
+4. The gap: **6 held, 2 essential, 26 desirable** — Troubleshooting and Repairing are the two amber bars
+5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians
 
-**Gate status, 17 September:** data half ✅ — real data queryable in SQLite, gap and pathway queries both returning sensible results. Requirements half ✗ — still 4 of 10, and that half is yours.
+Expect the question "why do the recommendations not include Electrician?" The honest answer: the six skills ticked are operator skills, and the engine ranks by them. The target was reached by search, which is exactly what search is for.
 
-Week 2 (build the core) can start on the data; it does not depend on the requirement count. But the gate exists because the requirements are what the presentation is built on, so the shortfall is real and carrying it into week 3 would be worse than dealing with it now.
+## Deferred on purpose
+
+- Light gamification polish — `docs/BACKLOG.md`, only if time remains
+- RIASEC interest intake, and the three specified-only modules

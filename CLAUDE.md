@@ -45,9 +45,12 @@ boundaries clean in code so the split stays possible later.
 
 ## Stack
 
-Python (FastAPI), SQLite, React. Standard library only so far — do not add a
-dependency without saying why. LLM API from the backend if needed; the two built
-modules may not need one at all.
+Python (FastAPI), SQLite, React. The backend's only third-party dependencies are
+FastAPI and uvicorn; the frontend loads React and `htm` from a CDN with no build
+step. Do not add a dependency without saying why. No LLM in the build.
+
+Run the app from the repo root with
+`python -m uvicorn app:app --app-dir backend --port 8000`.
 
 Data comes from the O*NET 29.0 text files, loaded by `backend/load_onet.py` into
 `backend/saycep.db`. That is a command you run, not something that happens at

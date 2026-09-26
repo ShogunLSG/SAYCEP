@@ -195,10 +195,15 @@ ordering, a classification. Know what yours is and why.
 
 ## Build status — say this plainly in the presentation
 
-At the time of writing, the data spine (FR-10) is built and verified. FR-01 to
-FR-09 are specified and designed; the API and interface that deliver them are
-planned in `docs/plans/api-first-slice.md` and not yet built. State which is which
-rather than implying more than exists.
+**As of 26 September, all ten are built and demonstrable** — FR-10 in the loader,
+FR-01 to FR-09 in the API and the five-screen journey, walked end to end in a
+browser against the real database. Run the app with `?presenter` and each screen
+shows the requirements it satisfies.
+
+Two things to say plainly rather than let be discovered. FR-03 needed an endpoint
+the proposal does not list, `PUT /profiles/{id}/target`. And the three modules
+outside the demo — CV scorer, opportunity matching, interview chatbot — are
+specified, not built.
 
 ## Keep in sync
 

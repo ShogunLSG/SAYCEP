@@ -34,12 +34,34 @@ job_zone_reference           5
 Neither `backend/data/` nor `saycep.db` is committed. Both are reproducible from
 the source files, and 97 MB of third-party data has no business in a git history.
 
+**Run the app.** From the repo root:
+
+```bash
+python -m uvicorn app:app --app-dir backend --port 8000
+```
+
+Open http://127.0.0.1:8000 for the journey, `/docs` for the API. Needs FastAPI
+and uvicorn installed. If `saycep.db` is missing the server refuses to start and
+says why (NFR-03).
+
 ---
 
 ## 2. What exists
 
-One file of code: `backend/load_onet.py`. The API and frontend are planned
-(`docs/plans/api-first-slice.md`) but not built.
+| Component | File | Diagram name |
+|---|---|---|
+| Loader | `backend/load_onet.py` | — |
+| API — routes only | `backend/app.py` | SAYCEP API |
+| Database access | `backend/repository.py` | Occupation Repository |
+| Gap analysis | `backend/gap.py` | Gap Analyser |
+| Pathway generation | `backend/pathway.py` | Pathway Service |
+| Recommendation | `backend/recommend.py` | Recommendation Engine |
+| The journey | `frontend/` | Web UI |
+
+Module names match the sequence diagram deliberately, so the code and Figure 4
+tell the same story. The API has eight endpoints: the seven the proposal lists,
+plus `PUT /profiles/{id}/target`, which FR-03 needs — see
+`docs/plans/frontend-journey.md`.
 
 ### Schema
 

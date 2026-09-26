@@ -254,6 +254,7 @@ GET  /occupations?zone=&q=      list and filter the catalogue
 GET  /occupations/{soc}         one occupation with provenance
 GET  /skills                    all 35, for the capture screen
 POST /profiles                  create a profile with captured skills
+PUT  /profiles/{id}/target      record the target, replacing any previous
 GET  /profiles/{id}/gap         missing skills, classified, by importance
 GET  /profiles/{id}/pathway     ordered steps with skills per step
 GET  /recommendations           ranked occupations by similarity

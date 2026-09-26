@@ -2,7 +2,7 @@
 
 An AI-driven career and employment platform for South African youth. University project (ISJ107V), solo developer.
 
-**Working demo due beginning of October 2026.** The data spine is built and loaded; the API and frontend are not. Current state and next actions: [STATUS.md](STATUS.md). How it works and why: [docs/dev-guide.md](docs/dev-guide.md). Building from this repo: start at [CLAUDE.md](CLAUDE.md).
+**Working demo due beginning of October 2026.** All five screens of the demo journey are built and running against the real O*NET data. Current state and next actions: [STATUS.md](STATUS.md). How it works and why: [docs/dev-guide.md](docs/dev-guide.md). Building from this repo: start at [CLAUDE.md](CLAUDE.md).
 
 ## What it is
 
@@ -29,8 +29,11 @@ saycep/
 ├── CLAUDE.md       # start here when building
 ├── STATUS.md       # current state, next actions
 ├── backend/
-│   └── load_onet.py            # builds saycep.db from the O*NET files
-├── frontend/       # React client (not built)
+│   ├── load_onet.py            # builds saycep.db from the O*NET files
+│   ├── app.py                  # the API — eight endpoints, and serves the app
+│   ├── gap.py, pathway.py      # the two built modules
+│   └── recommend.py            # the emerging technology
+├── frontend/       # the five-screen journey (React, no build step)
 └── docs/
     ├── dev-guide.md                # how it works, what changed, and why
     ├── functional-requirements.md   # Assignment 2
