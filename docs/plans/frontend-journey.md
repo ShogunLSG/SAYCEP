@@ -46,11 +46,15 @@ paths the proposal documents. No CORS, no second server to start.
 **React from CDN, no build step,** as the proposal's Q3.1 describes. JSX is
 replaced by `htm` tagged templates so nothing needs compiling.
 
-## Known risk
+## Known risk — resolved 29 September
 
-**The CDN needs internet on demo day.** If the room has no connection the page
-loads blank. Mitigation, not yet done: vendor the three library files (~150 KB)
-into `frontend/vendor/`. Worth doing before the presentation.
+**The CDN needed internet on demo day.** Fixed: React, ReactDOM and htm are
+vendored in `frontend/vendor/` (144 KB total, verified byte-for-byte against
+the CDN originals) and `index.html` loads them from there first. Each still
+falls back to the CDN only if the local copy is somehow missing, so a real
+outage would have to take out both the local file and the network to matter.
+Tested by fetching all three from `/static/vendor/` directly — all 200, all
+correct length.
 
 ## Not in this plan
 

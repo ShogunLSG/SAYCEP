@@ -11,12 +11,14 @@
 <body>
   <div id="root"></div>
   <noscript>SAYCEP needs JavaScript to run.</noscript>
-  <!-- React from CDN, no build step (proposal Q3.1). htm stands in for JSX so
-       nothing needs compiling. See docs/plans/frontend-journey.md for the
-       demo-day risk this carries and how to remove it. -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+  <!-- React, no build step (proposal Q3.1). htm stands in for JSX so nothing
+       needs compiling. Vendored locally in frontend/vendor/ rather than
+       pulled from a CDN, so the demo doesn't depend on the venue's wifi —
+       see docs/plans/frontend-journey.md. Each falls back to the CDN only
+       if the local copy is somehow missing. -->
+  <script src="/static/vendor/react.production.min.js" onerror="this.onerror=null;document.write('<script src=https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js><\/script>')"></script>
+  <script src="/static/vendor/react-dom.production.min.js" onerror="this.onerror=null;document.write('<script src=https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js><\/script>')"></script>
+  <script src="/static/vendor/htm.umd.js" onerror="this.onerror=null;document.write('<script src=https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js><\/script>')"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

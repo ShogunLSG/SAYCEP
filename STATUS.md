@@ -8,7 +8,7 @@
 - **Data spine: O*NET 29.0**, from Kaggle — importance-rated skills, job zones, an expert-reviewed related-occupations graph. (ADR-0003)
 - **Skill capture is shared; the two profiles diverge at target selection.** O*NET has no qualification-to-skills mapping. (ADR-0004)
 - **Emerging technology: mean-centred cosine similarity** over 35-dimensional skill vectors, measured rather than asserted.
-- **Demo stack: monolith** — one FastAPI service serving both the API and the app, SQLite, React from a CDN.
+- **Demo stack: monolith** — one FastAPI service serving both the API and the app, SQLite, React vendored locally.
 - **Scope: two modules built, three specified.**
 
 ## Done
@@ -22,12 +22,11 @@
 
 ## Not done — in order of what hurts most if left
 
-1. **Presentation date still unconfirmed.** Everything is planned against 1 October; if it's earlier, the next item is all that fits.
+1. **Presentation date still unconfirmed, and it could be in 2 days.** As of 29 September this is still open, and the earliest assumed date — 1 October — is Thursday. If it's the 1st, everything below competes for two days, not a week; ask today.
 2. **Rehearsal.** The build works, which is not the same as the demo being ready. Run the path start to finish without touching code — twice, per the timeline's own gate. Use the demo script below so it's the same every time.
 3. **Slides.** Not started. Build them from the ten requirements, not from the code.
-4. **The demo needs internet.** React and `htm` load from a CDN. If the room is offline, the page shows an error instead of the app. Fix: bundle the three files (~150 KB) into `frontend/vendor/` — asks permission to download them first.
-5. **Assignment document, if not yet submitted:** it's my draft, not your voice; it asserts the 3.5 threshold as fact; and whether PlantUML counts as a "recognised UML tool" is unchecked.
-6. **FR-08's wording** says steps name skills "to be acquired". The build names skills to acquire *and* to deepen. Either reword or be ready to explain.
+4. **Assignment document, if not yet submitted:** it's my draft, not your voice; it asserts the 3.5 threshold as fact; and whether PlantUML counts as a "recognised UML tool" is unchecked.
+5. **FR-08's wording** says steps name skills "to be acquired". The build names skills to acquire *and* to deepen. Either reword or be ready to explain.
 
 ## The demo script
 
