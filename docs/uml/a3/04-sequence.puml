@@ -1,0 +1,59 @@
+@startuml SAYCEP_A3_Sequence
+' Assignment 3 Q3.4 - sequence for UC-08 Generate Career Pathway, as implemented.
+' Correction from Assignment 2: the Pathway Service does NOT call the Gap
+' Analyser. It reads the repository and the Recommendation Engine directly,
+' which is what backend/pathway.py does.
+title UC-08 Generate Career Pathway (as implemented)
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor "School-Leaver" as User
+boundary "Web UI\nStepPathway" as UI
+control "SAYCEP API\nGET /profiles/{id}/pathway" as API
+control "Pathway Service" as PS
+control "Recommendation Engine\n<<emerging technology>>" as RE #D6E8F5
+entity "Occupation Repository" as Repo
+database "saycep.db" as DB
+
+User -> UI : Show me the route
+UI -> API : GET /profiles/{id}/pathway
+activate API
+API -> Repo : get_profile(id)
+Repo -> DB : SELECT FROM users
+DB --> Repo : profile row
+
+alt profile not found
+  API --> UI : 404 No profile
+  UI --> User : error banner, stays on screen
+else no target recorded
+  API --> UI : 400 No target occupation
+  UI --> User : error banner, stays on screen
+else profile with target
+  API -> PS : generate_pathway(id, target)
+  activate PS
+  PS -> Repo : profile_skill_ids(id)
+  PS -> Repo : get_occupation(target)
+  PS -> Repo : related_occupations(target, primary only)
+  Repo -> DB : SELECT related JOIN occupations ORDER BY sort_index
+  DB --> Repo : primary neighbours, expert-review order
+  PS -> RE : load_vectors, skill_means, centre
+  activate RE
+  RE -> DB : SELECT FROM occupation_skills
+  DB --> RE : 27,463 importance ratings
+  RE --> PS : mean-centred vectors
+  PS -> RE : cosine(profile, candidate) for each neighbour
+  RE --> PS : similarity scores
+  deactivate RE
+  PS -> PS : keep the 3 most similar, append the target
+  loop for each of the 4 steps
+    PS -> Repo : required_skills(step)
+    Repo -> DB : SELECT FROM occupation_skills
+    PS -> PS : badge each skill new or deeper
+  end
+  PS --> API : Pathway, 4 steps
+  deactivate PS
+  API --> UI : 200 OK, JSON with source dataset
+  UI --> User : ordered route, skills per step, provenance
+end
+deactivate API
+@enduml

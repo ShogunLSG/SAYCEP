@@ -47,22 +47,3 @@ def compute_gap(con, profile_id, soc_code):
                     "You already hold every skill this occupation requires. "
                     "Try a target in a higher preparation level."),
     }
-
-
-def skills_to_acquire(con, soc_code, held_ids, essential_only=True):
-    """Essential skills for an occupation that the given set does not cover.
-
-    Used by the Pathway Service to name the skills at each step.
-    """
-    out = []
-    for row in repository.required_skills(con, soc_code):
-        if row["element_id"] in held_ids:
-            continue
-        if essential_only and row["importance"] < ESSENTIAL_THRESHOLD:
-            continue
-        out.append({
-            "element_id": row["element_id"],
-            "name": row["name"],
-            "importance": round(row["importance"], 2),
-        })
-    return out

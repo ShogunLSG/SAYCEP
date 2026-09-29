@@ -1,0 +1,51 @@
+@startuml SAYCEP_A3_Architecture
+' Assignment 3 Q3.1 - high-level system architecture, as implemented.
+title SAYCEP - System Architecture (as implemented, 30 September 2026)
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+actor "Enrolled Student" as Student
+actor "School-Leaver" as Leaver
+actor "Data Administrator" as Admin
+
+rectangle "Client - web browser" {
+  component "Web UI\nReact 18 + htm, vendored\nfrontend/" as UI
+}
+
+rectangle "SAYCEP service - one FastAPI process on uvicorn" {
+  component "SAYCEP API\nbackend/app.py\n8 REST endpoints" as API
+  component "Gap Analyser\ngap.py" as GA
+  component "Pathway Service\npathway.py" as PS
+  component "Recommendation Engine\nrecommend.py\n<<emerging technology>>" as RE #D6E8F5
+  component "Occupation Repository\nrepository.py" as Repo
+}
+
+database "SQLite\nsaycep.db" as DB
+component "O*NET Loader\nload_onet.py" as Loader
+folder "O*NET 29.0 text files\nbackend/data/onet/" as Files
+cloud "Kaggle\none-time download" as Kaggle
+cloud "Google Fonts\noptional at runtime" as Fonts
+
+Student --> UI
+Leaver --> UI
+UI --> API : HTTP / JSON
+API --> GA
+API --> PS
+API --> RE
+PS --> RE : rank steps
+API --> Repo
+GA --> Repo
+PS --> Repo
+RE --> DB : read importance vectors
+Repo --> DB : parameterised SQL
+Admin --> Loader : run on demand
+Loader --> Files : read + verify row counts
+Loader --> DB : rebuild
+Kaggle ..> Files : download
+UI ..> Fonts : typefaces, falls back to system fonts
+
+note bottom of API
+  No external API is called at request time.
+  Every figure the user sees comes from saycep.db.
+end note
+@enduml

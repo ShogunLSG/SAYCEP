@@ -1,0 +1,58 @@
+@startuml SAYCEP_A3_UseCase
+' Assignment 3 Q3.2 - use-case diagram updated to the implemented system.
+' Change from Assignment 2: search, browse and recommendations are all
+' available to both profile types as tabs on one screen; the profile type
+' only sets which tab opens first. UC-03 is now extended by the three ways
+' of choosing a target rather than each belonging to one actor.
+title SAYCEP - Use Case Diagram (as implemented)
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Youth User" as User
+actor "Enrolled Student" as Student
+actor "School-Leaver" as Leaver
+actor "Data Administrator" as Admin
+actor "O*NET Dataset" as ONET
+
+Student --|> User
+Leaver --|> User
+
+rectangle "SAYCEP System Boundary" {
+  usecase "UC-01 Create Profile" as UC1
+  usecase "UC-02 Capture Skill Profile" as UC2
+  usecase "UC-03 Select Target Occupation" as UC3
+  usecase "UC-04 Search Occupation Catalogue" as UC4
+  usecase "UC-05 Browse by Preparation Level" as UC5
+  usecase "UC-06 Recommend Occupations" as UC6
+  usecase "UC-07 Analyse Skills Gap" as UC7
+  usecase "UC-08 Generate Career Pathway" as UC8
+  usecase "UC-09 View Data Provenance" as UC9
+  usecase "UC-10 Load Occupation Data" as UC10
+}
+
+User --> UC1
+User --> UC3
+User --> UC7
+User --> UC8
+Admin --> UC10
+
+UC1 ..> UC2 : <<include>>
+UC4 ..> UC3 : <<extend>>
+UC5 ..> UC3 : <<extend>>
+UC6 ..> UC3 : <<extend>>
+UC7 ..> UC3 : <<include>>
+UC8 ..> UC7 : <<include>>
+UC9 ..> UC7 : <<extend>>
+UC9 ..> UC8 : <<extend>>
+
+UC10 --> ONET
+
+note right of UC6
+  Emerging technology: mean-centred cosine
+  similarity over 35-dimensional O*NET
+  skill-importance vectors.
+  School-leaver: default tab, Job Zones 1-3 only.
+  Student: available, all zones.
+end note
+@enduml

@@ -1,0 +1,37 @@
+@startuml SAYCEP_A3_Deployment
+' Assignment 3 Q3.6 - deployment diagram: the demonstration environment.
+title SAYCEP - Deployment Diagram (demonstration environment)
+skinparam shadowing false
+
+node "Presenter laptop - Windows 11, Python 3.10+" as Laptop {
+  node "uvicorn process, port 8000" as Proc {
+    artifact "backend/*.py" as Code
+    artifact "frontend/ static files" as Static
+  }
+  database "saycep.db\nSQLite file, 4.8 MB" as DB
+  folder "backend/data/onet/\n41 text files, 97 MB" as Onet
+}
+
+node "Web browser - Chrome, Edge or Firefox" as Browser {
+  artifact "index.html + app.js\nReact vendored locally" as Page
+}
+
+cloud "Internet - not required at runtime" as Net {
+  node "Google Fonts" as Fonts
+  node "cdnjs / jsDelivr\nfallback only" as CDN
+}
+cloud "Kaggle" as Kaggle
+
+Browser --> Proc : HTTP localhost:8000
+Proc --> DB : sqlite3, one connection per request
+Onet --> DB : load_onet.py, manual rebuild in 0.6 s
+Kaggle ..> Onet : one-time download, login required
+Browser ..> Fonts : optional, system fonts otherwise
+Browser ..> CDN : only if a vendored file is missing
+
+note bottom of Laptop
+  Single machine. Browser and server can be the same laptop.
+  Production target in the proposal: containerised API behind
+  a load balancer, dataset read-only and replicated.
+end note
+@enduml

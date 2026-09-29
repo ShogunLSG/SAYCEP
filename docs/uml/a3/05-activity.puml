@@ -1,0 +1,63 @@
+@startuml SAYCEP_A3_Activity
+' Assignment 3 Q3.5 - end-to-end journey with decisions, exceptions and
+' completion states, as implemented in frontend/app.js.
+title End-to-End Journey (as implemented)
+skinparam ActivityBackgroundColor #FEFEFE
+
+start
+:Open SAYCEP;
+repeat
+  :Choose starting point;
+repeat while (Choice made?) is (no - Continue disabled)
+-> yes;
+repeat
+  :Tick skills held (35 O*NET skills);
+repeat while (At least one skill ticked?) is (no - Continue disabled)
+-> yes;
+:Create profile (POST /profiles);
+if (Request succeeded?) then (no)
+  #FBEAEA:Exception - show error banner;
+  stop
+endif
+
+if (Profile type?) then (school-leaver)
+  :Open on For you tab, Job Zones 1-3;
+  #D6E8F5:Rank occupations by mean-centred cosine similarity;
+  note right
+    Emerging-technology step
+    FR-06, TR-01 to TR-03
+  end note
+else (student)
+  :Open on Search tab;
+endif
+
+repeat
+  :Pick a target via For you, Browse or Search;
+repeat while (Target picked?) is (no - Continue disabled)
+-> yes;
+:Record target (PUT /profiles/id/target);
+if (Target valid?) then (no - 404)
+  #FBEAEA:Exception - show error banner;
+  stop
+endif
+
+:Compute skills gap;
+if (Any skill missing?) then (no)
+  :Completion - you already hold every skill,
+  suggest a higher preparation level;
+  stop
+else (yes)
+  :Classify each missing skill,
+  essential at 3.5 or above, else desirable;
+endif
+
+:Generate pathway, 3 steps plus target;
+:Show route with new and deeper badges and provenance;
+if (Next action?) then (try a different target)
+  :Return to target selection;
+  stop
+else (start again or done)
+  :Completion - journey finished;
+  stop
+endif
+@enduml

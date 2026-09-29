@@ -1,0 +1,51 @@
+@startuml SAYCEP_A3_Component
+' Assignment 3 Q3.6 - component diagram: software dependencies.
+title SAYCEP - Component Diagram
+skinparam shadowing false
+
+package "frontend/" {
+  component "Web UI\napp.js" as UI
+  component "React 18.3.1\nvendor/" as React
+  component "htm 3.1.1\nvendor/" as Htm
+}
+
+package "backend/" {
+  component "SAYCEP API\napp.py" as API
+  component "Gap Analyser\ngap.py" as GA
+  component "Pathway Service\npathway.py" as PS
+  component "Recommendation Engine\nrecommend.py\n<<emerging technology>>" as RE #D6E8F5
+  component "Occupation Repository\nrepository.py" as Repo
+  component "config.py\nESSENTIAL_THRESHOLD = 3.5" as Cfg
+  component "O*NET Loader\nload_onet.py" as Loader
+}
+
+package "third-party, pip" {
+  component "FastAPI" as FA
+  component "uvicorn" as UV
+}
+
+database "saycep.db" as DB
+
+interface "REST API\n/occupations /skills\n/profiles /recommendations" as REST
+
+API -up- REST
+UI ..> REST : fetch
+UI ..> React
+UI ..> Htm
+UV ..> API : serves, also serves frontend/
+API ..> FA
+API ..> GA
+API ..> PS
+API ..> RE
+API ..> Repo
+PS ..> RE
+PS ..> Repo
+GA ..> Repo
+GA ..> Cfg
+RE ..> Cfg
+PS ..> Cfg
+Repo ..> DB
+RE ..> DB
+Loader ..> Repo : creates profile tables
+Loader ..> DB : rebuilds
+@enduml

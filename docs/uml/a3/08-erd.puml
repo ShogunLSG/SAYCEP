@@ -1,0 +1,75 @@
+@startuml SAYCEP_A3_ERD
+' Assignment 3 Q4.2 - entity-relationship diagram of saycep.db, read from
+' sqlite_master on 30 September 2026. Solid lines are foreign keys declared
+' in SQL; dashed lines are references enforced by the API, not the database.
+title saycep.db - Entity-Relationship Diagram
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+
+entity "occupations\n879 rows" as occ {
+  * soc_code : TEXT <<PK>>
+  --
+  * title : TEXT
+  description : TEXT
+  * job_zone : INTEGER
+  * source_dataset : TEXT
+}
+
+entity "skills\n35 rows" as sk {
+  * element_id : TEXT <<PK>>
+  --
+  * name : TEXT
+  description : TEXT
+  * source_dataset : TEXT
+}
+
+entity "occupation_skills\n27,463 rows" as os {
+  * soc_code : TEXT <<PK, FK>>
+  * element_id : TEXT <<PK, FK>>
+  --
+  * importance : REAL
+  * importance_scale_max : REAL
+  source_date : TEXT
+}
+
+entity "related_occupations\n17,580 rows" as ro {
+  * soc_code : TEXT <<PK, FK>>
+  * related_soc_code : TEXT <<PK>>
+  --
+  * tier : TEXT
+  * sort_index : INTEGER
+}
+
+entity "job_zone_reference\n5 rows" as jz {
+  * zone : INTEGER <<PK>>
+  --
+  * name : TEXT
+  experience : TEXT
+  education : TEXT
+  training : TEXT
+  examples : TEXT
+  svp_range : TEXT
+}
+
+entity "users\nprofiles, ephemeral" as u {
+  * profile_id : TEXT <<PK>>
+  --
+  * profile_type : TEXT <<CHECK>>
+  target_soc_code : TEXT
+  * created_at : TEXT
+}
+
+entity "user_skills" as us {
+  * profile_id : TEXT <<PK, FK>>
+  * element_id : TEXT <<PK>>
+}
+
+occ ||--o{ os
+sk ||--o{ os
+occ ||--o{ ro
+u ||--o{ us
+jz ||..o{ occ
+u }o..o| occ
+us }o..|| sk
+@enduml
