@@ -1,0 +1,41 @@
+
+TC-I01  Catalogue endpoints  (FR-02, FR-04, FR-05)
+  PASS  TC-I01a  GET /skills returns 200 and 35 skills  -- 35
+  PASS  TC-I01b  GET /occupations?zone=3 returns 209 occupations  -- 209
+  PASS  TC-I01c  GET /occupations?q=electric finds Electricians
+  PASS  TC-I01d  GET /occupations/{bad soc} returns 404  -- 404
+
+TC-I02  Profile lifecycle  (FR-01, FR-02, FR-03)
+  PASS  TC-I02a  POST /profiles returns 201 with a profile id  -- 201
+  PASS  TC-I02b  PUT target sets Electricians
+  PASS  TC-I02c  PUT target replaces the previous one
+  PASS  TC-I02d  PUT target with an unknown SOC code returns 404  -- 404
+  PASS  TC-I02e  PUT target on an unknown profile returns 404  -- 404
+
+TC-I03  Gap analysis  (FR-07, FR-09)
+  PASS  TC-I03a  GET gap returns 200
+  PASS  TC-I03b  6 skills held out of 34 required  -- 6
+  PASS  TC-I03c  2 essential skills missing  -- 2
+  PASS  TC-I03d  26 desirable skills missing  -- 26
+  PASS  TC-I03e  every missing skill carries a source date (FR-09)
+
+TC-I04  Pathway generation  (FR-08)
+  PASS  TC-I04a  GET pathway returns 200
+  PASS  TC-I04b  at least 3 intermediate steps  -- 3
+  PASS  TC-I04c  every step names at least one skill
+  PASS  TC-I04d  the final step is flagged as the target
+
+TC-I05  Recommendation engine  (FR-06, TR-02, TR-03)
+  PASS  TC-I05a  GET recommendations returns 5 results
+  PASS  TC-I05b  single request completed in 55 ms (NFR-01: under 2000 ms)  -- 55 ms
+  PASS  TC-I05c  every recommendation carries its job zone
+  PASS  TC-I05d  an empty skill set returns no recommendations with a message (TR-03)
+
+TC-S01  System test: the rehearsed demo path, start to finish
+  PASS  TC-S01a  fresh run of the demo profile reproduces 6/2/26
+  PASS  TC-S01b  fresh run reproduces a 3-step pathway to Electricians
+
+TC-N01  Concurrency (NFR-01, the connection-per-request fix)
+  PASS  TC-N01a  20 concurrent requests, 20 succeeded  -- [200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]
+
+25 passed, 0 failed, 25 total

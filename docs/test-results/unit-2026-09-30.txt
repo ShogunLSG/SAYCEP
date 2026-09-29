@@ -1,0 +1,20 @@
+
+TC-U01  gap.compute_gap classifies at the threshold boundary  (FR-07)
+  PASS  TC-U01a  Troubleshooting (4.00) classifies essential
+  PASS  TC-U01b  Speaking (3.38) classifies desirable
+  PASS  TC-U01c  No skill sits on both sides of the threshold
+
+TC-U02  recommend.cosine and vector construction  (FR-06, TR-03)
+  PASS  TC-U02a  35 skill dimensions loaded
+  PASS  TC-U02b  879 occupation vectors loaded
+  PASS  TC-U02c  cosine(v, v) == 1.0 for any real vector
+  PASS  TC-U02d  empty skill set returns no recommendations, not an error
+
+TC-U03  pathway._step_focus badging  (FR-08)
+  PASS  TC-U03a  a skill the profile lacks is badged 'new'
+  PASS  TC-U03b  a held skill is never badged 'new'
+
+TC-U04  loader row-count guard  (FR-10, NFR-03)
+  PASS  TC-U04a  expected counts are pinned to O*NET's published dictionary
+
+10 passed, 0 failed, 10 total

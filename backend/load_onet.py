@@ -11,6 +11,8 @@ import sqlite3
 import sys
 from pathlib import Path
 
+import repository
+
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data" / "onet"
 DB = ROOT / "saycep.db"
@@ -188,6 +190,11 @@ def main():
             for r in zone_ref
         ],
     )
+    # The profile tables are empty but must exist. The loader deletes the whole
+    # file and the API only creates them at startup, so without this,
+    # rebuilding the data under a running server breaks every profile call
+    # until a restart. Found by backend/tests/test_api.py.
+    repository.ensure_profile_tables(con)
     con.commit()
 
     print(f"Built {DB.name} from {SOURCE}\n")
