@@ -27,7 +27,7 @@ TC-I04  Pathway generation  (FR-08)
 
 TC-I05  Recommendation engine  (FR-06, TR-02, TR-03)
   PASS  TC-I05a  GET recommendations returns 5 results
-  PASS  TC-I05b  single request completed in 55 ms (NFR-01: under 2000 ms)  -- 55 ms
+  PASS  TC-I05b  single request completed in 61 ms (NFR-01: under 2000 ms)  -- 61 ms
   PASS  TC-I05c  every recommendation carries its job zone
   PASS  TC-I05d  an empty skill set returns no recommendations with a message (TR-03)
 

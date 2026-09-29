@@ -67,6 +67,21 @@ def main():
           load_onet.EXPECTED["Skills.txt"] == 61530 and
           load_onet.EXPECTED["Related Occupations.txt"] == 18460)
 
+    print("\nTC-U05  API refuses to start without reference data  (NFR-03)")
+    import subprocess, tempfile, os
+    backend = str(Path(__file__).resolve().parent.parent)
+    with tempfile.TemporaryDirectory() as tmp:
+        missing = os.path.join(tmp, "missing.db")
+        # Point the app at a database with no reference tables, then import it
+        # exactly as uvicorn would. It must exit with a named error.
+        probe = ("import sys, config; from pathlib import Path; "
+                 f"config.DB_PATH = Path(r'{missing}'); import app")
+        r = subprocess.run([sys.executable, "-c", probe], cwd=backend,
+                           capture_output=True, text=True, timeout=60)
+    check("TC-U05a", "startup exits non-zero when saycep.db has no data", r.returncode != 0, f"exit {r.returncode}")
+    check("TC-U05b", "the exit message names the fix (run load_onet.py)",
+          "load_onet.py" in (r.stderr + r.stdout), (r.stderr or r.stdout).strip()[-80:])
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

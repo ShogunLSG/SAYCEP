@@ -17,4 +17,8 @@ TC-U03  pathway._step_focus badging  (FR-08)
 TC-U04  loader row-count guard  (FR-10, NFR-03)
   PASS  TC-U04a  expected counts are pinned to O*NET's published dictionary
 
-10 passed, 0 failed, 10 total
+TC-U05  API refuses to start without reference data  (NFR-03)
+  PASS  TC-U05a  startup exits non-zero when saycep.db has no data
+  PASS  TC-U05b  the exit message names the fix (run load_onet.py)
+
+12 passed, 0 failed, 12 total
