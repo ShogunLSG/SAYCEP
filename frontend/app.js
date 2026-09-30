@@ -129,6 +129,60 @@ const zoneName = (name) => (name || "").replace(/^Job Zone \w+:\s*/, "");
 // wording. The full sentence for the chosen zone comes back from the API.
 const ZONE_CHIPS = ["None", "Matric", "Trade", "Degree", "Postgrad"];
 
+// ---------- the role sheet : "what is this job?" ----------
+
+function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
+  const { data, error, loading } = useFetch(
+    `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
+  const [all, setAll] = useState(false);
+  useEffect(() => {
+    const esc = (e) => e.key === "Escape" && onClose();
+    addEventListener("keydown", esc);
+    return () => removeEventListener("keydown", esc);
+  }, []);
+  const must = data ? data.required_skills.filter((k) => k.classification === "essential") : [];
+  const rest = data ? data.required_skills.filter((k) => k.classification !== "essential") : [];
+  const known = data && data.held_count != null;
+  const Skill = (k) => html`
+    <li key=${k.element_id} class=${k.held ? "have" : ""}>
+      ${known && html`<span class="mk" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>`}
+      <span>${k.name}</span><${Figure}>${k.importance.toFixed(2)}<//>
+    </li>`;
+  return html`
+    <div class="scrim" onClick=${onClose}></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label=${data ? data.title : "Job details"}>
+      <div class="grab"></div>
+      <button class="x" aria-label="Close" onClick=${onClose}>×</button>
+      <${Status} loading=${loading} error=${error}>
+        ${data && html`
+          <div class="sheet-body">
+            <p class="kicker">What is this job?${PRESENTER ? " · FR-04 · FR-09" : ""}</p>
+            <h3 class="sheet-title">${data.title}</h3>
+            <p class="about">${data.description}</p>
+            <div class="prep">
+              <b>${data.preparation.label}</b>
+              <span>${data.preparation.detail}</span>
+              <${Figure}>${data.soc_code} · Job Zone ${data.job_zone}<//>
+            </div>
+            ${known && html`<p class="fit">
+              You have <b>${data.essential_held} of ${data.essential_count}</b> must-have skills
+              and ${data.held_count} of ${data.required_skills.length} overall.</p>`}
+            <h4 class="sect e">Must-have skills</h4>
+            <ul class="sk">${must.map(Skill)}</ul>
+            <h4 class="sect">Other skills it uses</h4>
+            <ul class="sk">${(all ? rest : rest.slice(0, 6)).map(Skill)}</ul>
+            ${rest.length > 6 && html`<button class="more" onClick=${() => setAll(!all)}>
+              ${all ? "Show fewer" : `Show all ${rest.length}`}</button>`}
+            <p class="prov">${data.source_dataset}</p>
+          </div>
+          ${onAim && html`<div class="sheet-foot">
+            <button class="cta" disabled=${isTarget} onClick=${() => { onAim(data); onClose(); }}>
+              ${isTarget ? "This is your goal" : "Aim for this job"}</button>
+          </div>`}`}
+      <//>
+    </div>`;
+}
+
 // ---------- step 1 : who ----------
 
 const STARTS = [
@@ -202,7 +256,7 @@ function StepSkills({ held, onToggle }) {
 
 // ---------- step 3 : explore ----------
 
-function StepExplore({ profileId, type, target, onPick }) {
+function StepExplore({ profileId, type, target, onOpen }) {
   const leaver = type === "school_leaver";
   const [tab, setTab] = useState(leaver ? "foryou" : "search");
   const [zone, setZone] = useState(leaver ? 3 : 4);
@@ -222,7 +276,7 @@ function StepExplore({ profileId, type, target, onPick }) {
   return html`
     <${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
              title="Pick something to aim for"
-             sub="Tap a role to set it as your target. You can come back and change it." />
+             sub="Tap a job to see what it involves, then aim for it. You can change your mind later." />
     <div class="tabs" role="tablist">
       ${TABS.map(([k, label]) => html`
         <button key=${k} role="tab" aria-selected=${tab === k}
@@ -237,7 +291,7 @@ function StepExplore({ profileId, type, target, onPick }) {
         ${recs.data && html`<div class="list">
           ${recs.data.recommendations.map((r) => html`
             <${OccRow} key=${r.soc_code} occ=${r} score=${r.score} match=${r.match}
-                       picked=${isPicked(r)} onPick=${onPick} />`)}
+                       picked=${isPicked(r)} onPick=${onOpen} />`)}
         </div>`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
       <//>`}
@@ -256,7 +310,7 @@ function StepExplore({ profileId, type, target, onPick }) {
             <${Figure}>${zoneName(browse.data.job_zone.name)} (O*NET Job Zone ${zone})<//></p>
           <div class="list">
             ${browse.data.occupations.map((o) => html`
-              <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onPick} />`)}
+              <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onOpen} />`)}
           </div>`}
       <//>`}
 
@@ -273,7 +327,7 @@ function StepExplore({ profileId, type, target, onPick }) {
               <p class="note">${search.data.message || `${search.data.total} match${search.data.total === 1 ? "" : "es"}`}</p>
               <div class="list">
                 ${search.data.occupations.map((o) => html`
-                  <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onPick} />`)}
+                  <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onOpen} />`)}
               </div>`}
           <//>`}`}
 
@@ -342,7 +396,7 @@ function StepGap({ profileId }) {
 
 // ---------- step 5 : pathway ----------
 
-function StepPathway({ profileId }) {
+function StepPathway({ profileId, onOpen }) {
   const { data, error, loading } = useFetch(`/profiles/${profileId}/pathway`);
   return html`
     <${Head} kicker="Your route" fr="FR-08" title="How do you get there?" />
@@ -359,7 +413,7 @@ function StepPathway({ profileId }) {
               </div>
               <div class="sbody">
                 <div class="sh">
-                  <h4>${s.title}</h4>
+                  <h4><button class="tl" onClick=${() => onOpen(s)}>${s.title}</button></h4>
                   ${s.is_target && html`<span class="pill">Your goal</span>`}
                 </div>
                 <div class="zn">${s.preparation.label}<${Figure}> · Zone ${s.job_zone}<//></div>
@@ -373,7 +427,8 @@ function StepPathway({ profileId }) {
             </div>`)}
         </div>
         <p class="basis"><b>New to you</b> — a skill you haven't got yet. <b>Use it more</b> — you have it, but this job
-          needs more of it than the step before. Each step is a job O*NET's experts list as related to your goal.</p>
+          needs more of it than the step before. Each step is a job O*NET's experts list as related to your goal.
+          Tap a job to see what it involves.</p>
         <p class="prov">${data.source_dataset}</p>`}
     <//>`;
 }
@@ -389,6 +444,7 @@ function App() {
   const [held, setHeld] = useState(() => new Set());
   const [profile, setProfile] = useState(null); // { id, key }
   const [target, setTarget] = useState(null);   // { soc_code, title, job_zone }
+  const [sheet, setSheet] = useState(null);     // { soc_code, canAim } -- the open role sheet
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -396,7 +452,7 @@ function App() {
   // next continue creates a fresh one -- profiles are ephemeral in the demo.
   const profileKey = `${type}|${[...held].sort().join(",")}`;
 
-  const go = (n) => { setDir(n > step ? "fwd" : "bwd"); setError(null); setStep(n); };
+  const go = (n) => { setDir(n > step ? "fwd" : "bwd"); setError(null); setSheet(null); setStep(n); };
 
   function toggle(id) {
     setHeld((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
@@ -431,9 +487,11 @@ function App() {
   const panes = [
     html`<${StepStart} type=${type} onPick=${setType} />`,
     html`<${StepSkills} held=${held} onToggle=${toggle} />`,
-    html`<${StepExplore} profileId=${profile && profile.id} type=${type} target=${target} onPick=${setTarget} />`,
+    html`<${StepExplore} profileId=${profile && profile.id} type=${type} target=${target}
+                         onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: true })} />`,
     html`<${StepGap} profileId=${profile && profile.id} />`,
-    html`<${StepPathway} profileId=${profile && profile.id} />`,
+    html`<${StepPathway} profileId=${profile && profile.id}
+                         onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: false })} />`,
   ];
 
   return html`
@@ -463,6 +521,11 @@ function App() {
         </button>
         ${step === 4 && html`<button class="link" onClick=${() => go(2)}>Try a different target</button>`}
       </div>
+
+      ${sheet && html`<${RoleSheet} key=${sheet.soc_code} soc=${sheet.soc_code} profileId=${profile && profile.id}
+        isTarget=${target && target.soc_code === sheet.soc_code}
+        onAim=${sheet.canAim ? (occ) => setTarget({ soc_code: occ.soc_code, title: occ.title, job_zone: occ.job_zone }) : null}
+        onClose=${() => setSheet(null)} />`}
     </div>`;
 }
 

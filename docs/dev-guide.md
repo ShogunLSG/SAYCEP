@@ -252,6 +252,15 @@ it meant anything to the school-leaver profile. The plan is in
   `Domain Source = Analyst`. Workers themselves did not rate these skills, and
   the screen must not suggest they did.
 
+**Task 2, "What is this job?"** Tapping any job opens a panel instead of
+setting the target outright. The panel shows O*NET's description (loaded since
+September, never shown until now), the preparation needed, and every skill,
+ticked if the profile holds it. `GET /occupations/{soc}` takes an optional
+`profile_id` for the ticks. Without one, `held` is `null` rather than `false`,
+so that a catalogue read never claims the user lacks a skill. The target is set
+from the panel's "Aim for this job" button. That adds one tap to the demo path,
+and it's the tap that makes exploring possible.
+
 These cut-points are presentation choices, not findings from the data. The
 classification itself, essential against desirable at 3.5, is unchanged, so
 FR-07's behaviour is too.

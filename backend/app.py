@@ -135,23 +135,35 @@ def list_occupations(
 
 
 @app.get("/occupations/{soc_code}", tags=["catalogue"])
-def get_occupation(soc_code: str, con=Depends(db)):
-    """FR-09: provenance travels with the record."""
+def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)):
+    """FR-09: provenance travels with the record.
+
+    With a profile_id, each required skill says whether that profile holds it,
+    so the role sheet can show "you have 4 of 7 must-haves" before the user
+    commits to a target. Without one it is a plain catalogue read.
+    """
     occ = _require_occupation(con, soc_code)
-    skills = repository.required_skills(con, soc_code)
+    held = (set(repository.profile_skill_ids(con, _require_profile(con, profile_id)["profile_id"]))
+            if profile_id else None)
+    skills = [
+        {"element_id": s["element_id"], "name": s["name"],
+         "description": s["description"],
+         "level": plain.importance_level(s["importance"]),
+         "importance": round(s["importance"], 2),
+         "importance_scale_max": s["importance_scale_max"],
+         "classification": ("essential" if s["importance"] >= ESSENTIAL_THRESHOLD
+                            else "desirable"),
+         "source_date": s["source_date"],
+         "held": None if held is None else s["element_id"] in held}
+        for s in repository.required_skills(con, soc_code)
+    ]
+    essential = [s for s in skills if s["classification"] == "essential"]
     return {
         **_with_preparation(dict(occ)),
-        "required_skills": [
-            {"element_id": s["element_id"], "name": s["name"],
-             "description": s["description"],
-             "level": plain.importance_level(s["importance"]),
-             "importance": round(s["importance"], 2),
-             "importance_scale_max": s["importance_scale_max"],
-             "classification": ("essential" if s["importance"] >= ESSENTIAL_THRESHOLD
-                                else "desirable"),
-             "source_date": s["source_date"]}
-            for s in skills
-        ],
+        "required_skills": skills,
+        "essential_count": len(essential),
+        "essential_held": None if held is None else sum(s["held"] for s in essential),
+        "held_count": None if held is None else sum(s["held"] for s in skills),
     }
 
 

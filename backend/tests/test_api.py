@@ -91,6 +91,22 @@ def main():
     check("TC-I04c", "every step names at least one skill", all(len(st["focus"]) > 0 for st in pw["steps"]))
     check("TC-I04d", "the final step is flagged as the target", pw["steps"][-1]["is_target"] is True)
 
+    print("\nTC-I06  Role sheet: an occupation read against a profile  (FR-04, FR-09)")
+    s, occ = call("GET", f"/occupations/47-2111.00?profile_id={pid}")
+    check("TC-I06a", "GET occupation with a profile marks which skills are held",
+          s == 200 and occ["held_count"] == 6 and sum(sk["held"] for sk in occ["required_skills"]) == 6,
+          str(occ.get("held_count")))
+    check("TC-I06b", "essential counts agree with the gap (2 of the must-haves missing)",
+          occ["essential_count"] - occ["essential_held"] == gap["missing_essential_count"],
+          f'{occ.get("essential_count")} - {occ.get("essential_held")}')
+    check("TC-I06c", "the description and a plain preparation label travel with it",
+          bool(occ["description"]) and bool(occ["preparation"]["label"]))
+    s, plain_occ = call("GET", "/occupations/47-2111.00")
+    check("TC-I06d", "without a profile, 'held' is null rather than a guess",
+          s == 200 and plain_occ["held_count"] is None and plain_occ["required_skills"][0]["held"] is None)
+    s, e = call("GET", "/occupations/47-2111.00?profile_id=does-not-exist")
+    check("TC-I06e", "an unknown profile returns 404", s == 404, str(s))
+
     print("\nTC-I05  Recommendation engine  (FR-06, TR-02, TR-03)")
     t0 = time.perf_counter()
     s, rec = call("GET", f"/recommendations?profile_id={pid}&limit=5&max_job_zone=3")
