@@ -148,6 +148,7 @@ function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
   const { data, error, loading } = useFetch(
     `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
   const [all, setAll] = useState(false);
+  const [allTasks, setAllTasks] = useState(false);
   useEffect(() => {
     const esc = (e) => e.key === "Escape" && onClose();
     addEventListener("keydown", esc);
@@ -172,6 +173,14 @@ function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
             <p class="kicker">What is this job?${PRESENTER ? " · FR-04 · FR-09" : ""}</p>
             <h3 class="sheet-title">${data.title}</h3>
             <p class="about">${data.description}</p>
+            ${data.tasks.length > 0 && html`
+              <h4 class="sect">A day in this job</h4>
+              <ul class="day">
+                ${(allTasks ? data.tasks : data.tasks.slice(0, 4)).map((t, i) => html`
+                  <li key=${i}>${t.task}<${Figure}>${t.importance != null ? ` ${t.importance.toFixed(2)}` : " unrated"}<//></li>`)}
+              </ul>
+              ${data.tasks.length > 4 && html`<button class="more" onClick=${() => setAllTasks(!allTasks)}>
+                ${allTasks ? "Show fewer" : "Show more of what they do"}</button>`}`}
             <div class="prep">
               <b>${data.preparation.label}</b>
               <span>${data.preparation.detail}</span>

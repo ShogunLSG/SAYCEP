@@ -122,6 +122,18 @@ def required_skills(con, soc_code):
         " WHERE os.soc_code = ? ORDER BY os.importance DESC", (soc_code,)).fetchall()
 
 
+def occupation_tasks(con, soc_code, limit=8):
+    """Most important first; core tasks before supplemental; unrated last."""
+    rows = con.execute(
+        "SELECT task, task_type, importance, source_date FROM occupation_tasks"
+        " WHERE soc_code = ?"
+        " ORDER BY importance IS NULL, task_type = 'Core' DESC, importance DESC, task_id"
+        " LIMIT ?", (soc_code, limit)).fetchall()
+    total = con.execute("SELECT COUNT(*) FROM occupation_tasks WHERE soc_code = ?",
+                        (soc_code,)).fetchone()[0]
+    return rows, total
+
+
 def related_occupations(con, soc_code, primary_only=True):
     sql = ("SELECT r.related_soc_code, r.tier, r.sort_index, o.title, o.job_zone"
            "  FROM related_occupations r JOIN occupations o"

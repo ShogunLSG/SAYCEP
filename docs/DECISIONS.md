@@ -363,3 +363,46 @@ skills ticked. If the browser forgets the id, the user walks the journey again.
   the route at save time would need another schema change, and it's in
   `BACKLOG.md`.
 
+---
+
+## ADR-0007 — Load O*NET task statements for "A day in this job"
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0002, ADR-0003, `plans/ux-and-dashboard.md` (Task 5), NFR-03, NFR-04
+
+### Context
+
+The "What is this job?" panel had O*NET's one-paragraph description and nothing
+else to show what a job involves. A school leaver choosing between
+"Boilermakers" and "Power-Line Installers" needs to know what the day looks
+like. The same Kaggle O*NET 29.0 dataset (ADR-0003) already contains
+`Task Statements.txt`, which holds plain sentences such as *"Work from ladders,
+scaffolds, or roofs to install, maintain, or repair electrical wiring"*.
+
+### Decision
+
+Load it into a new `occupation_tasks` table. Each task's importance comes from
+`Task Ratings.txt` (the IM scale, suppressed ratings excluded), and it is used
+only to put the most important tasks first. The panel shows four tasks by
+default and up to eight on request.
+
+### Verification (30 September)
+
+- 18,796 statements, of which 17,931 belong to the 879 usable occupations.
+  **Every one of the 879 has at least one** (TC-U08).
+- Task Ratings has exactly one IM rating per task: 17,639 in total, 6 marked
+  Recommend Suppress. 298 loaded tasks have no usable rating and sort last.
+- Most statements are incumbent-sourced (13,064 of 18,796). That is unlike
+  skill importance, which is entirely analyst-rated.
+
+### Consequences
+
+- **Schema change** to the reference data. `architecture.md` is updated, and
+  the loader's row-count guard (NFR-03) covers both new files. The rebuild rises
+  from about 0.5 s to 1.1–2.0 s (measured three times, plus PT-04), still well
+  inside NFR-04's 60 s.
+- **No new data source.** It's the same Kaggle dataset, so ADR-0002 holds.
+- The tasks are display-only. They do not feed the gap, the pathway or the
+  recommendations, so none of FR-06 to FR-08's measured behaviour changes.
+

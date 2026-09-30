@@ -355,3 +355,6 @@ input{font-family:inherit}
 }
 .plan-title{font:700 17px/1 "Archivo", sans-serif; color:var(--ink)}
 .route-note{margin:9px 0 0}
+.day{margin:0 0 4px; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--ink-2); line-height:1.45}
+.day li::marker{color:var(--accent)}
+.sheet .prep{margin-top:14px}

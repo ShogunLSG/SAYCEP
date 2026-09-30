@@ -166,8 +166,12 @@ def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)
         for s in repository.required_skills(con, soc_code)
     ]
     essential = [s for s in skills if s["classification"] == "essential"]
+    tasks, task_total = repository.occupation_tasks(con, soc_code)
     return {
         **_with_preparation(dict(occ)),
+        # "A day in this job" -- ADR-0007.
+        "tasks": [dict(t) for t in tasks],
+        "task_total": task_total,
         "required_skills": skills,
         "essential_count": len(essential),
         "essential_held": None if held is None else sum(s["held"] for s in essential),

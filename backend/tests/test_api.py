@@ -104,6 +104,12 @@ def main():
     s, plain_occ = call("GET", "/occupations/47-2111.00")
     check("TC-I06d", "without a profile, 'held' is null rather than a guess",
           s == 200 and plain_occ["held_count"] is None and plain_occ["required_skills"][0]["held"] is None)
+    check("TC-I06f", "the job's most important tasks travel with it, rated ones first (ADR-0007)",
+          len(occ["tasks"]) == 8 and occ["task_total"] >= 8 and occ["tasks"][0]["importance"] is not None
+          and all(a["importance"] >= b["importance"] for a, b in zip(occ["tasks"], occ["tasks"][1:])
+                  if a["importance"] is not None and b["importance"] is not None
+                  and a["task_type"] == b["task_type"]),
+          f'{len(occ.get("tasks", []))} of {occ.get("task_total")}')
     s, e = call("GET", "/occupations/47-2111.00?profile_id=does-not-exist")
     check("TC-I06e", "an unknown profile returns 404", s == 404, str(s))
 

@@ -96,6 +96,11 @@ def main():
     check("TC-U06e", "a negative similarity still gets a match label, not an error",
           plain.match_level(-0.2) == "Some overlap")
 
+    print("\nTC-U08  every occupation has something to say about its day-to-day  (ADR-0007)")
+    no_tasks = con.execute("SELECT COUNT(*) FROM occupations o WHERE NOT EXISTS"
+                           " (SELECT 1 FROM occupation_tasks t WHERE t.soc_code = o.soc_code)").fetchone()[0]
+    check("TC-U08a", "all 879 occupations have at least one task statement", no_tasks == 0, str(no_tasks))
+
     print("\nTC-U07  a pre-ADR-0005 database gains the status column  (ADR-0005)")
     import sqlite3
     old = sqlite3.connect(":memory:")

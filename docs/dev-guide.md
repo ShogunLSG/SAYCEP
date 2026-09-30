@@ -278,6 +278,10 @@ dashboard, which shows:
   survive. Editing before a plan is saved still creates a fresh profile, as
   before.
 
+**Task 5, "A day in this job".** The panel lists what people in the job actually
+do, with the most important task first, from O*NET's task statements (ADR-0007).
+It's display-only.
+
 These cut-points are presentation choices, not findings from the data. The
 classification itself, essential against desirable at 3.5, is unchanged, so
 FR-07's behaviour is too.

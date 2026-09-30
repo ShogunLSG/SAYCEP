@@ -36,6 +36,8 @@ occupation_skills   (soc_code, element_id, importance, importance_scale_max,
                      source_date, PK(soc_code, element_id))
 related_occupations (soc_code, related_soc_code, tier, sort_index)
 job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
+occupation_tasks    (soc_code, task_id, task, task_type, importance, source_date,
+                     PK(soc_code, task_id))   -- added 30 September, ADR-0007
 
 users               (profile_id PK, profile_type, target_soc_code, created_at)
 user_skills         (profile_id, element_id, status, updated_at,

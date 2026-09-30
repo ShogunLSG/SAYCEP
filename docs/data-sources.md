@@ -37,6 +37,8 @@ from the Kaggle copy.
 | `Skills.txt` | 61,530 | Importance (IM) and Level (LV) ratings per skill per occupation, with confidence intervals |
 | `Job Zones.txt` | 923 | Preparation level 1–5 — the degree vs non-degree distinction |
 | `Related Occupations.txt` | 18,460 | 10 primary + 10 supplemental related occupations, ordered by expert review |
+| `Task Statements.txt` | 18,796 | What people in the job actually do, in plain sentences. Loaded 30 September (ADR-0007) |
+| `Task Ratings.txt` | 158,751 | Importance (IM) of each task, used only to put the most important tasks first |
 | `Interests.txt` | — | RIASEC inventory, for school-leaver intake |
 
 Two flags in `Skills.txt` must be respected on load: `Recommend Suppress` marks
