@@ -32,6 +32,11 @@ EXPECTED = {
     # Kaggle copy, whose other four files match the data dictionary exactly.
     "Task Statements.txt": 18796,
     "Task Ratings.txt": 158751,
+    # Added 30 September for job pages and search (ADR-0009). Counted from the
+    # Kaggle copy.
+    "Alternate Titles.txt": 55120,
+    "Technology Skills.txt": 32470,
+    "Tools Used.txt": 41650,
 }
 
 SCHEMA = """
@@ -41,6 +46,9 @@ DROP TABLE IF EXISTS occupation_skills;
 DROP TABLE IF EXISTS related_occupations;
 DROP TABLE IF EXISTS job_zone_reference;
 DROP TABLE IF EXISTS occupation_tasks;
+DROP TABLE IF EXISTS occupation_alt_titles;
+DROP TABLE IF EXISTS occupation_technology;
+DROP TABLE IF EXISTS occupation_tools;
 
 CREATE TABLE occupations (
     soc_code        TEXT PRIMARY KEY,
@@ -101,7 +109,33 @@ CREATE TABLE occupation_tasks (
     PRIMARY KEY (soc_code, task_id)
 );
 
+-- Other names a job goes by, so search finds "Conduit Installer" (ADR-0009).
+CREATE TABLE occupation_alt_titles (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    title           TEXT NOT NULL,
+    short_title     TEXT
+);
+
+-- Software used in the job; hot = O*NET's "Hot Technology" flag.
+CREATE TABLE occupation_technology (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    example         TEXT NOT NULL,
+    category        TEXT NOT NULL,
+    hot             INTEGER NOT NULL,
+    in_demand       INTEGER NOT NULL
+);
+
+-- Physical tools used in the job, grouped by O*NET commodity category.
+CREATE TABLE occupation_tools (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    example         TEXT NOT NULL,
+    category        TEXT NOT NULL
+);
+
 CREATE INDEX idx_occ_skills_soc ON occupation_skills(soc_code);
+CREATE INDEX idx_alt_titles_soc ON occupation_alt_titles(soc_code);
+CREATE INDEX idx_tech_soc ON occupation_technology(soc_code);
+CREATE INDEX idx_tools_soc ON occupation_tools(soc_code);
 CREATE INDEX idx_occ_tasks_soc ON occupation_tasks(soc_code);
 CREATE INDEX idx_occ_skills_imp ON occupation_skills(importance DESC);
 CREATE INDEX idx_occupations_zone ON occupations(job_zone);
@@ -133,6 +167,9 @@ def main():
     content_model = read("Content Model Reference.txt")
     tasks = read("Task Statements.txt")
     task_ratings = read("Task Ratings.txt")
+    alt_titles = read("Alternate Titles.txt")
+    technology = read("Technology Skills.txt")
+    tools = read("Tools Used.txt")
 
     zone_by_soc = {r["O*NET-SOC Code"]: int(r["Job Zone"]) for r in job_zones}
 
@@ -226,6 +263,23 @@ def main():
             for r in tasks if r["O*NET-SOC Code"] in usable
         ],
     )
+    con.executemany(
+        "INSERT INTO occupation_alt_titles VALUES (?,?,?)",
+        [(r["O*NET-SOC Code"], r["Alternate Title"],
+          None if r["Short Title"] == "n/a" else r["Short Title"])
+         for r in alt_titles if r["O*NET-SOC Code"] in usable],
+    )
+    con.executemany(
+        "INSERT INTO occupation_technology VALUES (?,?,?,?,?)",
+        [(r["O*NET-SOC Code"], r["Example"], r["Commodity Title"],
+          int(r["Hot Technology"] == "Y"), int(r["In Demand"] == "Y"))
+         for r in technology if r["O*NET-SOC Code"] in usable],
+    )
+    con.executemany(
+        "INSERT INTO occupation_tools VALUES (?,?,?)",
+        [(r["O*NET-SOC Code"], r["Example"], r["Commodity Title"])
+         for r in tools if r["O*NET-SOC Code"] in usable],
+    )
     # The profile tables are empty but must exist. The loader deletes the whole
     # file and the API only creates them at startup, so without this,
     # rebuilding the data under a running server breaks every profile call
@@ -235,7 +289,8 @@ def main():
 
     print(f"Built {DB.name} from {SOURCE}\n")
     for table in ("occupations", "skills", "occupation_skills",
-                  "related_occupations", "job_zone_reference", "occupation_tasks"):
+                  "related_occupations", "job_zone_reference", "occupation_tasks",
+                  "occupation_alt_titles", "occupation_technology", "occupation_tools"):
         n = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
         print(f"  {table:22} {n:>7,}")
 

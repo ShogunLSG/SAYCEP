@@ -116,6 +116,15 @@ def main():
     check("TC-U07b", "existing skills default to held, so no gap changes on upgrade",
           repository.profile_skill_ids(old, "p1") == ["2.A.1.a"])
 
+    print("\nTC-U09  plan codes  (ADR-0008)")
+    check("TC-U09a", "the code alphabet has no look-alike characters",
+          not set("01OIL") & set(repository.PLAN_CODE_ALPHABET))
+    check("TC-U09b", "codes normalise however they are typed",
+          repository.normalise_plan_code("k7m-2qx") == repository.normalise_plan_code(" K7M 2QX") == "K7M2QX")
+    cols_u = {r[1] for r in old.execute("PRAGMA table_info(users)")}
+    check("TC-U09c", "an older database gains display_name and plan_code in place",
+          {"display_name", "plan_code"} <= cols_u, str(cols_u))
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

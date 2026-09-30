@@ -161,6 +161,47 @@ def main():
     s, e = call("GET", "/profiles/does-not-exist")
     check("TC-I07h", "GET an unknown profile returns 404, so the app can forget a stale id", s == 404, str(s))
 
+    print("\nTC-I08  Search by the names people actually use  (FR-04, ADR-0009)")
+    s, alt = call("GET", "/occupations?q=conduit%20installer&limit=60")
+    hit = next((o for o in alt["occupations"] if o["soc_code"] == "47-2111.00"), None)
+    check("TC-I08a", "'conduit installer' finds Electricians through an alternate title",
+          s == 200 and hit is not None and hit["also_called"] == "Conduit Installer", str(hit))
+    s, off = call("GET", "/occupations?q=electrician&limit=60")
+    check("TC-I08b", "official-title matches still come first and carry no also_called",
+          off["occupations"][0]["also_called"] is None and "lectrician" in off["occupations"][0]["title"])
+    check("TC-I08c", "every title match is still returned (FR-04's criterion holds)",
+          any(o["soc_code"] == "47-2111.00" for o in off["occupations"]))
+
+    print("\nTC-I09  Job page: related jobs, software and tools  (ADR-0009)")
+    s, job = call("GET", "/occupations/47-2111.00")
+    check("TC-I09a", "related jobs are O*NET's primary related occupations, in review order",
+          len(job["related"]) >= 3 and job["related"][0]["title"] == "Helpers--Electricians",
+          str([r["title"] for r in job["related"][:2]]))
+    check("TC-I09b", "software lists hot technologies first",
+          job["technology"] and all(a["hot"] >= b["hot"] for a, b in zip(job["technology"], job["technology"][1:])))
+    check("TC-I09c", "tools are grouped by category, largest first, with a total",
+          job["tool_total"] == 164 and job["tool_groups"][0]["count"] >= job["tool_groups"][-1]["count"],
+          str(job.get("tool_total")))
+
+    print("\nTC-I10  Sign in with a plan code  (ADR-0008)")
+    s, named = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held,
+                                          "display_name": "  Thabo  "})
+    nid = named["profile_id"]
+    s, np_ = call("GET", f"/profiles/{nid}")
+    code = np_["plan_code"]
+    check("TC-I10a", "a new profile gets a plan code like K7M-2QX and a trimmed first name",
+          len(code) == 7 and code[3] == "-" and np_["display_name"] == "Thabo", f"{code} {np_.get('display_name')!r}")
+    s, back = call("POST", "/plans/resume", {"plan_code": code.lower().replace("-", " ")})
+    check("TC-I10b", "the code reopens the same plan, however it is typed",
+          s == 200 and back["profile_id"] == nid, str(back))
+    s, e = call("POST", "/plans/resume", {"plan_code": "ZZZ-ZZZ"})
+    check("TC-I10c", "an unknown code returns 404 with a plain message", s == 404, str(s))
+    s, r = call("PUT", f"/profiles/{nid}/name", {"display_name": ""})
+    s, np2 = call("GET", f"/profiles/{nid}")
+    check("TC-I10d", "the first name can be cleared -- it is optional", np2["display_name"] is None)
+    s, e = call("POST", "/profiles", {"profile_type": "student", "skills": [], "display_name": "x" * 41})
+    check("TC-I10e", "a name over 40 characters is rejected", s == 422, str(s))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

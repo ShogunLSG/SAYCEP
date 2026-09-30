@@ -1,4 +1,4 @@
-"""SAYCEP API -- the seven endpoints specified in the proposal, plus four.
+"""SAYCEP API -- the seven endpoints specified in the proposal, plus six.
 
 Run from the repo root:
     python -m uvicorn app:app --app-dir backend --port 8000
@@ -11,6 +11,8 @@ seven specified endpoints can do that without a GET that writes.
 The other three serve the "My plan" dashboard (docs/plans/ux-and-dashboard.md):
 GET /profiles/{id} rebuilds it after a reload, and PUT/DELETE on
 /profiles/{id}/skills/{element_id} record progress (ADR-0005).
+POST /plans/resume and PUT /profiles/{id}/name are the welcome screen's
+sign-in by plan code (ADR-0008).
 
 Named to match the component in the sequence diagram. Routes only: the gap,
 pathway and recommendation logic live in their own modules so the ML component
@@ -67,6 +69,16 @@ class ProfileIn(BaseModel):
     profile_type: str = Field(..., pattern="^(student|school_leaver)$")
     skills: list[str] = Field(default_factory=list)
     target_soc_code: str | None = None
+    # Optional, and the only personal detail SAYCEP ever holds (ADR-0008).
+    display_name: str | None = Field(None, max_length=40)
+
+
+class NameIn(BaseModel):
+    display_name: str | None = Field(None, max_length=40)
+
+
+class PlanCodeIn(BaseModel):
+    plan_code: str = Field(..., min_length=6, max_length=12)
 
 
 class TargetIn(BaseModel):
@@ -104,6 +116,15 @@ def _require_occupation(con, soc_code):
 
 def _with_preparation(occ):
     return {**occ, "preparation": plain.preparation(occ["job_zone"])}
+
+
+def _clean_name(name):
+    name = (name or "").strip()
+    return name or None
+
+
+def _format_code(code):
+    return f"{code[:3]}-{code[3:]}" if code else None
 
 
 def _with_level(skill):
@@ -167,11 +188,23 @@ def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)
     ]
     essential = [s for s in skills if s["classification"] == "essential"]
     tasks, task_total = repository.occupation_tasks(con, soc_code)
+    tool_groups, tool_total = repository.occupation_tool_groups(con, soc_code)
+    related = [
+        {"soc_code": r["related_soc_code"], "title": r["title"], "job_zone": r["job_zone"],
+         "preparation": plain.preparation(r["job_zone"])}
+        for r in repository.related_occupations(con, soc_code)
+    ]
     return {
         **_with_preparation(dict(occ)),
         # "A day in this job" -- ADR-0007.
         "tasks": [dict(t) for t in tasks],
         "task_total": task_total,
+        # Job page (ADR-0009): O*NET's expert-reviewed related occupations, in
+        # review order; software (hot technologies first); tools by category.
+        "related": related,
+        "technology": [dict(t) for t in repository.occupation_technology(con, soc_code)],
+        "tool_groups": tool_groups,
+        "tool_total": tool_total,
         "required_skills": skills,
         "essential_count": len(essential),
         "essential_held": None if held is None else sum(s["held"] for s in essential),
@@ -203,7 +236,7 @@ def create_profile(body: ProfileIn, con=Depends(db)):
         _require_occupation(con, body.target_soc_code)
 
     profile_id = repository.create_profile(
-        con, body.profile_type, body.skills, body.target_soc_code)
+        con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name))
     return {
         "profile_id": profile_id,
         "profile_type": body.profile_type,
@@ -242,12 +275,37 @@ def get_profile(profile_id: str, con=Depends(db)):
         "profile_id": profile_id,
         "profile_type": profile["profile_type"],
         "created_at": profile["created_at"],
+        "display_name": profile["display_name"],
+        "plan_code": _format_code(profile["plan_code"]),
         "target": target,
         "skills": skills,
         "held_count": sum(s["status"] == "held" for s in skills),
         "learning_count": sum(s["status"] == "learning" for s in skills),
         "readiness": readiness,
     }
+
+
+@app.post("/plans/resume", tags=["profile"])
+def resume_plan(body: PlanCodeIn, con=Depends(db)):
+    """Sign in with a plan code (ADR-0008): reopen a saved plan on any device.
+
+    The code is not a password -- anyone holding it can open the plan -- which
+    is acceptable only because a plan holds nothing personal beyond an
+    optional first name. The error does not say whether a code is close.
+    """
+    profile = repository.profile_by_plan_code(con, body.plan_code)
+    if profile is None:
+        raise HTTPException(404, "No plan matches that code. Check it and try again.")
+    return {"profile_id": profile["profile_id"], "display_name": profile["display_name"],
+            "has_target": profile["target_soc_code"] is not None}
+
+
+@app.put("/profiles/{profile_id}/name", tags=["profile"])
+def set_name(profile_id: str, body: NameIn, con=Depends(db)):
+    """Change or clear the optional first name."""
+    _require_profile(con, profile_id)
+    repository.set_display_name(con, profile_id, _clean_name(body.display_name))
+    return {"profile_id": profile_id, "display_name": _clean_name(body.display_name)}
 
 
 @app.put("/profiles/{profile_id}/skills/{element_id}", tags=["profile"])

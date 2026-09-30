@@ -1,6 +1,16 @@
 # Plan: from a five-screen journey to an app you live in
 
-*Written 30 September 2026. Status: **waiting for review, nothing built yet.***
+*Written 30 September 2026. Status: **approved 30 September — building.***
+
+**Decisions (30 September):** Assignment 3 is submitted as it stands. All six
+slices are built, in order. The interest quiz is our own short questions,
+labelled as a simplified version of O\*NET's Interest Profiler. The demo date
+isn't known yet, so every slice is pushed demoable.
+
+**One structural change to the frontend, said up front:** `app.js` is 774
+lines and would pass 2,000. It is split into plain script files that share
+globals (`app.js` for shared pieces and the journey, one file per tab, and
+`main.js` last to mount). There's still no build step and no new dependency.
 
 ## The problem
 
@@ -36,6 +46,29 @@ First visit ──► the five-screen journey (unchanged; NFR-02 holds)
 
 The journey stays exactly as it is, and it becomes the onboarding. That keeps
 NFR-02 true and the demo script intact. The tabs appear once a plan is saved.
+
+## Sign-in: a welcome screen and a plan code *(added 30 September, built with slice 1)*
+
+You asked for a login page. Real accounts were weighed and rejected for now.
+Assignment 3 lists accounts as out of scope and argues that no login is needed
+because nothing personal is held. Passwords would also bring hashing, sessions
+and POPIA into the demo.
+
+What we're building instead:
+
+- **A welcome screen** as the app's front door, with two options:
+  - *Start my plan.* An optional first name, then the journey.
+  - *I have a plan code.* Type the code to reopen your plan.
+- **A plan code** for every saved plan, such as `K7M-2QX`. It's six characters
+  from an alphabet without look-alikes (no 0/O, 1/I), which gives about 887
+  million codes. It's shown on the dashboard and on the Me tab. Typing it on
+  any device reopens that plan.
+- **What the code is not:** a password. Anyone with the code can open that
+  plan. That's acceptable only because a plan holds no personal data beyond an
+  optional first name, and the screen says so.
+
+*Schema:* `users` gains `display_name` and `plan_code` (unique). This is
+ADR-0008, which extends ADR-0006.
 
 ## The features, as vertical slices, in build order
 
