@@ -1,0 +1,96 @@
+@startuml SAYCEP_A3_Class_Domain
+' Assignment 3 Q3.3, part A - the domain model as implemented: persisted
+' tables and the results computed per request.
+' Changes from Assignment 2: profile type is a discriminator column, not two
+' subclasses; PathwayStep carries SkillFocus items badged new or deeper;
+' a Pathway has exactly four steps (three intermediate plus the target).
+title SAYCEP - Class Diagram, part A: domain model (as implemented)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 40
+
+class Profile <<users table>> {
+  + profileId : str
+  + profileType : str  (student | school_leaver)
+  + targetSocCode : str [0..1]
+  + createdAt : datetime
+}
+class Skill <<skills table>> {
+  + elementId : str
+  + name : str
+  + description : str
+  + sourceDataset : str
+}
+class Occupation <<occupations table>> {
+  + socCode : str
+  + title : str
+  + description : str
+  + jobZone : int
+  + sourceDataset : str
+}
+class OccupationSkill <<occupation_skills table>> {
+  + importance : float
+  + importanceScaleMax : float
+  + sourceDate : str
+  + isEssential(threshold : float) : bool
+}
+class JobZone <<job_zone_reference table>> {
+  + zone : int
+  + name : str
+  + education : str
+  + experience : str
+  + training : str
+}
+class RelatedOccupation <<related_occupations table>> {
+  + tier : str
+  + sortIndex : int
+}
+
+class SkillsGap <<computed>> {
+  + threshold : float
+  + alreadyHeldCount : int
+  + missingEssentialCount : int
+  + missingDesirableCount : int
+  + message : str [0..1]
+}
+class Pathway <<computed>> {
+  + intermediateSteps : int
+  + orderingBasis : str
+}
+class PathwayStep <<computed>> {
+  + step : int
+  + isTarget : bool
+  + expertReviewIndex : int [0..1]
+}
+class SkillFocus <<computed>> {
+  + importance : float
+  + essential : bool
+  + badge : str  (new | deeper | none)
+  + fromImportance : float [0..1]
+  + toImportance : float [0..1]
+}
+class Recommendation <<computed>> {
+  + score : float
+}
+
+Profile "0..*" -- "0..35" Skill : holds >
+Profile "0..*" --> "0..1" Occupation : targets >
+Occupation "1" *-- "1..35" OccupationSkill
+OccupationSkill "0..*" --> "1" Skill
+Occupation "0..*" --> "1" JobZone : graded by >
+Occupation "1" *-- "0..20" RelatedOccupation
+RelatedOccupation "0..*" --> "1" Occupation : points to >
+
+SkillsGap "0..*" --> "1" Occupation : against >
+Pathway "1" *-- "4" PathwayStep
+PathwayStep "1" *-- "1..6" SkillFocus
+PathwayStep "0..*" --> "1" Occupation : reaches >
+SkillFocus "0..*" --> "1" Skill
+Recommendation "0..*" --> "1" Occupation
+
+note bottom of Pathway
+  Four steps: three intermediate (FR-08 minimum,
+  verified for all 879 occupations) plus the target.
+end note
+@enduml

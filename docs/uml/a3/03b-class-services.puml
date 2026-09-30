@@ -1,0 +1,67 @@
+@startuml SAYCEP_A3_Class_Services
+' Assignment 3 Q3.3, part B - the service classes (backend modules) and
+' their operations, as implemented. Domain classes are detailed in part A.
+title SAYCEP - Class Diagram, part B: services (as implemented)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 50
+
+class SaycepApi <<app.py>> {
+  + listOccupations(zone, q, limit)
+  + getOccupation(socCode)
+  + listSkills()
+  + createProfile(body) : Profile
+  + setTarget(profileId, socCode)
+  + getGap(profileId, socCode) : SkillsGap
+  + getPathway(profileId, socCode) : Pathway
+  + getRecommendations(profileId, limit, maxJobZone)
+}
+class GapAnalyser <<gap.py>> {
+  + computeGap(profileId, socCode) : SkillsGap
+}
+class PathwayService <<pathway.py>> {
+  + generatePathway(profileId, socCode) : Pathway
+  - stepFocus(socCode, held, previousSoc) : SkillFocus[1..6]
+  - rankByCloseness(held, candidates) : RelatedOccupation[*]
+}
+class RecommendationEngine <<recommend.py>> #D6E8F5 {
+  + recommend(held, limit, maxJobZone) : Recommendation[*]
+  + cosine(a : float[35], b : float[35]) : float
+  + loadVectors() : map
+  + centreProfile(held, means) : float[35]
+  + centreOccupations(vectors, means) : map
+}
+class OccupationRepository <<repository.py>> {
+  + createProfile(type, skills, target) : str
+  + getProfile(profileId) : Profile
+  + setTarget(profileId, socCode)
+  + profileSkillIds(profileId) : str[*]
+  + getOccupation(socCode) : Occupation
+  + listOccupations(zone, query, limit) : Occupation[*]
+  + requiredSkills(socCode) : OccupationSkill[*]
+  + relatedOccupations(socCode) : RelatedOccupation[*]
+  + ensureProfileTables()
+}
+class Config <<config.py>> {
+  + ESSENTIAL_THRESHOLD : float = 3.5
+  + PATHWAY_INTERMEDIATE_STEPS : int = 3
+}
+
+SaycepApi ..> GapAnalyser
+SaycepApi ..> PathwayService
+SaycepApi ..> RecommendationEngine
+SaycepApi ..> OccupationRepository
+PathwayService ..> RecommendationEngine : ranks steps
+PathwayService ..> OccupationRepository
+GapAnalyser ..> OccupationRepository
+GapAnalyser ..> Config
+PathwayService ..> Config
+RecommendationEngine ..> Config
+
+note right of RecommendationEngine
+  <<emerging technology>>
+  Mean-centred cosine similarity
+  over 35-dimensional vectors
+end note
+@enduml

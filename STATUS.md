@@ -1,6 +1,6 @@
 # Status
 
-**As of 26 September 2026: the demo journey is built and runs end to end against the real data.** Presentation assumed first week of October, planned against 1 October.
+**As of 30 September 2026: Assignment 3 is drafted and due today.** The demo is no longer on 1 October; its new date is not yet known. The journey is built, tested (41 automated tests) and runs without internet.
 
 ## Decided
 
@@ -22,11 +22,19 @@
 
 ## Not done — in order of what hurts most if left
 
-1. **Presentation date still unconfirmed, and it could be in 2 days.** As of 29 September this is still open, and the earliest assumed date — 1 October — is Thursday. If it's the 1st, everything below competes for two days, not a week; ask today.
-2. **Rehearsal.** The build works, which is not the same as the demo being ready. Run the path start to finish without touching code — twice, per the timeline's own gate. Use the demo script below so it's the same every time.
-3. **Slides.** Not started. Build them from the ten requirements, not from the code.
-4. **Assignment document, if not yet submitted:** it's my draft, not your voice; it asserts the 3.5 threshold as fact; and whether PlantUML counts as a "recognised UML tool" is unchecked.
-5. **FR-08's wording** says steps name skills "to be acquired". The build names skills to acquire *and* to deepen. Either reword or be ready to explain.
+1. **Submit Assignment 3 today.** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md` by `node docs/build-assignment-3.js`. Read it first — it's a draft in my words, not yours.
+2. **User acceptance test.** NFR-02 is reported as *partial* because no first-time user has walked the journey unassisted. Ten minutes with one person, using the demo script below, would turn it into evidence. The document says plainly that it hasn't been done.
+3. **Confirm the new demo date.** Then rehearsal and slides, which are both still not started.
+4. **Assignment 2 diagrams are small.** If Assignment 2 isn't submitted yet, its use-case, class and sequence diagrams print with text under 6 px. Assignment 3's are fixed; the same landscape-page approach would fix Assignment 2's.
+
+## Done on 30 September
+
+- 41 automated tests — 12 unit, 23 integration, 2 system, 4 performance — all passing; transcripts in `docs/test-results/`.
+- The tests found a real defect: rebuilding the database under a running server dropped the profile tables. Fixed in `load_onet.py`.
+- **TR-01's baseline corrected.** Assignment 2 compared 59.7% against 6.9%, which measures something different. Against its own baseline the figure is 59.7% vs 25.8% random (2.3x). Still passes the 55% target; the margin was overstated.
+- Nine as-built diagrams in `docs/uml/a3/`. The Assignment 2 sequence diagram was wrong — the Pathway Service never calls the Gap Analyser — and is corrected.
+- FR-08 reworded to "new or deeper", closing the old item 5.
+- `requirements.txt` added; dead `gap.skills_to_acquire` removed.
 
 ## The demo script
 
