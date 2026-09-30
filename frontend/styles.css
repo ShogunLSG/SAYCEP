@@ -471,3 +471,19 @@ input{font-family:inherit}
 .qa{flex:1; border:1.5px solid var(--line); background:var(--card); border-radius:999px; padding:6px 4px; font-size:12px; cursor:pointer; color:var(--ink-2)}
 .qa.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
 .tabpane .cta{margin-top:4px}
+
+/* ---------- progress history (slice 5) ---------- */
+.climb{display:flex; align-items:flex-end; gap:5px; height:56px; padding:6px 2px; background:var(--sunk); border-radius:10px; margin-bottom:6px}
+.cb{flex:1; height:100%; display:flex; align-items:flex-end}
+.cb i{display:block; width:100%; background:var(--accent-dim); border-radius:4px 4px 0 0; transition:height .45s ease}
+.cb i.full{background:var(--ok)}
+.tl-list{list-style:none; margin:10px 0 0; padding:0; position:relative}
+.tl-list::before{content:""; position:absolute; left:6px; top:8px; bottom:8px; width:1.5px; background:var(--line)}
+.tle{display:flex; gap:12px; padding:5px 0; position:relative}
+.tle-dot{width:13px; height:13px; border-radius:50%; background:var(--card); border:2px solid var(--accent-dim); flex:none; margin-top:3px; z-index:1}
+.tle.k-held .tle-dot{background:var(--ok); border-color:var(--ok)}
+.tle.k-goal .tle-dot{background:var(--accent); border-color:var(--accent)}
+.tle.k-learning .tle-dot{border-color:var(--accent)}
+.tle-t{font-size:13px; color:var(--ink-2)}
+.tle-t b{color:var(--ink)}
+.tle-t .meta{display:block; font-size:11px; color:var(--muted)}

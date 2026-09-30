@@ -478,7 +478,7 @@ function PlanSkill({ k, status, busy, onSet }) {
     </div>`;
 }
 
-function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, children }) {
+function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, onChanged, children }) {
   const [rev, setRev] = useState(0);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
@@ -496,8 +496,11 @@ function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, 
         ? await api.put(`/profiles/${profileId}/skills/${k.element_id}`, { status })
         : await api.del(`/profiles/${profileId}/skills/${k.element_id}`);
       if (status === "held" && onUnlock && isUnlock(res.changes)) onUnlock({ name: k.name, status, changes: res.changes });
-      else setToast(status === "held" ? `${k.name} added to your skills.`
-        : status === "learning" ? `Working on ${k.name}.` : `${k.name} moved back to your list.`);
+      else {
+        setToast(status === "held" ? `${k.name} added to your skills.`
+          : status === "learning" ? `Working on ${k.name}.` : `${k.name} moved back to your list.`);
+        onChanged && onChanged();
+      }
       setRev((n) => n + 1);
     } catch (e) {
       setToast(`Couldn't save that: ${e.message}`);

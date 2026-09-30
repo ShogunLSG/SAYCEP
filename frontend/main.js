@@ -188,8 +188,10 @@ function App() {
     } else {
       tabEl = html`<${Plan} key=${rev} profileId=${profile.id} onOpen=${openJob}
                    onJourney=${enterJourney} onStartOver=${startOver} onSignOut=${signOut}
-                   onUnlock=${(u) => { setUnlock(u); setSkillRev((r) => r + 1); }}>
+                   onUnlock=${(u) => { setUnlock(u); setSkillRev((r) => r + 1); }}
+                   onChanged=${() => setSkillRev((r) => r + 1)}>
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
+                 <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
                <//>`;
     }
     const body = html`<div class="tabhost" aria-hidden=${!!page}>${tabEl}</div>${pageEl}`;

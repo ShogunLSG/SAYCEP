@@ -270,6 +270,25 @@ def main():
     check("TC-I13f", "with a profile, each result also carries a skill-match label",
           all(j["skill_match"] for j in sm["results"]))
 
+    print("\nTC-I14  Progress history  (slice 5, ADR-0012)")
+    s, hp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    hid = hp["profile_id"]
+    call("PUT", f"/profiles/{hid}/target", {"soc_code": "47-2111.00"})
+    call("PUT", f"/profiles/{hid}/target", {"soc_code": "47-2111.00"})   # same goal again: not an event
+    call("PUT", f"/profiles/{hid}/skills/{ids['Troubleshooting']}", {"status": "learning"})
+    call("PUT", f"/profiles/{hid}/skills/{ids['Troubleshooting']}", {"status": "held"})
+    call("DELETE", f"/profiles/{hid}/skills/{ids['Troubleshooting']}")
+    s, hist = call("GET", f"/profiles/{hid}/history")
+    kinds = [(e["kind"], e["status"]) for e in hist["events"]]
+    check("TC-I14a", "every change is recorded once, newest first; re-setting the same goal is not",
+          kinds == [("skill", None), ("skill", "held"), ("skill", "learning"), ("goal", None), ("started", None)],
+          str(kinds))
+    check("TC-I14b", "each event carries the goal's readiness at that moment: 0, 0, 1, then 0 again",
+          [e["goal_have"] for e in reversed(hist["events"])][1:] == [0, 0, 1, 0],
+          str([e["goal_have"] for e in reversed(hist["events"])]))
+    check("TC-I14c", "the start event records how many skills the plan began with",
+          hist["events"][-1]["skill_count"] == 6)
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

@@ -577,3 +577,34 @@ first. The school-leaver filter holds (TC-I13e).
 - It's discovery only. It doesn't feed the gap or the pathway. It isn't a
   validated instrument and must not be presented as one.
 
+---
+
+## ADR-0012 — Record progress as dated events with a readiness snapshot
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0005, `plans/full-app.md` slice 5
+
+### Context
+
+The dashboard showed where a user stands now, but not how they got there.
+Progress needs a history to read as a story rather than a bar.
+
+### Decision
+
+- A new profile table, `progress_events`. It records one row per plan start,
+  goal change or skill-status change, in UTC.
+- **Each row stores the goal's readiness at that moment** (`goal_have`,
+  `goal_total`) instead of rebuilding it later by replaying events. Replaying
+  would give wrong answers once a goal changes or O\*NET's ratings are
+  updated. A snapshot records what the user actually saw.
+- Setting the same goal again is not an event.
+- Home shows a *Your progress* card: the climb toward the current goal, for
+  example 0 → 0 → 1 → 2 of 2, and a dated timeline.
+
+### Consequences
+
+- Schema change: one table added to the profile schema.
+- History starts from this change. Plans saved earlier have no history before
+  it, which is stated here rather than back-filled with invented dates.
+

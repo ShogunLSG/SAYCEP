@@ -240,6 +240,8 @@ def create_profile(body: ProfileIn, con=Depends(db)):
 
     profile_id = repository.create_profile(
         con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name))
+    _log(con, profile_id, "started", skill_count=len(set(body.skills)),
+         soc_code=body.target_soc_code)
     return {
         "profile_id": profile_id,
         "profile_type": body.profile_type,
@@ -311,6 +313,20 @@ def set_name(profile_id: str, body: NameIn, con=Depends(db)):
     return {"profile_id": profile_id, "display_name": _clean_name(body.display_name)}
 
 
+def _goal_snapshot(con, profile_id):
+    """(have, total) for the profile's goal right now, or (None, None)."""
+    soc = repository.get_profile(con, profile_id)["target_soc_code"]
+    if not soc:
+        return None, None
+    r = pathway_service.step_readiness(con, soc, set(repository.profile_skill_ids(con, profile_id)))
+    return r["ready_total"] - len(r["ready_missing"]), r["ready_total"]
+
+
+def _log(con, profile_id, kind, **kw):
+    have, total = _goal_snapshot(con, profile_id)
+    repository.log_event(con, profile_id, kind, goal_have=have, goal_total=total, **kw)
+
+
 def _changes(con, profile, before, after):
     """What a skill change did, computed rather than claimed (slice 2's
     "unlock" moment): the goal's readiness before and after, which of the
@@ -351,6 +367,7 @@ def set_skill_status(profile_id: str, element_id: str, body: SkillStatusIn, con=
     before = set(repository.profile_skill_ids(con, profile_id))
     repository.set_skill_status(con, profile_id, element_id, body.status)
     after = set(repository.profile_skill_ids(con, profile_id))
+    _log(con, profile_id, "skill", element_id=element_id, status=body.status)
     return {"profile_id": profile_id, "element_id": element_id, "status": body.status,
             "changes": _changes(con, profile, before, after)}
 
@@ -362,6 +379,7 @@ def remove_skill(profile_id: str, element_id: str, con=Depends(db)):
     before = set(repository.profile_skill_ids(con, profile_id))
     repository.remove_skill(con, profile_id, element_id)
     after = set(repository.profile_skill_ids(con, profile_id))
+    _log(con, profile_id, "skill", element_id=element_id, status=None)
     return {"profile_id": profile_id, "element_id": element_id, "status": None,
             "changes": _changes(con, profile, before, after)}
 
@@ -490,6 +508,14 @@ def interest_match(
     }
 
 
+@app.get("/profiles/{profile_id}/history", tags=["profile"])
+def get_history(profile_id: str, con=Depends(db)):
+    """Progress history (slice 5, ADR-0012): newest first, each event with the
+    goal's readiness as it stood at that moment."""
+    _require_profile(con, profile_id)
+    return {"profile_id": profile_id, "events": [dict(e) for e in repository.events(con, profile_id)]}
+
+
 @app.get("/skills/{element_id}", tags=["catalogue"])
 def get_skill(element_id: str, profile_id: str | None = None, con=Depends(db)):
     """A skill page: what it is, where it matters most, and -- with a profile --
@@ -521,7 +547,10 @@ def set_target(profile_id: str, body: TargetIn, con=Depends(db)):
     """FR-03: record the target, replacing any previously set."""
     _require_profile(con, profile_id)
     _require_occupation(con, body.soc_code)
+    previous = repository.get_profile(con, profile_id)["target_soc_code"]
     repository.set_target(con, profile_id, body.soc_code)
+    if previous != body.soc_code:
+        _log(con, profile_id, "goal", soc_code=body.soc_code)
     return {"profile_id": profile_id, "target_soc_code": body.soc_code}
 
 

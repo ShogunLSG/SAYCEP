@@ -45,6 +45,22 @@ CREATE TABLE IF NOT EXISTS saved_occupations (
     saved_at    TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (profile_id, soc_code)
 );
+
+-- What happened to a plan, and when (slice 5, ADR-0012). kind is 'started',
+-- 'skill' or 'goal'. goal_have/goal_total snapshot readiness for the goal at
+-- that moment, so the history never has to be recomputed from a replay.
+CREATE TABLE IF NOT EXISTS progress_events (
+    profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
+    at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    kind        TEXT NOT NULL CHECK (kind IN ('started', 'skill', 'goal')),
+    element_id  TEXT,
+    status      TEXT,
+    soc_code    TEXT,
+    skill_count INTEGER,
+    goal_have   INTEGER,
+    goal_total  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_events_profile ON progress_events(profile_id);
 """
 
 SKILL_STATUSES = ("held", "learning")
@@ -339,6 +355,24 @@ def unsave_occupation(con, profile_id, soc_code):
     con.execute("DELETE FROM saved_occupations WHERE profile_id = ? AND soc_code = ?",
                 (profile_id, soc_code))
     con.commit()
+
+
+def log_event(con, profile_id, kind, element_id=None, status=None, soc_code=None,
+              skill_count=None, goal_have=None, goal_total=None):
+    con.execute("INSERT INTO progress_events (profile_id, kind, element_id, status, soc_code,"
+                " skill_count, goal_have, goal_total) VALUES (?,?,?,?,?,?,?,?)",
+                (profile_id, kind, element_id, status, soc_code, skill_count, goal_have, goal_total))
+    con.commit()
+
+
+def events(con, profile_id, limit=50):
+    return con.execute(
+        "SELECT e.at, e.kind, e.element_id, s.name AS skill, e.status, e.soc_code,"
+        "       o.title AS job, e.skill_count, e.goal_have, e.goal_total"
+        "  FROM progress_events e"
+        "  LEFT JOIN skills s ON s.element_id = e.element_id"
+        "  LEFT JOIN occupations o ON o.soc_code = e.soc_code"
+        " WHERE e.profile_id = ? ORDER BY e.rowid DESC LIMIT ?", (profile_id, limit)).fetchall()
 
 
 def set_display_name(con, profile_id, name):
