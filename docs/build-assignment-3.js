@@ -209,7 +209,7 @@ function titlePage() {
     ["Student name", "Lesego Jan Malema Matsimela"], ["Student number", "219045719"],
     ["Module code", "ISJ107V"], ["Assessment", "Assignment 3 — Individual"],
     ["Weighting / marks", "20% of the final module mark / 50 marks"],
-    ["Document version", "1.0, 30 September 2026"], ["Submission", "Through EC"],
+    ["Document version", "1.1, 30 September 2026"], ["Submission", "Through EC"],
   ];
   return [
     new Paragraph({ spacing: { before: 2000 }, alignment: AlignmentType.CENTER,
