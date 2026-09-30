@@ -1,0 +1,35 @@
+@startuml SAYCEP_A3_Activity_Plan
+' Assignment 3 Q3.5, part B - the My plan dashboard and its progress loop
+' (UC-12, UC-13, FR-11), as implemented in frontend/app.js. Version 1.1.
+title End-to-End Journey, part B: My plan dashboard (as implemented)
+skinparam ActivityBackgroundColor #FEFEFE
+
+start
+:Arrive from Save as my plan, or a return visit
+with a saved plan id in this browser;
+if (Profile still exists, with a target?) then (no)
+  #FBEAEA:Forget the stored id,
+  start the journey afresh (Figure 5a);
+  stop
+else (yes)
+endif
+repeat
+  :Show goal, readiness (must-haves held),
+  route with ready steps ticked, next step;
+  :Choose an action on a skill;
+  if (Action?) then (start learning)
+    :Record status = learning
+    (gap unchanged);
+  elseif (I can do this now) then
+    :Record status = held;
+    #D6E8F5:Recompute gap, pathway and readiness;
+  else (undo)
+    :Remove the skill;
+    :Recompute gap, pathway and readiness;
+  endif
+repeat while (Goal reached or user leaves?) is (no)
+-> yes;
+:Completion - every must-have held,
+or plan kept for the next visit;
+stop
+@enduml

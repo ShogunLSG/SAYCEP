@@ -7,7 +7,7 @@
 ' Version 1.1 (30 September): UC-11 to UC-13 added for the occupation
 ' panel, the saved plan dashboard and skill progress (ADR-0005 to 0007).
 title SAYCEP - Use Case Diagram (as implemented)
-left to right direction
+top to bottom direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
 

@@ -46,10 +46,13 @@
    Progress tracking (and arguably the saved plan) isn't covered by FR-01 to
    FR-10. ADR-0005 and ADR-0006 describe what the system now does. The FR
    wording is assessed work for you to write, and I'll pressure-test it.
-2. **Bring Assignment 3 up to the built system, then submit it.** Its
-   screenshots, API list (now 11 endpoints), schema, test counts (41 → 63)
-   and sequence diagram describe this morning's build.
-3. **Assignment 3 as originally drafted:** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md` by `node docs/build-assignment-3.js`. Read it first — it's a draft in my words, not yours.
+2. **Assignment 3 is updated to the built system (v1.1)**, apart from FR-11.
+   All diagrams have been redrawn and new screenshots and figures added. It
+   rebuilds to 42 pages, and every diagram prints at 6 px or larger. The ⚠ row
+   in 2.1 is where your FR-11 goes. The note beneath it lists the facts and
+   figures it must match. After that, read it through, rebuild with
+   `node docs/build-assignment-3.js`, and submit.
+3. **Read Assignment 3 before submitting:** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md`. It's in my words, not yours.
 4. **User acceptance test.** NFR-02 is reported as *partial* because no first-time user has walked the journey unassisted. Ten minutes with one person, using the demo script below, would turn it into evidence. The document says plainly that it hasn't been done.
 5. **Confirm the new demo date.** Then rehearsal and slides, which are both still not started.
 6. **Assignment 2 diagrams are small.** If Assignment 2 isn't submitted yet, its use-case, class and sequence diagrams print with text under 6 px. Assignment 3's are fixed; the same landscape-page approach would fix Assignment 2's.

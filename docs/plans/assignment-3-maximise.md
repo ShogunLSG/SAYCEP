@@ -1,6 +1,6 @@
 # Plan: bring Assignment 3 up to the built system and push each section's marks
 
-*Written 30 September 2026. Status: **waiting for review.***
+*Written 30 September 2026. Status: **done 30 September**, except FR-11 (the author's) and the user acceptance test.*
 
 Assignment 3 is marked out of **50**: Q1 baseline 6, Q2 requirements 8, **Q3 design
 16**, Q4 technical 10, Q5 evaluation 10. The draft in `assignment-3-submission.md`
