@@ -14,6 +14,7 @@ const CTA = ["Continue", "Find roles that fit", "See what's missing", "Show me t
 const TABS = [
   { key: "home", label: "Home", icon: svg(html`<path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" />`, 2) },
   { key: "explore", label: "Explore", icon: svg(html`<circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" />`, 2) },
+  { key: "skills", label: "Skills", icon: svg(html`<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" />`, 2) },
 ];
 
 function App() {
@@ -21,6 +22,8 @@ function App() {
   const [tab, setTab] = useState("home");
   const [stack, setStack] = useState([]);       // pages over a tab: { kind: "job", soc_code, title }
   const [rev, setRev] = useState(0);            // bumped when the goal changes, so Home refetches
+  const [skillRev, setSkillRev] = useState(0);  // bumped on any skill change, for Skills and skill pages
+  const [unlock, setUnlock] = useState(null);   // { name, status, changes } -- the unlock card
   const [name, setName] = useState("");         // from the welcome screen; sent with POST /profiles
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState("fwd");
@@ -124,6 +127,21 @@ function App() {
     setRev((r) => r + 1); setStack([]); setTab("home");
   }
 
+  /** Skill changes from the Skills tab and skill pages; Home has its own. */
+  async function setSkill(k, status) {
+    const res = status
+      ? await api.put(`/profiles/${profile.id}/skills/${k.element_id}`, { status })
+      : await api.del(`/profiles/${profile.id}/skills/${k.element_id}`);
+    setSkillRev((r) => r + 1); setRev((r) => r + 1);
+    // Keep the journey's copy of the skills in step, so "Update my skills"
+    // opens on what the profile holds now ("learning" is not held).
+    const next = new Set(held);
+    status === "held" ? next.add(k.element_id) : next.delete(k.element_id);
+    setHeld(next);
+    setProfile((p) => p && { ...p, key: keyOf(type, next) });
+    if (status === "held" && isUnlock(res.changes)) setUnlock({ name: k.name, status, changes: res.changes });
+  }
+
   const push = (page) => setStack((s) => [...s, page]);
   const pop = () => setStack((s) => s.slice(0, -1));
 
@@ -142,11 +160,17 @@ function App() {
   if (view === "app") {
     const page = stack[stack.length - 1];
     const openJob = (o) => push({ kind: "job", soc_code: o.soc_code, title: o.title });
+    const openSkill = (k) => push({ kind: "skill", element_id: k.element_id });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
     let body;
     if (page && page.kind === "job") {
       body = html`<${JobPage} key=${page.soc_code} soc=${page.soc_code} profileId=${profile.id}
                    goalSoc=${target && target.soc_code} onOpenJob=${openJob} onMakeGoal=${makeGoal} />`;
+    } else if (page && page.kind === "skill") {
+      body = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
+                   rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;
+    } else if (tab === "skills") {
+      body = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} />`;
     } else if (tab === "explore") {
       body = html`<div class="pane tabpane"><${StepExplore} profileId=${profile.id} type=${type} target=${target}
                    onOpen=${openJob}
@@ -154,7 +178,8 @@ function App() {
                      they take, or any name you know them by.</p>`} /></div>`;
     } else {
       body = html`<${Plan} key=${rev} profileId=${profile.id} onOpen=${openJob}
-                   onJourney=${enterJourney} onStartOver=${startOver} onSignOut=${signOut} />`;
+                   onJourney=${enterJourney} onStartOver=${startOver} onSignOut=${signOut}
+                   onUnlock=${(u) => { setUnlock(u); setSkillRev((r) => r + 1); }} />`;
     }
     return html`
       <div class="app">
@@ -176,6 +201,7 @@ function App() {
               ${t.icon}<span>${t.label}</span>
             </button>`)}
         </nav>
+        ${unlock && html`<${UnlockCard} u=${unlock} onOpenJob=${openJob} onClose=${() => setUnlock(null)} />`}
       </div>`;
   }
 

@@ -202,6 +202,29 @@ def main():
     s, e = call("POST", "/profiles", {"profile_type": "student", "skills": [], "display_name": "x" * 41})
     check("TC-I10e", "a name over 40 characters is rejected", s == 422, str(s))
 
+    print("\nTC-I11  Skill pages and what a skill unlocks  (slice 2)")
+    s, sk = call("GET", f"/skills/{ids['Troubleshooting']}")
+    check("TC-I11a", "a skill page lists where it matters most, most important first",
+          s == 200 and sk["must_have_in"] > 0 and
+          all(a["importance"] >= b["importance"] for a, b in zip(sk["top_jobs"], sk["top_jobs"][1:])),
+          str(sk.get("must_have_in")))
+    s, up = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held, "target_soc_code": "47-2111.00"})
+    uid = up["profile_id"]
+    s, r1 = call("PUT", f"/profiles/{uid}/skills/{ids['Troubleshooting']}", {"status": "held"})
+    c = r1["changes"]
+    check("TC-I11b", "marking Troubleshooting held reports the goal moving 0 -> 1 of 2",
+          (c["goal"]["before"], c["goal"]["after"], c["goal"]["total"]) == (0, 1, 2), str(c["goal"]))
+    check("TC-I11c", "and names the route step it made ready: Electrical Power-Line Installers",
+          [j["soc_code"] for j in c["newly_ready_steps"]] == ["49-9051.00"], str(c["newly_ready_steps"]))
+    check("TC-I11d", "the count of jobs with every must-have held rises (102 -> 106)",
+          (c["ready_jobs_before"], c["ready_jobs_after"]) == (102, 106),
+          f'{c["ready_jobs_before"]} -> {c["ready_jobs_after"]}')
+    s, r2 = call("PUT", f"/profiles/{uid}/skills/{ids['Speaking']}", {"status": "learning"})
+    check("TC-I11e", "marking a skill 'learning' changes nothing, so reports no changes",
+          r2["changes"] is None, str(r2["changes"]))
+    s, sk2 = call("GET", f"/skills/{ids['Troubleshooting']}?profile_id={uid}")
+    check("TC-I11f", "with a profile, the skill page says where the user stands", sk2["status"] == "held")
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

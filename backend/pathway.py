@@ -121,6 +121,13 @@ def step_readiness(con, soc_code, held_ids):
     }
 
 
+def ready_jobs(con, held_ids):
+    """Every job in the catalogue the user is ready for, by the same rule as
+    step_readiness -- used to say what a new skill unlocked."""
+    basis = repository.readiness_basis_map(con, ESSENTIAL_THRESHOLD, READY_FALLBACK_TOP_N)
+    return {soc for soc, needed in basis.items() if needed <= held_ids}
+
+
 def _importance_map(con, soc_code):
     return {r["element_id"]: (r["name"], r["importance"])
             for r in repository.required_skills(con, soc_code)}

@@ -187,6 +187,39 @@ def occupation_tool_groups(con, soc_code, groups=8, per_group=3):
              "examples": sorted(r["examples"].split("|"))[:per_group]} for r in rows], total
 
 
+def get_skill(con, element_id):
+    return con.execute("SELECT element_id, name, description, source_dataset FROM skills"
+                       " WHERE element_id = ?", (element_id,)).fetchone()
+
+
+def jobs_for_skill(con, element_id, limit=12):
+    """Where this skill matters most, by O*NET importance."""
+    return con.execute(
+        "SELECT o.soc_code, o.title, o.job_zone, os.importance FROM occupation_skills os"
+        "  JOIN occupations o ON o.soc_code = os.soc_code"
+        " WHERE os.element_id = ? ORDER BY os.importance DESC, o.title LIMIT ?",
+        (element_id, limit)).fetchall()
+
+
+def count_jobs_needing(con, element_id, threshold):
+    return con.execute("SELECT COUNT(*) FROM occupation_skills WHERE element_id = ?"
+                       " AND importance >= ?", (element_id, threshold)).fetchone()[0]
+
+
+def readiness_basis_map(con, threshold, top_n):
+    """soc -> the skills that decide 'ready' for that job: its essential skills,
+    or its top_n most important where it has none. Same rule as
+    pathway.step_readiness, for every job at once."""
+    rows = con.execute("SELECT soc_code, element_id, importance FROM occupation_skills"
+                       " ORDER BY soc_code, importance DESC").fetchall()
+    by_soc = {}
+    for r in rows:
+        by_soc.setdefault(r[0], []).append((r[1], r[2]))
+    return {soc: ({e for e, imp in skills if imp >= threshold}
+                  or {e for e, _ in skills[:top_n]})
+            for soc, skills in by_soc.items()}
+
+
 def related_occupations(con, soc_code, primary_only=True):
     sql = ("SELECT r.related_soc_code, r.tier, r.sort_index, o.title, o.job_zone"
            "  FROM related_occupations r JOIN occupations o"

@@ -308,25 +308,85 @@ def set_name(profile_id: str, body: NameIn, con=Depends(db)):
     return {"profile_id": profile_id, "display_name": _clean_name(body.display_name)}
 
 
+def _changes(con, profile, before, after):
+    """What a skill change did, computed rather than claimed (slice 2's
+    "unlock" moment): the goal's readiness before and after, which of the
+    goal's related jobs (the pool the route is drawn from) became ready, and
+    how many jobs in the whole catalogue the user is now ready for."""
+    if before == after:
+        return None
+    out = {"goal": None, "newly_ready_steps": [], "ready_jobs_before": 0, "ready_jobs_after": 0}
+    soc = profile["target_soc_code"]
+    if soc:
+        b = pathway_service.step_readiness(con, soc, before)
+        a = pathway_service.step_readiness(con, soc, after)
+        out["goal"] = {"title": repository.get_occupation(con, soc)["title"], "basis": a["ready_basis"],
+                       "before": b["ready_total"] - len(b["ready_missing"]),
+                       "after": a["ready_total"] - len(a["ready_missing"]),
+                       "total": a["ready_total"], "ready": a["ready"]}
+        steps = [r["related_soc_code"] for r in repository.related_occupations(con, soc)]
+        for step_soc in steps:
+            if (not pathway_service.step_readiness(con, step_soc, before)["ready"]
+                    and pathway_service.step_readiness(con, step_soc, after)["ready"]):
+                out["newly_ready_steps"].append(
+                    {"soc_code": step_soc, "title": repository.get_occupation(con, step_soc)["title"]})
+    ready_b, ready_a = pathway_service.ready_jobs(con, before), pathway_service.ready_jobs(con, after)
+    out["ready_jobs_before"], out["ready_jobs_after"] = len(ready_b), len(ready_a)
+    return out
+
+
 @app.put("/profiles/{profile_id}/skills/{element_id}", tags=["profile"])
 def set_skill_status(profile_id: str, element_id: str, body: SkillStatusIn, con=Depends(db)):
     """Progress: mark a skill 'learning' (working on it) or 'held' (can do it now).
 
-    Only 'held' changes the gap, the pathway and the recommendations.
+    Only 'held' changes the gap, the pathway and the recommendations. The
+    response says what the change did (`changes`), for the unlock moment.
     """
-    _require_profile(con, profile_id)
+    profile = _require_profile(con, profile_id)
     if element_id not in repository.valid_skill_ids(con):
         raise HTTPException(404, f"No skill {element_id}")
+    before = set(repository.profile_skill_ids(con, profile_id))
     repository.set_skill_status(con, profile_id, element_id, body.status)
-    return {"profile_id": profile_id, "element_id": element_id, "status": body.status}
+    after = set(repository.profile_skill_ids(con, profile_id))
+    return {"profile_id": profile_id, "element_id": element_id, "status": body.status,
+            "changes": _changes(con, profile, before, after)}
 
 
 @app.delete("/profiles/{profile_id}/skills/{element_id}", tags=["profile"])
 def remove_skill(profile_id: str, element_id: str, con=Depends(db)):
     """Undo: the skill goes back to neither held nor being learned."""
-    _require_profile(con, profile_id)
+    profile = _require_profile(con, profile_id)
+    before = set(repository.profile_skill_ids(con, profile_id))
     repository.remove_skill(con, profile_id, element_id)
-    return {"profile_id": profile_id, "element_id": element_id, "status": None}
+    after = set(repository.profile_skill_ids(con, profile_id))
+    return {"profile_id": profile_id, "element_id": element_id, "status": None,
+            "changes": _changes(con, profile, before, after)}
+
+
+@app.get("/skills/{element_id}", tags=["catalogue"])
+def get_skill(element_id: str, profile_id: str | None = None, con=Depends(db)):
+    """A skill page: what it is, where it matters most, and -- with a profile --
+    where the user stands on it."""
+    skill = repository.get_skill(con, element_id)
+    if skill is None:
+        raise HTTPException(404, f"No skill {element_id}")
+    status = None
+    if profile_id:
+        _require_profile(con, profile_id)
+        status = next((r["status"] for r in repository.profile_skills(con, profile_id)
+                       if r["element_id"] == element_id), None)
+    return {
+        **dict(skill),
+        "group": plain.skill_group(element_id),
+        "status": status,
+        "must_have_in": repository.count_jobs_needing(con, element_id, ESSENTIAL_THRESHOLD),
+        "top_jobs": [
+            {"soc_code": r["soc_code"], "title": r["title"], "job_zone": r["job_zone"],
+             "importance": round(r["importance"], 2), "level": plain.importance_level(r["importance"]),
+             "preparation": plain.preparation(r["job_zone"])}
+            for r in repository.jobs_for_skill(con, element_id)
+        ],
+    }
 
 
 @app.put("/profiles/{profile_id}/target", tags=["profile"])
