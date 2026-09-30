@@ -1,6 +1,8 @@
 @startuml SAYCEP_A3_Class_Services
 ' Assignment 3 Q3.3, part B - the service classes (backend modules) and
 ' their operations, as implemented. Domain classes are detailed in part A.
+' Version 1.1 (30 September): profile read and progress endpoints, step
+' readiness, task statements, and the PlainLabels module.
 title SAYCEP - Class Diagram, part B: services (as implemented)
 skinparam classAttributeIconSize 0
 skinparam shadowing false
@@ -9,9 +11,12 @@ skinparam ranksep 50
 
 class SaycepApi <<app.py>> {
   + listOccupations(zone, q, limit)
-  + getOccupation(socCode)
+  + getOccupation(socCode, profileId [0..1])
   + listSkills()
   + createProfile(body) : Profile
+  + getProfile(profileId) : Readiness
+  + setSkillStatus(profileId, elementId, status)
+  + removeSkill(profileId, elementId)
   + setTarget(profileId, socCode)
   + getGap(profileId, socCode) : SkillsGap
   + getPathway(profileId, socCode) : Pathway
@@ -22,6 +27,7 @@ class GapAnalyser <<gap.py>> {
 }
 class PathwayService <<pathway.py>> {
   + generatePathway(profileId, socCode) : Pathway
+  + stepReadiness(socCode, held) : bool
   - stepFocus(socCode, held, previousSoc) : SkillFocus[1..6]
   - rankByCloseness(held, candidates) : RelatedOccupation[*]
 }
@@ -36,12 +42,22 @@ class OccupationRepository <<repository.py>> {
   + createProfile(type, skills, target) : str
   + getProfile(profileId) : Profile
   + setTarget(profileId, socCode)
-  + profileSkillIds(profileId) : str[*]
+  + profileSkillIds(profileId) : str[*]  (held only)
+  + profileSkills(profileId) : UserSkill[*]
+  + setSkillStatus(profileId, elementId, status)
+  + removeSkill(profileId, elementId)
+  + occupationTasks(socCode, limit) : OccupationTask[*]
   + getOccupation(socCode) : Occupation
   + listOccupations(zone, query, limit) : Occupation[*]
   + requiredSkills(socCode) : OccupationSkill[*]
   + relatedOccupations(socCode) : RelatedOccupation[*]
   + ensureProfileTables()
+}
+class PlainLabels <<plain.py>> {
+  + importanceLevel(importance) : str
+  + matchLevel(score) : str
+  + preparation(zone) : str
+  + skillGroup(elementId) : str
 }
 class Config <<config.py>> {
   + ESSENTIAL_THRESHOLD : float = 3.5
@@ -52,6 +68,8 @@ SaycepApi ..> GapAnalyser
 SaycepApi ..> PathwayService
 SaycepApi ..> RecommendationEngine
 SaycepApi ..> OccupationRepository
+SaycepApi ..> PlainLabels : labels every figure
+PlainLabels ..> Config
 PathwayService ..> RecommendationEngine : ranks steps
 PathwayService ..> OccupationRepository
 GapAnalyser ..> OccupationRepository

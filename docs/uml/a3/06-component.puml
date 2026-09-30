@@ -1,5 +1,6 @@
 @startuml SAYCEP_A3_Component
 ' Assignment 3 Q3.6 - component diagram: software dependencies.
+' Version 1.1 (30 September): plain.py added.
 title SAYCEP - Component Diagram
 skinparam shadowing false
 
@@ -15,6 +16,7 @@ package "backend/" {
   component "Pathway Service\npathway.py" as PS
   component "Recommendation Engine\nrecommend.py\n<<emerging technology>>" as RE #D6E8F5
   component "Occupation Repository\nrepository.py" as Repo
+  component "Plain Labels\nplain.py" as PL
   component "config.py\nESSENTIAL_THRESHOLD = 3.5" as Cfg
   component "O*NET Loader\nload_onet.py" as Loader
 }
@@ -38,6 +40,8 @@ API ..> GA
 API ..> PS
 API ..> RE
 API ..> Repo
+API ..> PL
+PL ..> Cfg
 PS ..> RE
 PS ..> Repo
 GA ..> Repo

@@ -1,11 +1,19 @@
 @startuml SAYCEP_A3_Activity
 ' Assignment 3 Q3.5 - end-to-end journey with decisions, exceptions and
 ' completion states, as implemented in frontend/app.js.
+' Version 1.1 (30 September): the occupation panel before choosing a
+' target, and the saved My plan dashboard after the pathway (ADR-0006).
 title End-to-End Journey (as implemented)
 skinparam ActivityBackgroundColor #FEFEFE
 
 start
 :Open SAYCEP;
+if (Saved plan in this browser?) then (yes, and profile still exists)
+  :Open My plan dashboard;
+  note right: continues in the\nMy plan dashboard below
+  detach
+else (no)
+endif
 repeat
   :Choose starting point;
 repeat while (Choice made?) is (no - Continue disabled)
@@ -32,8 +40,10 @@ else (student)
 endif
 
 repeat
-  :Pick a target via For you, Browse or Search;
-repeat while (Target picked?) is (no - Continue disabled)
+  :Open a job via For you, Browse or Search;
+  :Read the job panel - what it involves,
+  preparation, which skills you have;
+repeat while (Aim for this job?) is (no - close panel)
 -> yes;
 :Record target (PUT /profiles/id/target);
 if (Target valid?) then (no - 404)
@@ -56,8 +66,29 @@ endif
 if (Next action?) then (try a different target)
   :Return to target selection;
   stop
-else (start again or done)
-  :Completion - journey finished;
-  stop
+else (save as my plan)
+  :Store profile id in this browser (not an account);
 endif
+
+partition "My plan dashboard" {
+  repeat
+    :Show goal, readiness (must-haves held),
+    route with ready steps ticked, next step;
+    :Choose an action on a skill;
+    if (Action?) then (start learning)
+      :Record status = learning
+      (gap unchanged);
+    elseif (I can do this now) then
+      :Record status = held;
+      #D6E8F5:Recompute gap, pathway and readiness;
+    else (undo)
+      :Remove the skill;
+      :Recompute gap, pathway and readiness;
+    endif
+  repeat while (Goal reached or user leaves?) is (no)
+  -> yes;
+}
+:Completion - every must-have held,
+or plan kept for the next visit;
+stop
 @enduml

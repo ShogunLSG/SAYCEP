@@ -4,6 +4,8 @@
 ' available to both profile types as tabs on one screen; the profile type
 ' only sets which tab opens first. UC-03 is now extended by the three ways
 ' of choosing a target rather than each belonging to one actor.
+' Version 1.1 (30 September): UC-11 to UC-13 added for the occupation
+' panel, the saved plan dashboard and skill progress (ADR-0005 to 0007).
 title SAYCEP - Use Case Diagram (as implemented)
 left to right direction
 skinparam packageStyle rectangle
@@ -29,12 +31,16 @@ rectangle "SAYCEP System Boundary" {
   usecase "UC-08 Generate Career Pathway" as UC8
   usecase "UC-09 View Data Provenance" as UC9
   usecase "UC-10 Load Occupation Data" as UC10
+  usecase "UC-11 View Occupation Detail" as UC11
+  usecase "UC-12 Save and View My Plan" as UC12
+  usecase "UC-13 Track Skill Progress" as UC13
 }
 
 User --> UC1
 User --> UC3
 User --> UC7
 User --> UC8
+User --> UC12
 Admin --> UC10
 
 UC1 ..> UC2 : <<include>>
@@ -45,8 +51,16 @@ UC7 ..> UC3 : <<include>>
 UC8 ..> UC7 : <<include>>
 UC9 ..> UC7 : <<extend>>
 UC9 ..> UC8 : <<extend>>
+UC11 ..> UC3 : <<extend>>
+UC11 ..> UC8 : <<extend>>
+UC12 ..> UC7 : <<include>>
+UC12 ..> UC8 : <<include>>
+UC13 ..> UC12 : <<extend>>
 
 UC10 --> ONET
+' Layout only: keep the dataset actor to the right of the boundary.
+UC6 -[hidden]-> ONET
+UC3 -[hidden]-> ONET
 
 note right of UC6
   Emerging technology: mean-centred cosine
@@ -55,4 +69,5 @@ note right of UC6
   School-leaver: default tab, Job Zones 1-3 only.
   Student: available, all zones.
 end note
+
 @enduml
