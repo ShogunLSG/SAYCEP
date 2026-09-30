@@ -128,8 +128,9 @@ function OccRow({ occ, picked, onPick, score, match }) {
       ${score != null && html`<${Ring} score=${score} label=${match} />`}
       <span class="t">${occ.title}
         <span class="meta">
-          ${match && html`<b class="match">${match}</b>${" · "}`}${occ.preparation ? occ.preparation.label : ""}
-          <${Figure}>${occ.soc_code} · Zone ${occ.job_zone}${score != null ? ` · ${score.toFixed(3)}` : ""}<//>
+          ${match && html`<b class="match">${match}</b>
+            <span class="score mono" title="Similarity score (FR-06)">${score.toFixed(2)}</span>${" · "}`}${occ.preparation ? occ.preparation.label : ""}
+          <${Figure}>${occ.soc_code} · Zone ${occ.job_zone}<//>
         </span>
       </span>
       <span class="tick">${Icon.check}</span>
@@ -308,7 +309,8 @@ function StepExplore({ profileId, type, target, onOpen }) {
     ${tab === "foryou" && html`
       <p class="note">${leaver
         ? "Ranked by how closely your skills match — only roles that don't need a degree."
-        : "Ranked by how closely your skills match, across every preparation level."}</p>
+        : "Ranked by how closely your skills match, across every preparation level."}
+        ${" "}The number is the match score: 1.00 would be identical.</p>
       <${Status} loading=${recs.loading} error=${recs.error}>
         ${recs.data && html`<div class="list">
           ${recs.data.recommendations.map((r) => html`

@@ -358,3 +358,4 @@ input{font-family:inherit}
 .day{margin:0 0 4px; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--ink-2); line-height:1.45}
 .day li::marker{color:var(--accent)}
 .sheet .prep{margin-top:14px}
+.occ .meta .score{font-size:10.5px; color:var(--accent-ink); background:var(--accent-soft); border-radius:4px; padding:0 4px; margin-left:4px}
