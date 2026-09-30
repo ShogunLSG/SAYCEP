@@ -101,8 +101,8 @@ def job_zones(con):
 
 def required_skills(con, soc_code):
     return con.execute(
-        "SELECT s.element_id, s.name, os.importance, os.importance_scale_max,"
-        "       os.source_date"
+        "SELECT s.element_id, s.name, s.description, os.importance,"
+        "       os.importance_scale_max, os.source_date"
         "  FROM occupation_skills os JOIN skills s ON s.element_id = os.element_id"
         " WHERE os.soc_code = ? ORDER BY os.importance DESC", (soc_code,)).fetchall()
 

@@ -13,6 +13,7 @@ import repository
 import gap
 import pathway
 import recommend
+import plain
 from config import ESSENTIAL_THRESHOLD
 
 PASS, FAIL = [], []
@@ -81,6 +82,19 @@ def main():
     check("TC-U05a", "startup exits non-zero when saycep.db has no data", r.returncode != 0, f"exit {r.returncode}")
     check("TC-U05b", "the exit message names the fix (run load_onet.py)",
           "load_onet.py" in (r.stderr + r.stdout), (r.stderr or r.stdout).strip()[-80:])
+
+    print("\nTC-U06  plain-language labels agree with the figures they replace  (FR-07)")
+    check("TC-U06a", "every essential importance is labelled at least 'Very important'",
+          all(plain.importance_level(v) in ("Critical for this job", "Very important")
+              for v in (ESSENTIAL_THRESHOLD, 3.75, 4.0, 5.0)))
+    check("TC-U06b", "no desirable importance is labelled 'Very important' or above",
+          all(plain.importance_level(v) in ("Important", "Useful") for v in (1.0, 2.99, 3.0, 3.49)))
+    check("TC-U06c", "all 35 skills fall into a named group, none into 'Other skills'",
+          all(plain.skill_group(s) != "Other skills" for s in skill_ids))
+    check("TC-U06d", "every Job Zone 1-5 has a plain label",
+          all(plain.preparation(z)["label"] for z in range(1, 6)))
+    check("TC-U06e", "a negative similarity still gets a match label, not an error",
+          plain.match_level(-0.2) == "Some overlap")
 
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0

@@ -97,6 +97,13 @@ where the gap is labelled, and it lets the screen show *"Troubleshooting —
 essential (4.0 out of 5)"*. The rating on screen answers "how do you decide
 essential?" before it is asked.
 
+**The screen leads with words; the figures move to presenter mode.** *(Changed
+30 September — see section 4.)* A school leaver reads "Critical for this job",
+not "4.00 / 5". The API returns both: every figure still travels in the
+response, with a plain label beside it. The labels come from `backend/plain.py`
+so the frontend never decides what a number means. `?presenter` shows the
+figures again for the marker.
+
 **Standard library only.** Pandas would do the load in fewer lines, but the whole
 job is reading five tab-delimited files and inserting rows. Adding a dependency
 for that is against the project's own rule, and a demo that runs on a bare Python
@@ -221,6 +228,33 @@ than an anonymous synthetic CSV. Be ready to say exactly that.
 - **Skill capture got easy.** O*NET's skills taxonomy is 35 entries, so a capture
   screen can list all of them. The search-and-match problem the resume-based plan
   would have had does not exist.
+
+### 30 September: words before figures
+
+Walking the journey as a user showed that it spoke to the marker rather than the
+user: `3.62 / 5`, `47-2111.00 · Job Zone 3`, a `64%` ring, `1.25 → 3.50`. None of
+it meant anything to the school-leaver profile. The plan is in
+`plans/ux-and-dashboard.md`. Task 1 of that plan:
+
+- **Importance** becomes one of four labels. The "Very important" line is set
+  at the essential threshold (3.5), so a must-have can never be described as
+  merely "Important" (checked by TC-U06a/b).
+- **Match** becomes Strong / Good / Some overlap. The cut-points (0.55, 0.40)
+  were measured: over 300 random 3–12 skill profiles, the top recommendation's
+  score has a median of 0.44 and a 90th percentile of 0.56.
+- **Job Zone** becomes a preparation sentence. O*NET's education notes are
+  American. "Matric" for "high school diploma" is our translation, and the
+  original O*NET text is still in the response.
+- **Skills** are grouped under seven plain headings, derived from O*NET's own
+  element-ID hierarchy. Tapping one explains it using O*NET's description.
+- **The "how is essential decided" note** now says the ratings come from
+  O*NET's job analysts. That was verified: every row in `Skills.txt` has
+  `Domain Source = Analyst`. Workers themselves did not rate these skills, and
+  the screen must not suggest they did.
+
+These cut-points are presentation choices, not findings from the data. The
+classification itself, essential against desirable at 3.5, is unchanged, so
+FR-07's behaviour is too.
 
 ---
 

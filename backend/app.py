@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from config import ESSENTIAL_THRESHOLD
 import gap as gap_analyser
 import pathway as pathway_service
+import plain
 import recommend as recommendation_engine
 import repository
 
@@ -90,6 +91,17 @@ def _require_occupation(con, soc_code):
     return occ
 
 
+# Plain-language labels ride alongside the figures, never instead of them: the
+# screen leads with the words and presenter mode still shows the numbers.
+
+def _with_preparation(occ):
+    return {**occ, "preparation": plain.preparation(occ["job_zone"])}
+
+
+def _with_level(skill):
+    return {**skill, "level": plain.importance_level(skill["importance"])}
+
+
 # ---------- catalogue ----------
 
 @app.get("/occupations", tags=["catalogue"])
@@ -111,11 +123,13 @@ def list_occupations(
     if zone is not None:
         zone_info = next((dict(z) for z in repository.job_zones(con)
                           if z["zone"] == zone), None)
+        if zone_info:
+            zone_info["preparation"] = plain.preparation(zone)
     return {
         "total": total,
         "returned": len(rows),
         "job_zone": zone_info,
-        "occupations": [dict(r) for r in rows],
+        "occupations": [_with_preparation(dict(r)) for r in rows],
         "message": None if rows else "No occupations match that search.",
     }
 
@@ -126,9 +140,11 @@ def get_occupation(soc_code: str, con=Depends(db)):
     occ = _require_occupation(con, soc_code)
     skills = repository.required_skills(con, soc_code)
     return {
-        **dict(occ),
+        **_with_preparation(dict(occ)),
         "required_skills": [
             {"element_id": s["element_id"], "name": s["name"],
+             "description": s["description"],
+             "level": plain.importance_level(s["importance"]),
              "importance": round(s["importance"], 2),
              "importance_scale_max": s["importance_scale_max"],
              "classification": ("essential" if s["importance"] >= ESSENTIAL_THRESHOLD
@@ -143,7 +159,11 @@ def get_occupation(soc_code: str, con=Depends(db)):
 def list_skills(con=Depends(db)):
     """FR-02: all 35, for the capture screen."""
     rows = repository.list_skills(con)
-    return {"total": len(rows), "skills": [dict(r) for r in rows]}
+    return {
+        "total": len(rows),
+        "groups": list(dict.fromkeys(name for _, name in plain.SKILL_GROUPS)),
+        "skills": [{**dict(r), "group": plain.skill_group(r["element_id"])} for r in rows],
+    }
 
 
 # ---------- profiles ----------
@@ -183,7 +203,10 @@ def get_gap(profile_id: str, soc_code: str | None = None, con=Depends(db)):
     profile = _require_profile(con, profile_id)
     target = _resolve_target(profile, soc_code)
     _require_occupation(con, target)
-    return gap_analyser.compute_gap(con, profile_id, target)
+    result = gap_analyser.compute_gap(con, profile_id, target)
+    result["target"] = _with_preparation(result["target"])
+    result["missing"] = [_with_level(m) for m in result["missing"]]
+    return result
 
 
 @app.get("/profiles/{profile_id}/pathway", tags=["profile"])
@@ -192,7 +215,12 @@ def get_pathway(profile_id: str, soc_code: str | None = None, con=Depends(db)):
     profile = _require_profile(con, profile_id)
     target = _resolve_target(profile, soc_code)
     _require_occupation(con, target)
-    return pathway_service.generate_pathway(con, profile_id, target)
+    result = pathway_service.generate_pathway(con, profile_id, target)
+    result["target"] = _with_preparation(result["target"])
+    result["steps"] = [{**_with_preparation(st),
+                        "focus": [_with_level(f) for f in st["focus"]]}
+                       for st in result["steps"]]
+    return result
 
 
 # ---------- recommendation ----------
@@ -221,7 +249,8 @@ def get_recommendations(
         "max_job_zone": max_job_zone,
         "recommendations": [
             {"soc_code": soc, "title": title, "score": round(score, 3),
-             "job_zone": zones.get(soc)}
+             "match": plain.match_level(score), "job_zone": zones.get(soc),
+             "preparation": plain.preparation(zones.get(soc))}
             for soc, title, score in results
         ],
         "message": None if results else

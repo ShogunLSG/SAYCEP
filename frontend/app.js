@@ -89,33 +89,45 @@ function Status({ loading, error, children }) {
   return children;
 }
 
-function Ring({ score }) {
+function Ring({ score, label }) {
   const r = 14, c = 2 * Math.PI * r;
   const s = Math.max(0, Math.min(1, score)); // mean-centred cosine can dip below 0
   return html`
-    <span class="ring" title="Skill similarity">
+    <span class="ring" title=${label || "Skill match"}>
       <svg width="36" height="36">
         <circle class="bg" cx="18" cy="18" r=${r} />
         <circle class="fg" cx="18" cy="18" r=${r}
                 strokeDasharray=${c} strokeDashoffset=${c * (1 - s)} />
       </svg>
-      <span>${Math.round(s * 100)}%</span>
+      ${PRESENTER && html`<span>${Math.round(s * 100)}%</span>`}
     </span>`;
 }
 
-function OccRow({ occ, picked, onPick, score }) {
+/** The figures a marker checks against, shown only with ?presenter. */
+function Figure({ children }) {
+  return PRESENTER ? html`<span class="fig mono">${children}</span>` : null;
+}
+
+function OccRow({ occ, picked, onPick, score, match }) {
   return html`
     <button class=${"occ" + (picked ? " on" : "")} aria-pressed=${picked}
             onClick=${() => onPick(occ)}>
-      ${score != null && html`<${Ring} score=${score} />`}
+      ${score != null && html`<${Ring} score=${score} label=${match} />`}
       <span class="t">${occ.title}
-        <span class="meta mono">${occ.soc_code} · Job Zone ${occ.job_zone}</span>
+        <span class="meta">
+          ${match && html`<b class="match">${match}</b>${" · "}`}${occ.preparation ? occ.preparation.label : ""}
+          <${Figure}>${occ.soc_code} · Zone ${occ.job_zone}${score != null ? ` · ${score.toFixed(3)}` : ""}<//>
+        </span>
       </span>
       <span class="tick">${Icon.check}</span>
     </button>`;
 }
 
 const zoneName = (name) => (name || "").replace(/^Job Zone \w+:\s*/, "");
+
+// Button labels for O*NET's five Job Zones, shortest form of backend/plain.py's
+// wording. The full sentence for the chosen zone comes back from the API.
+const ZONE_CHIPS = ["None", "Matric", "Trade", "Degree", "Postgrad"];
 
 // ---------- step 1 : who ----------
 
@@ -150,25 +162,42 @@ function StepStart({ type, onPick }) {
 function StepSkills({ held, onToggle }) {
   const { data, error, loading } = useFetch("/skills");
   const [q, setQ] = useState("");
-  const shown = data ? data.skills.filter((s) => s.name.toLowerCase().includes(q.toLowerCase())) : [];
+  const [last, setLast] = useState(null); // the skill last tapped, explained below
+  const needle = q.toLowerCase();
+  const shown = data ? data.skills.filter((s) =>
+    s.name.toLowerCase().includes(needle) || (s.description || "").toLowerCase().includes(needle)) : [];
+  const tap = (s) => { onToggle(s.element_id); setLast(s); };
   return html`
     <${Head} kicker="Your skills" fr="FR-02"
              title="What can you already do?"
-             sub="Tap anything that's genuinely true of you. Honest beats modest — this is what your gap is measured against." />
+             sub="Tap anything that's genuinely true of you — from school, work, home or helping out. Honest beats modest." />
     <${Status} loading=${loading} error=${error}>
       <div class="filter">
         ${Icon.search}
-        <input id="skill-filter" placeholder="Filter skills…" autocomplete="off"
+        <input id="skill-filter" placeholder="Search — try “fix”, “people” or “numbers”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
-      <div class="chips">
-        ${shown.map((s) => html`
-          <button key=${s.element_id} class=${"chip" + (held.has(s.element_id) ? " on" : "")}
-                  aria-pressed=${held.has(s.element_id)} aria-label=${s.name} title=${s.description}
-                  onClick=${() => onToggle(s.element_id)}>${s.name}</button>`)}
-      </div>
-      <p class="count"><b>${held.size}</b> of ${data ? data.total : 35} selected</p>
-    <//>`;
+      ${data && data.groups.map((g) => {
+        const inGroup = shown.filter((s) => s.group === g);
+        return inGroup.length > 0 && html`
+          <div key=${g} class="group">
+            <h4 class="gh">${g}</h4>
+            <div class="chips">
+              ${inGroup.map((s) => html`
+                <button key=${s.element_id} class=${"chip" + (held.has(s.element_id) ? " on" : "")}
+                        aria-pressed=${held.has(s.element_id)} aria-label=${s.name} title=${s.description}
+                        onClick=${() => tap(s)}>${s.name}</button>`)}
+            </div>
+          </div>`;
+      })}
+      ${data && shown.length === 0 && html`<p class="note">No skills match “${q}”.</p>`}
+    <//>
+    <div class="hint" aria-live="polite">
+      ${last
+        ? html`<b>${last.name}</b> — ${last.description}`
+        : "Not sure what a skill means? Tap it and we'll explain it here."}
+    </div>
+    <p class="count"><b>${held.size}</b> selected</p>`;
 }
 
 // ---------- step 3 : explore ----------
@@ -207,22 +236,24 @@ function StepExplore({ profileId, type, target, onPick }) {
       <${Status} loading=${recs.loading} error=${recs.error}>
         ${recs.data && html`<div class="list">
           ${recs.data.recommendations.map((r) => html`
-            <${OccRow} key=${r.soc_code} occ=${r} score=${r.score}
+            <${OccRow} key=${r.soc_code} occ=${r} score=${r.score} match=${r.match}
                        picked=${isPicked(r)} onPick=${onPick} />`)}
         </div>`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
       <//>`}
 
     ${tab === "browse" && html`
-      <div class="zones" role="group" aria-label="Preparation level">
-        ${[1, 2, 3, 4, 5].map((z) => html`
-          <button key=${z} class=${"zone" + (zone === z ? " on" : "")} aria-pressed=${zone === z}
-                  onClick=${() => setZone(z)}>Zone ${z}</button>`)}
+      <p class="note">How much training does it take to start?</p>
+      <div class="zones" role="group" aria-label="Preparation needed">
+        ${ZONE_CHIPS.map((label, i) => html`
+          <button key=${i} class=${"zone" + (zone === i + 1 ? " on" : "")} aria-pressed=${zone === i + 1}
+                  onClick=${() => setZone(i + 1)}>${label}</button>`)}
       </div>
       <${Status} loading=${browse.loading} error=${browse.error}>
         ${browse.data && html`
-          <p class="zdesc"><b>${zoneName(browse.data.job_zone.name)}.</b> ${browse.data.job_zone.education}
-            ${" "}${browse.data.total} occupations.</p>
+          <p class="zdesc"><b>${browse.data.job_zone.preparation.label}.</b> ${browse.data.job_zone.preparation.detail}
+            ${" "}${browse.data.total} jobs.
+            <${Figure}>${zoneName(browse.data.job_zone.name)} (O*NET Job Zone ${zone})<//></p>
           <div class="list">
             ${browse.data.occupations.map((o) => html`
               <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onPick} />`)}
@@ -232,7 +263,7 @@ function StepExplore({ profileId, type, target, onPick }) {
     ${tab === "search" && html`
       <div class="filter">
         ${Icon.search}
-        <input id="occ-search" placeholder="Search 879 occupations — try “electric”" autocomplete="off"
+        <input id="occ-search" placeholder="Search 879 jobs — try “electric” or “nurse”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
       ${term.length < 2
@@ -251,6 +282,17 @@ function StepExplore({ profileId, type, target, onPick }) {
 
 // ---------- step 4 : gap ----------
 
+function SkillRow({ m }) {
+  const ess = m.classification === "essential";
+  return html`
+    <div class=${"row" + (ess ? " ess" : "")}>
+      <span class="nm"><span>${m.name}</span></span>
+      <span class="lvl">${m.level}</span>
+      <span class="bar"><i style=${{ width: `${(m.importance / m.importance_scale_max) * 100}%` }}></i></span>
+      <span class="desc">${m.description}<${Figure}> · ${m.importance.toFixed(2)} / ${m.importance_scale_max}<//></span>
+    </div>`;
+}
+
 function StepGap({ profileId }) {
   const { data, error, loading } = useFetch(`/profiles/${profileId}/gap`);
   const [all, setAll] = useState(false);
@@ -258,37 +300,41 @@ function StepGap({ profileId }) {
     <${Head} kicker="The gap" fr="FR-07 · FR-09" title="What's missing?" />
     <${Status} loading=${loading} error=${error}>
       ${data && (() => {
-        const shown = all ? data.missing : data.missing.slice(0, 10);
+        const must = data.missing.filter((m) => m.classification === "essential");
+        const nice = data.missing.filter((m) => m.classification !== "essential");
+        const niceShown = all ? nice : nice.slice(0, 5);
         const dates = [...new Set(data.missing.map((m) => m.source_date).filter(Boolean))];
         return html`
           <div class="target">
             <h3>${data.target.title}</h3>
-            <div class="meta mono">${data.target.soc_code} · Job Zone ${data.target.job_zone} · ${zoneName(data.target.zone_name)}</div>
-            <div class="stats">
-              <div class="stat h"><b>${data.already_held_count}</b><span>You have</span></div>
-              <div class="stat e"><b>${data.missing_essential_count}</b><span>Essential</span></div>
-              <div class="stat"><b>${data.missing_desirable_count}</b><span>Desirable</span></div>
-            </div>
+            <div class="meta">${data.target.preparation.label}
+              <${Figure}> · ${data.target.soc_code} · Job Zone ${data.target.job_zone}<//></div>
+            <p class="headline">
+              You already have <b>${data.already_held_count}</b> of the ${data.required_total} skills this job uses.
+              ${must.length
+                ? html` <b class="e">${must.length} must-have${must.length === 1 ? "" : "s"}</b> still to learn.`
+                : html` <b class="h">You have every must-have.</b>`}
+            </p>
+            <${Figure}>held ${data.already_held_count} · essential ${data.missing_essential_count} · desirable ${data.missing_desirable_count}<//>
           </div>
           ${data.message
             ? html`<div class="empty"><div class="big">🎉</div>${data.message}</div>`
             : html`
-              <div class="rows">
-                ${shown.map((m) => {
-                  const ess = m.classification === "essential";
-                  return html`
-                    <div key=${m.element_id} class=${"row" + (ess ? " ess" : "")}>
-                      <span class="nm"><span>${m.name}</span>
-                        <span class=${"tag " + (ess ? "e" : "d")}>${ess ? "Essential" : "Desirable"}</span></span>
-                      <span class="val mono">${m.importance.toFixed(2)} / ${m.importance_scale_max}</span>
-                      <span class="bar"><i style=${{ width: `${(m.importance / m.importance_scale_max) * 100}%` }}></i></span>
-                    </div>`;
-                })}
-              </div>
-              ${data.missing.length > 10 && html`
-                <button class="more" onClick=${() => setAll(!all)}>
-                  ${all ? "Show fewer" : `Show all ${data.missing.length} missing skills`}</button>`}
-              <p class="rule">Essential means O*NET rates it ${data.threshold} or above for this job, on its 1–5 importance scale.</p>`}
+              ${must.length > 0 && html`
+                <h4 class="sect e">Must-haves <span>— the job depends on these</span></h4>
+                <div class="rows">${must.map((m) => html`<${SkillRow} key=${m.element_id} m=${m} />`)}</div>`}
+              ${nice.length > 0 && html`
+                <h4 class="sect">Nice to have <span>— they help, but you can start without them</span></h4>
+                <div class="rows">${niceShown.map((m) => html`<${SkillRow} key=${m.element_id} m=${m} />`)}</div>
+                ${nice.length > 5 && html`
+                  <button class="more" onClick=${() => setAll(!all)}>
+                    ${all ? "Show fewer" : `Show all ${nice.length} nice-to-haves`}</button>`}`}
+              <details class="why">
+                <summary>How do we decide what's a must-have?</summary>
+                Job analysts at O*NET rated how important each skill is for this job. The ones rated
+                highest are must-haves.
+                <${Figure}>Essential = O*NET importance ≥ ${data.threshold} on its 1–5 scale.<//>
+              </details>`}
           <p class="prov">${data.target.source_dataset}${dates.length ? ` · ratings dated ${dates.join(", ")}` : ""}</p>`;
       })()}
     <//>`;
@@ -302,7 +348,8 @@ function StepPathway({ profileId }) {
     <${Head} kicker="Your route" fr="FR-08" title="How do you get there?" />
     <${Status} loading=${loading} error=${error}>
       ${data && html`
-        <p class="sub">${data.intermediate_steps} steps, then ${data.target.title.toLowerCase()} itself.</p>
+        <p class="sub">${data.intermediate_steps} related jobs that build toward ${data.target.title.toLowerCase()},
+          starting with the one closest to what you can already do.</p>
         <div class="steps">
           ${data.steps.map((s, i) => html`
             <div key=${s.soc_code} class=${"step" + (s.is_target ? " target-step" : "")}>
@@ -312,20 +359,21 @@ function StepPathway({ profileId }) {
               </div>
               <div class="sbody">
                 <div class="sh">
-                  <h4>${s.title}</h4><span class="zn">Zone ${s.job_zone}</span>
-                  ${s.is_target && html`<span class="pill">Target</span>`}
+                  <h4>${s.title}</h4>
+                  ${s.is_target && html`<span class="pill">Your goal</span>`}
                 </div>
+                <div class="zn">${s.preparation.label}<${Figure}> · Zone ${s.job_zone}<//></div>
                 ${s.focus.slice(0, 4).map((f) => html`
                   <div key=${f.element_id} class="fs">
                     <span class="n">${f.name}</span>
-                    ${f.badge && html`<span class=${"bdg " + f.badge}>${f.badge === "new" ? "New" : "Deeper"}</span>`}
-                    <span class="v mono">${f.badge === "deeper" ? `${f.from.toFixed(2)} → ${f.to.toFixed(2)}` : f.importance.toFixed(2)}</span>
+                    ${f.badge && html`<span class=${"bdg " + f.badge}>${f.badge === "new" ? "New to you" : "Use it more"}</span>`}
+                    <${Figure}>${f.badge === "deeper" ? `${f.from.toFixed(2)} → ${f.to.toFixed(2)}` : f.importance.toFixed(2)}<//>
                   </div>`)}
               </div>
             </div>`)}
         </div>
-        <p class="basis"><b>New</b> — you don't have it yet. <b>Deeper</b> — this role asks for more of it than the step before.
-          Steps come from O*NET's expert-reviewed list of roles related to your target, ordered from closest to the skills you have now.</p>
+        <p class="basis"><b>New to you</b> — a skill you haven't got yet. <b>Use it more</b> — you have it, but this job
+          needs more of it than the step before. Each step is a job O*NET's experts list as related to your goal.</p>
         <p class="prov">${data.source_dataset}</p>`}
     <//>`;
 }

@@ -227,3 +227,29 @@ input{font-family:inherit}
 .bdg.deeper{background:var(--accent-soft); color:var(--accent-ink)}
 .fs .v{font-size:11px; color:var(--muted); flex:none}
 .basis{font-size:12px; color:var(--muted); background:var(--sunk); border-radius:9px; padding:10px 12px; margin-top:18px}
+
+/* ---------- plain-language pass ---------- */
+/* Figures a marker checks against; only rendered with ?presenter. */
+.fig{display:inline; font-size:10.5px; color:var(--muted); margin-left:4px}
+.occ .meta .match{font-weight:600; color:var(--accent-ink)}
+.group{margin-bottom:14px}
+.gh{font:600 11px/1.3 "IBM Plex Sans", sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 7px}
+.hint{
+  position:sticky; bottom:-24px; margin:14px -20px -24px; padding:11px 20px 14px;
+  background:var(--sunk); border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-2); line-height:1.45;
+}
+.hint b{color:var(--ink)}
+.zone{font-size:12px; padding:8px 2px}
+.headline{font-size:14px; line-height:1.5; margin:10px 0 0; color:var(--ink-2)}
+.headline b{color:var(--ink)}
+.headline b.e{color:var(--essential)}
+.headline b.h{color:var(--ok)}
+.sect{font-size:13.5px; margin:18px 0 10px}
+.sect span{font-weight:400; color:var(--muted); font-family:"IBM Plex Sans", sans-serif; font-size:12.5px}
+.sect.e{color:var(--essential)}
+.row .lvl{font-size:11.5px; color:var(--ink-2); white-space:nowrap}
+.row.ess .lvl{color:var(--essential); font-weight:600}
+.row .desc{grid-column:1/-1; font-size:12px; color:var(--muted); line-height:1.4}
+.why{font-size:12.5px; color:var(--ink-2); background:var(--sunk); border-radius:9px; padding:10px 12px; margin-top:16px}
+.why summary{cursor:pointer; font-weight:600; color:var(--accent-ink); margin-bottom:4px}
+.step .zn{margin:-3px 0 7px; text-transform:none; letter-spacing:0; font-size:11.5px; font-weight:500}

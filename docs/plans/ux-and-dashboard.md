@@ -1,6 +1,16 @@
 # Plan: plain-language pass, role detail, and a "My plan" dashboard
 
-*Written 30 September 2026. Status: **waiting for review, nothing built yet.***
+*Written 30 September 2026. Status: **approved 30 September — building.***
+
+**Decisions taken (30 September):**
+1. Progress has **two states, "working on it" and "I can do this now"**. This
+   is a schema change: a `status` column on `user_skills`, recorded as an ADR.
+   Only "I can do this now" counts as holding a skill. "Working on it" never
+   closes a gap.
+2. **Task 5 is approved**, and runs after Tasks 1–4.
+3. Data comes from the **Kaggle copy**, downloaded into this environment with
+   an API token. Nothing is committed.
+4. The order is **1 → 2 → 3 → 4 → 5**, with a commit after each.
 
 ## The problem, in the user's words
 
