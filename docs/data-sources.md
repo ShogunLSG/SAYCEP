@@ -39,6 +39,9 @@ from the Kaggle copy.
 | `Related Occupations.txt` | 18,460 | 10 primary + 10 supplemental related occupations, ordered by expert review |
 | `Task Statements.txt` | 18,796 | What people in the job actually do, in plain sentences. Loaded 30 September (ADR-0007) |
 | `Task Ratings.txt` | 158,751 | Importance (IM) of each task, used only to put the most important tasks first |
+| `Alternate Titles.txt` | 55,120 | Other names for each job, so search finds them (ADR-0009) |
+| `Technology Skills.txt` | 32,470 | Software used in each job, with O*NET's "hot technology" flag |
+| `Tools Used.txt` | 41,650 | Physical tools used in each job, grouped by category |
 | `Interests.txt` | — | RIASEC inventory, for school-leaver intake |
 
 Two flags in `Skills.txt` must be respected on load: `Recommend Suppress` marks

@@ -127,6 +127,7 @@ function OccRow({ occ, picked, onPick, score, match }) {
             onClick=${() => onPick(occ)}>
       ${score != null && html`<${Ring} score=${score} label=${match} />`}
       <span class="t">${occ.title}
+        ${occ.also_called && html`<span class="aka">also called ${occ.also_called}</span>`}
         <span class="meta">
           ${match && html`<b class="match">${match}</b>
             <span class="score mono" title="Similarity score (FR-06)">${score.toFixed(2)}</span>${" · "}`}${occ.preparation ? occ.preparation.label : ""}
@@ -144,25 +145,17 @@ const zoneName = (name) => (name || "").replace(/^Job Zone \w+:\s*/, "");
 const ZONE_CHIPS = ["None", "Matric", "Trade", "Degree", "Postgrad"];
 
 // ---------- the role sheet : "what is this job?" ----------
+// The journey's quick look at a job. The same content fills the full job page
+// in the app (JobDetail, in job.js).
 
 function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
   const { data, error, loading } = useFetch(
     `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
-  const [all, setAll] = useState(false);
-  const [allTasks, setAllTasks] = useState(false);
   useEffect(() => {
     const esc = (e) => e.key === "Escape" && onClose();
     addEventListener("keydown", esc);
     return () => removeEventListener("keydown", esc);
   }, []);
-  const must = data ? data.required_skills.filter((k) => k.classification === "essential") : [];
-  const rest = data ? data.required_skills.filter((k) => k.classification !== "essential") : [];
-  const known = data && data.held_count != null;
-  const Skill = (k) => html`
-    <li key=${k.element_id} class=${k.held ? "have" : ""}>
-      ${known && html`<span class="mk" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>`}
-      <span>${k.name}</span><${Figure}>${k.importance.toFixed(2)}<//>
-    </li>`;
   return html`
     <div class="scrim" onClick=${onClose}></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-label=${data ? data.title : "Job details"}>
@@ -170,34 +163,7 @@ function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
       <button class="x" aria-label="Close" onClick=${onClose}>×</button>
       <${Status} loading=${loading} error=${error}>
         ${data && html`
-          <div class="sheet-body">
-            <p class="kicker">What is this job?${PRESENTER ? " · FR-04 · FR-09" : ""}</p>
-            <h3 class="sheet-title">${data.title}</h3>
-            <p class="about">${data.description}</p>
-            ${data.tasks.length > 0 && html`
-              <h4 class="sect">A day in this job</h4>
-              <ul class="day">
-                ${(allTasks ? data.tasks : data.tasks.slice(0, 4)).map((t, i) => html`
-                  <li key=${i}>${t.task}<${Figure}>${t.importance != null ? ` ${t.importance.toFixed(2)}` : " unrated"}<//></li>`)}
-              </ul>
-              ${data.tasks.length > 4 && html`<button class="more" onClick=${() => setAllTasks(!allTasks)}>
-                ${allTasks ? "Show fewer" : "Show more of what they do"}</button>`}`}
-            <div class="prep">
-              <b>${data.preparation.label}</b>
-              <span>${data.preparation.detail}</span>
-              <${Figure}>${data.soc_code} · Job Zone ${data.job_zone}<//>
-            </div>
-            ${known && html`<p class="fit">
-              You have <b>${data.essential_held} of ${data.essential_count}</b> must-have skills
-              and ${data.held_count} of ${data.required_skills.length} overall.</p>`}
-            <h4 class="sect e">Must-have skills</h4>
-            <ul class="sk">${must.map(Skill)}</ul>
-            <h4 class="sect">Other skills it uses</h4>
-            <ul class="sk">${(all ? rest : rest.slice(0, 6)).map(Skill)}</ul>
-            ${rest.length > 6 && html`<button class="more" onClick=${() => setAll(!all)}>
-              ${all ? "Show fewer" : `Show all ${rest.length}`}</button>`}
-            <p class="prov">${data.source_dataset}</p>
-          </div>
+          <div class="sheet-body"><${JobDetail} data=${data} /></div>
           ${onAim && html`<div class="sheet-foot">
             <button class="cta" disabled=${isTarget} onClick=${() => { onAim(data); onClose(); }}>
               ${isTarget ? "This is your goal" : "Aim for this job"}</button>
@@ -279,7 +245,7 @@ function StepSkills({ held, onToggle }) {
 
 // ---------- step 3 : explore ----------
 
-function StepExplore({ profileId, type, target, onOpen }) {
+function StepExplore({ profileId, type, target, onOpen, head }) {
   const leaver = type === "school_leaver";
   const [tab, setTab] = useState(leaver ? "foryou" : "search");
   const [zone, setZone] = useState(leaver ? 3 : 4);
@@ -297,9 +263,9 @@ function StepExplore({ profileId, type, target, onOpen }) {
   const TABS = [["foryou", "For you"], ["browse", "Browse"], ["search", "Search"]];
 
   return html`
-    <${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
+    ${head || html`<${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
              title="Pick something to aim for"
-             sub="Tap a job to see what it involves, then aim for it. You can change your mind later." />
+             sub="Tap a job to see what it involves, then aim for it. You can change your mind later." />`}
     <div class="tabs" role="tablist">
       ${TABS.map(([k, label]) => html`
         <button key=${k} role="tab" aria-selected=${tab === k}
@@ -341,7 +307,7 @@ function StepExplore({ profileId, type, target, onOpen }) {
     ${tab === "search" && html`
       <div class="filter">
         ${Icon.search}
-        <input id="occ-search" placeholder="Search 879 jobs — try “electric” or “nurse”" autocomplete="off"
+        <input id="occ-search" placeholder="Search 879 jobs by any name — try “hairdresser”, “mechanic” or “chef”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
       ${term.length < 2
@@ -510,7 +476,7 @@ function PlanSkill({ k, status, busy, onSet }) {
     </div>`;
 }
 
-function Plan({ profileId, onOpen, onJourney, onStartOver }) {
+function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut }) {
   const [rev, setRev] = useState(0);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
@@ -554,6 +520,7 @@ function Plan({ profileId, onOpen, onJourney, onStartOver }) {
   return html`
     <div class="pane plan">
       ${PRESENTER && html`<p class="kicker">My plan · dashboard · ADR-0005 · ADR-0006</p>`}
+      <h2 class="hello">${p.display_name ? `Hi ${p.display_name}` : "Your plan"}</h2>
 
       <section class="goal">
         <span class="lbl">Your goal</span>
@@ -611,164 +578,19 @@ function Plan({ profileId, onOpen, onJourney, onStartOver }) {
         <button class="btn" onClick=${() => onJourney(2, p)}>Change my goal</button>
         <button class="btn ghost" onClick=${() => onJourney(1, p)}>Update my skills</button>
       </div>
-      <button class="link" onClick=${onStartOver}>Start over from scratch</button>
+
+      <section class="codecard">
+        <span class="lbl">Your plan code${PRESENTER ? " · ADR-0008" : ""}</span>
+        <b class="code mono">${p.plan_code}</b>
+        <p>Use it to open this plan on another phone or computer. Anyone with the code can see
+          your plan, so share it only with people you trust — a teacher, a parent, a counsellor.</p>
+      </section>
+      <div class="plan-links">
+        <button class="link" onClick=${onSignOut}>Sign out on this device</button>
+        <button class="link" onClick=${onStartOver}>Start over from scratch</button>
+      </div>
       <p class="prov">${rt.source_dataset}</p>
       ${toast && html`<div class="toast" role="status">${toast}</div>`}
     </div>`;
 }
 
-// ---------- the app ----------
-
-const CTA = ["Continue", "Find roles that fit", "See what's missing", "Show me the route", "Save as my plan"];
-
-function App() {
-  const [view, setView] = useState(() => (saved.get() ? "boot" : "journey")); // boot | journey | plan
-  const [step, setStep] = useState(0);
-  const [dir, setDir] = useState("fwd");
-  const [type, setType] = useState(null);
-  const [held, setHeld] = useState(() => new Set());
-  const [profile, setProfile] = useState(null); // { id, key }
-  const [target, setTarget] = useState(null);   // { soc_code, title, job_zone }
-  const [sheet, setSheet] = useState(null);     // { soc_code, canAim } -- the open role sheet
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-
-  // A profile is created from a type and a skill set. Change either and the
-  // next continue creates a fresh one; the saved plan then follows the new id.
-  const keyOf = (t, ids) => `${t}|${[...ids].sort().join(",")}`;
-  const profileKey = keyOf(type, held);
-
-  // Coming back: reopen the saved plan, or quietly start fresh if it's gone.
-  useEffect(() => {
-    if (view !== "boot") return;
-    api.get(`/profiles/${saved.get()}`).then(
-      (p) => { if (p.target) { hydrate(p); setView("plan"); } else { saved.clear(); setView("journey"); } },
-      () => { saved.clear(); setView("journey"); },
-    );
-  }, []);
-
-  /** Load a stored profile into the journey's state, so going back into the
-   *  journey from the plan edits the same profile rather than a copy. */
-  function hydrate(p) {
-    const ids = p.skills.filter((k) => k.status === "held").map((k) => k.element_id);
-    setType(p.profile_type);
-    setHeld(new Set(ids));
-    setProfile({ id: p.profile_id, key: keyOf(p.profile_type, ids) });
-    setTarget(p.target && { soc_code: p.target.soc_code, title: p.target.title, job_zone: p.target.job_zone });
-  }
-
-  const go = (n) => { setDir(n > step ? "fwd" : "bwd"); setError(null); setSheet(null); setStep(n); };
-
-  function toggle(id) {
-    setHeld((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  }
-
-  function startOver() {
-    saved.clear();
-    setType(null); setHeld(new Set()); setProfile(null); setTarget(null);
-    setView("journey"); setDir("bwd"); setSheet(null); setStep(0);
-  }
-
-  function enterJourney(n, p) { hydrate(p); setView("journey"); setDir("bwd"); setSheet(null); setStep(n); }
-
-  async function advance() {
-    setError(null); setBusy(true);
-    try {
-      if (step === 4) { saved.set(profile.id); setSheet(null); setView("plan"); return; }
-      if (step === 1 && (!profile || profile.key !== profileKey)) {
-        const [oldType, oldIds] = profile ? profile.key.split("|") : [null, ""];
-        if (profile && oldType === type && saved.get() === profile.id) {
-          // Editing a saved plan's skills: change that profile in place, so its
-          // target and "working on it" marks survive.
-          const before = new Set(oldIds ? oldIds.split(",") : []);
-          await Promise.all([
-            ...[...held].filter((id) => !before.has(id)).map((id) =>
-              api.put(`/profiles/${profile.id}/skills/${id}`, { status: "held" })),
-            ...[...before].filter((id) => !held.has(id)).map((id) =>
-              api.del(`/profiles/${profile.id}/skills/${id}`)),
-          ]);
-          setProfile({ id: profile.id, key: profileKey });
-        } else {
-          const d = await api.post("/profiles", { profile_type: type, skills: [...held] });
-          setProfile({ id: d.profile_id, key: profileKey });
-          setTarget(null);
-        }
-      }
-      if (step === 2) {
-        await api.put(`/profiles/${profile.id}/target`, { soc_code: target.soc_code });
-      }
-      go(step + 1);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const sheetEl = sheet && html`<${RoleSheet} key=${sheet.soc_code} soc=${sheet.soc_code} profileId=${profile && profile.id}
-    isTarget=${target && target.soc_code === sheet.soc_code}
-    onAim=${sheet.canAim ? (occ) => setTarget({ soc_code: occ.soc_code, title: occ.title, job_zone: occ.job_zone }) : null}
-    onClose=${() => setSheet(null)} />`;
-
-  if (view === "boot") return html`<div class="app"><p class="loading">Loading…</p></div>`;
-
-  if (view === "plan") return html`
-    <div class="app">
-      <div class="top">
-        <div class="toprow"><span class="steplabel plan-title">My plan</span><span class="brand">SAYCEP</span></div>
-      </div>
-      <div class="body">
-        <${Plan} profileId=${profile.id} onJourney=${enterJourney} onStartOver=${startOver}
-                 onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: false })} />
-      </div>
-      ${sheetEl}
-    </div>`;
-
-  const ready = [type !== null, held.size > 0, target !== null, true, true][step];
-  const hasPlan = !!saved.get();
-
-  const panes = [
-    html`<${StepStart} type=${type} onPick=${setType} />`,
-    html`<${StepSkills} held=${held} onToggle=${toggle} />`,
-    html`<${StepExplore} profileId=${profile && profile.id} type=${type} target=${target}
-                         onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: true })} />`,
-    html`<${StepGap} profileId=${profile && profile.id} />`,
-    html`<${StepPathway} profileId=${profile && profile.id}
-                         onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: false })} />`,
-  ];
-
-  return html`
-    <div class="app">
-      <div class="top">
-        <div class="toprow">
-          <button class="back" aria-label="Back" disabled=${step === 0 || busy} onClick=${() => go(step - 1)}>${Icon.back}</button>
-          <span class="steplabel">Step <b>${step + 1}</b> of 5</span>
-          ${hasPlan && profile && target
-            ? html`<button class="toplink" onClick=${() => { saved.set(profile.id); setView("plan"); }}>My plan</button>`
-            : html`<span class="brand">SAYCEP</span>`}
-        </div>
-        <div class="segments" aria-hidden="true">
-          ${[0, 1, 2, 3, 4].map((i) => html`<span key=${i} class=${"seg" + (i <= step ? " on" : "")}><i></i></span>`)}
-        </div>
-      </div>
-
-      <div class="body">
-        <div key=${step} class=${"pane " + dir}>${panes[step]}</div>
-      </div>
-
-      <div class="foot">
-        ${error && html`<div class="banner">${error}</div>`}
-        ${step === 2 && html`<p class="picked">${target
-          ? html`Target: <b>${target.title}</b>`
-          : "No target picked yet"}</p>`}
-        <button class="cta" disabled=${!ready || busy} onClick=${advance}>
-          ${busy ? "Working…" : CTA[step]}${!busy && step < 4 ? Icon.arrow : null}
-        </button>
-        ${step === 4 && html`<button class="link" onClick=${() => go(2)}>Try a different target</button>`}
-      </div>
-
-      ${sheetEl}
-    </div>`;
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(html`<${App} />`);

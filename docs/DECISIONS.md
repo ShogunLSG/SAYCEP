@@ -406,3 +406,96 @@ default and up to eight on request.
 - The tasks are display-only. They do not feed the gap, the pathway or the
   recommendations, so none of FR-06 to FR-08's measured behaviour changes.
 
+---
+
+## ADR-0008 — Sign-in is a plan code, not an account
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0006 (extends it), `plans/full-app.md`, Assignment 3 §4.2 and §5.4
+
+### Context
+
+The project owner asked for a login page. Assignment 3, submitted today, lists
+user accounts as out of scope. Its privacy section argues that no login is
+needed because SAYCEP holds no personal data. Real accounts would mean
+passwords, hashing, sessions and POPIA obligations in the demo.
+
+### Decision
+
+- A welcome screen becomes the app's front door. It offers *I'm new*, with an
+  optional first name, or *I have a plan code*.
+- Every profile gets a **plan code**: six characters from an alphabet with no
+  look-alikes (`23456789ABCDEFGHJKMNPQRSTUVWXYZ`, about 887 million codes),
+  shown as `K7M-2QX`.
+- `POST /plans/resume` opens a plan by its code on any device. Case, spaces
+  and dashes are ignored.
+- `users` gains `display_name` (optional, at most 40 characters) and
+  `plan_code` (unique index), and both are upgraded in place.
+
+### Alternatives rejected
+
+- **Username and password accounts.** They contradict the submitted document's
+  scope and privacy argument, and add a security surface to defend.
+- **A login screen that doesn't authenticate.** It would be misleading, and it
+  fails the first time someone types a wrong password and still gets in.
+
+### Consequences
+
+- **The code is a bearer credential, not a password.** Anyone holding it can
+  open and change that plan. That's acceptable only because a plan holds
+  nothing personal beyond an optional first name. The dashboard says so next
+  to the code. There's no rate limiting, which would be needed before public
+  use (Assignment 3 §5.4 already names this).
+- The first name is the first personal detail SAYCEP stores. It's optional,
+  never required and clearable. The privacy argument is weaker but still
+  holds.
+- Tests: TC-I10a–e, TC-U09a–c.
+
+---
+
+## ADR-0009 — Load alternate titles, software and tools for job pages and search
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0002, ADR-0003, ADR-0007, `plans/full-app.md` slice 1, FR-04
+
+### Context
+
+Jobs were shallow, a panel and nothing more. Search matched only O\*NET's 879
+official titles, so a user who knew a job by another name found nothing. The
+same Kaggle O\*NET 29.0 download contains three files that fix both.
+
+### Decision
+
+Load three new tables, row-count guarded like the rest:
+
+- `occupation_alt_titles`: 45,963 titles, covering all 879 jobs. Search
+  matches them, and official titles rank first.
+- `occupation_technology`: 30,134 software examples, all 879 jobs, with
+  O\*NET's *Hot Technology* flag used to order them.
+- `occupation_tools`: 40,659 tools, covering 878 jobs. O\*NET doesn't rank
+  tools, so they're grouped by category, largest group first.
+
+The job page also shows O\*NET's primary related occupations, which are
+already loaded, as *Jobs like this*.
+
+### Verification (30 September)
+
+- "conduit installer" finds Electricians through its alternate title (TC-I08a).
+- Every official-title match is still returned, so FR-04's criterion holds
+  (TC-I08c).
+- Electricians has 164 tools. Its first related job is Helpers--Electricians,
+  in O\*NET's review order (TC-I09).
+- O\*NET's titles are American, so "sparky" finds nothing. The search hint
+  suggests only examples that do return results.
+
+### Consequences
+
+- Schema change: three reference tables added, and no existing table changed.
+- It's display- and search-only. The gap, pathway and recommendations are
+  unchanged.
+- *Education, Training, and Experience* was considered and left out. It covers
+  858 of 879 jobs, and its US qualification percentages would mislead a South
+  African user (`plans/full-app.md`).
+

@@ -38,8 +38,12 @@ related_occupations (soc_code, related_soc_code, tier, sort_index)
 job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
 occupation_tasks    (soc_code, task_id, task, task_type, importance, source_date,
                      PK(soc_code, task_id))   -- added 30 September, ADR-0007
+occupation_alt_titles (soc_code, title, short_title)          -- ADR-0009
+occupation_technology (soc_code, example, category, hot, in_demand) -- ADR-0009
+occupation_tools    (soc_code, example, category)             -- ADR-0009
 
-users               (profile_id PK, profile_type, target_soc_code, created_at)
+users               (profile_id PK, profile_type, target_soc_code, created_at,
+                     display_name, plan_code UNIQUE)   -- ADR-0008
 user_skills         (profile_id, element_id, status, updated_at,
                      PK(profile_id, element_id))  -- status: 'held' | 'learning'
 ```
