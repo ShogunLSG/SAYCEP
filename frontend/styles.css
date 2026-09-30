@@ -487,3 +487,27 @@ input{font-family:inherit}
 .tle-t{font-size:13px; color:var(--ink-2)}
 .tle-t b{color:var(--ink)}
 .tle-t .meta{display:block; font-size:11px; color:var(--muted)}
+
+/* ---------- Me tab and printable plan (slice 6) ---------- */
+.kv{display:flex; justify-content:space-between; gap:12px; font-size:13px; padding:6px 0; border-top:1px solid var(--line-2)}
+.kv:first-of-type{border-top:0}
+.kv span{color:var(--muted)}
+.card .plan-actions{margin-top:10px}
+form.card .btn{margin-top:-4px}
+.printable{display:none}
+@media print{
+  @page{margin:16mm}
+  body{background:#fff; display:block; padding:0}
+  #root > *:not(.printable){display:none !important}
+  .printable{display:block; color:#111; font:11pt/1.45 "IBM Plex Sans", Arial, sans-serif}
+  .printable header{border-bottom:2px solid #1D4E6F; padding-bottom:8px; margin-bottom:12px}
+  .printable .brand{color:#1D4E6F}
+  .printable h1{font-size:20pt; margin:4px 0 2px}
+  .printable h2{font-size:14pt; margin:0 0 4px}
+  .printable h3{font-size:11.5pt; margin:12px 0 4px; color:#1D4E6F}
+  .printable p, .printable li{margin:2px 0}
+  .printable ul, .printable ol{margin:0; padding-left:18px}
+  .printable .cols{display:grid; grid-template-columns:3fr 2fr; gap:18px}
+  .printable section{break-inside:avoid; margin-bottom:6px}
+  .printable footer{margin-top:14px; padding-top:6px; border-top:1px solid #ccc; font-size:8.5pt; color:#555}
+}

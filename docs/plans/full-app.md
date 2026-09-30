@@ -1,6 +1,6 @@
 # Plan: from a five-screen journey to an app you live in
 
-*Written 30 September 2026. Status: **approved 30 September — building.***
+*Written 30 September 2026. Status: **built 30 September** — all six slices plus the plan-code sign-in; 98 tests pass; screenshots in `docs/screenshots/v3/`.*
 
 **Decisions (30 September):** Assignment 3 is submitted as it stands. All six
 slices are built, in order. The interest quiz is our own short questions,

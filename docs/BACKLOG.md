@@ -40,6 +40,16 @@ pen so nothing gets lost.
   schema change), so it's deferred unless user testing shows the reshuffle
   confuses people. (Noticed 2026-09-30.)
 
+- **"How people got into this job"** from `Education, Training, and
+  Experience.txt`. It was left out of the job page on purpose. It covers 858 of
+  879 jobs, and its categories are US qualifications (Associate's degree,
+  GED). Showing US percentages to a South African school-leaver invites a
+  question we can't answer. Revisit only with a defensible mapping.
+  (Noticed 2026-09-30.)
+- **Plan-code rate limiting.** A plan code is a bearer credential, and nothing
+  stops someone guessing codes. That's fine on a laptop, but it's needed before
+  any public deployment (ADR-0008). (Noticed 2026-09-30.)
+
 ---
 
 ## Cleared 2026-09-10

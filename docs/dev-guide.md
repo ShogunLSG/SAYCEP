@@ -286,6 +286,35 @@ These cut-points are presentation choices, not findings from the data. The
 classification itself, essential against desirable at 3.5, is unchanged, so
 FR-07's behaviour is too.
 
+### 30 September (night): from a journey to an app
+
+The plan is in `plans/full-app.md`. The decisions are in ADR-0008 to ADR-0012.
+In short:
+
+- **The front door** is a welcome screen, and sign-in is a plan code, not an
+  account (ADR-0008). A real login was asked for and weighed. It would have
+  contradicted the privacy argument in the submitted Assignment 3 and added a
+  password system to defend.
+- **The journey became onboarding.** After *Save as my plan* the app is four
+  tabs. Pages (a job, a skill, a comparison) are pushed over a tab that stays
+  mounted, so *Back* returns to the same search and scroll position. That was
+  a bug the browser walkthrough found.
+- **Job pages** add tools, software and related jobs, and search matches
+  45,963 alternate titles (ADR-0009).
+- **The unlock moment** is computed, not claimed. `PUT
+  /profiles/{id}/skills/{element_id}` returns readiness before and after for
+  the goal, for its related jobs, and for the whole catalogue.
+- **One readiness rule everywhere**: `pathway.step_readiness`, meaning the
+  essential skills, or the top five where a job has none. The compare page
+  briefly broke this rule ("4 of 5" alongside "nothing to learn") before it
+  was fixed (ADR-0010).
+- **The interest quiz** correlates twelve of our statements with O\*NET's
+  RIASEC profiles (ADR-0011).
+- **Progress history** stores a readiness snapshot on each event rather than
+  replaying events later (ADR-0012).
+- The frontend split into plain scripts that share globals. See
+  `frontend/README.md`.
+
 ---
 
 ## 5. Where things are

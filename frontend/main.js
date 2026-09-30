@@ -15,6 +15,7 @@ const TABS = [
   { key: "home", label: "Home", icon: svg(html`<path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z" />`, 2) },
   { key: "explore", label: "Explore", icon: svg(html`<circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" />`, 2) },
   { key: "skills", label: "Skills", icon: svg(html`<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z" />`, 2) },
+  { key: "me", label: "Me", icon: svg(html`<circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />`, 2) },
 ];
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [skillRev, setSkillRev] = useState(0);  // bumped on any skill change, for Skills and skill pages
   const [unlock, setUnlock] = useState(null);   // { name, status, changes } -- the unlock card
   const [savedRev, setSavedRev] = useState(0);  // bumped when a job is saved or unsaved
+  const [printing, setPrinting] = useState(false);
   const [name, setName] = useState("");         // from the welcome screen; sent with POST /profiles
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState("fwd");
@@ -178,7 +180,11 @@ function App() {
                    rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;
     }
     let tabEl;
-    if (tab === "skills") {
+    if (tab === "me") {
+      tabEl = html`<${MeTab} profileId=${profile.id} rev=${rev + skillRev} onNameSaved=${() => setRev((r) => r + 1)}
+                   onPrint=${() => setPrinting(true)} onJourney=${enterJourney}
+                   onSignOut=${signOut} onStartOver=${startOver} />`;
+    } else if (tab === "skills") {
       tabEl = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} />`;
     } else if (tab === "explore") {
       tabEl = html`<div class="pane tabpane"><${StepExplore} profileId=${profile.id} type=${type} target=${target}
@@ -216,7 +222,9 @@ function App() {
             </button>`)}
         </nav>
         ${unlock && html`<${UnlockCard} u=${unlock} onOpenJob=${openJob} onClose=${() => setUnlock(null)} />`}
-      </div>`;
+      </div>
+      ${printing && html`<${PrintPlan} profileId=${profile.id}
+        onReady=${() => setTimeout(() => { window.print(); setPrinting(false); }, 50)} />`}`;
   }
 
   // ---------- the journey ----------

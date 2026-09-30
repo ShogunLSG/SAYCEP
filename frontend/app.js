@@ -588,16 +588,7 @@ function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, 
         <button class="btn ghost" onClick=${() => onJourney(1, p)}>Update my skills</button>
       </div>
 
-      <section class="codecard">
-        <span class="lbl">Your plan code${PRESENTER ? " · ADR-0008" : ""}</span>
-        <b class="code mono">${p.plan_code}</b>
-        <p>Use it to open this plan on another phone or computer. Anyone with the code can see
-          your plan, so share it only with people you trust — a teacher, a parent, a counsellor.</p>
-      </section>
-      <div class="plan-links">
-        <button class="link" onClick=${onSignOut}>Sign out on this device</button>
-        <button class="link" onClick=${onStartOver}>Start over from scratch</button>
-      </div>
+      <p class="note center">Your plan code, printing and sign-out are on the <b>Me</b> tab.</p>
       <p class="prov">${rt.source_dataset}</p>
       ${toast && html`<div class="toast" role="status">${toast}</div>`}
     </div>`;

@@ -1,6 +1,6 @@
 # Status
 
-**As of 30 September 2026 (evening): the UX pass is built.** The journey speaks in plain words, every job can be opened to see what it involves, and there is a "My plan" dashboard with progress tracking after it. 63 automated tests pass. Assignment 3 is drafted but **describes the system as it was this morning**. Its submission was deliberately held back to build this.
+**As of 30 September 2026 (night): SAYCEP is a full app.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs — Home, Explore, Skills, Me — with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history and a printable plan. 98 automated tests pass (23 unit, 71 integration and system, 4 performance). Assignment 3 was submitted describing the earlier build; the demo now shows more, which is normal and worth saying.
 
 ## Decided
 
@@ -42,10 +42,11 @@
 
 ## Not done — in order of what hurts most if left
 
-1. **Assignment 3 is ready to submit (v1.1).** FR-11 was skipped on
-   30 September to submit on time. Progress tracking is traced to ADR-0005 in
-   the matrix and named as future work. Writing it as a real requirement is
-   still worth doing before the presentation, because the question will come.
+1. **Write the requirements for what the app now does — yours, not mine.**
+   FR-11 (progress), and likely FR-12 onward: alternate-title search, job
+   pages, saved jobs and compare, the interest quiz, progress history, the
+   plan code. `docs/plans/full-app.md` lists each with a measurable figure.
+   Assignment 3 went in without them; the presentation is where they're asked.
 2. **Read Assignment 3 before submitting:** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md`. It's in my words, not yours.
 4. **User acceptance test.** NFR-02 is reported as *partial* because no first-time user has walked the journey unassisted. Ten minutes with one person, using the demo script below, would turn it into evidence. The document says plainly that it hasn't been done.
 5. **Confirm the new demo date.** Then rehearsal and slides, which are both still not started.
@@ -62,21 +63,26 @@
 
 ## The demo script
 
-The path that's been verified (30 September, evening), so rehearsal repeats it exactly:
+Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3/`. About six minutes.
 
-1. **I left school**
-2. Tick: Operation and Control · Operations Monitoring · Equipment Maintenance · Active Listening · Critical Thinking · Monitoring
-3. *For you* shows operator roles, all "Strong match". Switch to *Search*, type "electric", tap **Electricians**. The panel shows *A day in this job* and "0 of 2 must-haves". Tap **Aim for this job**, then **See what's missing**
-4. The gap: "You already have **6 of the 34** skills this job uses. **2 must-haves** still to learn". Those are Troubleshooting and Repairing
-5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians. Tap a step to show the panel again
-6. **Save as my plan**. The dashboard shows 0 of 2 must-haves, and Boilermakers already ticked on the route
-7. Troubleshooting → **Start learning** (nothing changes; working on it doesn't count), then **I can do this now**. The bar moves to 1 of 2, and the route recalculates
-8. Reload the page. The plan comes back
-9. For the marker, add `?presenter`: every SOC code, Job Zone and rating is back
+1. **Welcome.** Type a first name (Thabo) → *Start my plan*. Say: no email, no password — a plan code instead.
+2. **I left school**, then tick: Operation and Control · Operations Monitoring · Equipment Maintenance · Active Listening · Critical Thinking · Monitoring
+3. *For you* shows operator roles with scores (FR-06). *Search* "electric", tap **Electricians** — the panel shows what the job is and *A day in this job*. **Aim for this job**.
+4. The gap: "You already have **6 of the 34** skills… **2 must-haves**" — Troubleshooting and Repairing.
+5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians. **Save as my plan**.
+6. **Home.** Troubleshooting → *Start learning* (nothing changes — learning isn't having), then *I can do this now* → **the unlock card**: 1 of 2, Power-Line Installers now ready, 106 jobs with every must-have (up 4).
+7. **Explore → Search** "conduit installer" — Electricians, *also called Conduit Installer*. Open it: tools of the trade, software, jobs like this. *Save this job*. Save Power-Line Installers and Boilermakers too.
+8. **Explore → Interests.** Answer the twelve; show jobs that fit. Say it's a simplified version of O*NET's profiler.
+9. **Skills → Repairing → I can already** → the goal is complete: 2 of 2, 131 jobs.
+10. **Home → Saved jobs →** tick three → **Compare**. Then **Your progress**: 0 → 0 → 1 → 2 of 2.
+11. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
+12. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
 
-Expect the question "why do the recommendations not include Electrician?" The honest answer: the six skills ticked are operator skills, and the engine ranks by them. The target was reached by search, which is exactly what search is for.
-
-Expect "how do you know they can really do it now?" The honest answer: we don't. Progress is self-reported, just as the original skill capture is (ADR-0005).
+Questions to expect, with the honest answers:
+- *"Why no real login?"* Nothing personal is held beyond an optional first name, so a password would protect nothing a code doesn't. The code is a bearer credential and the screen says so (ADR-0008).
+- *"How do you know they can really do it now?"* We don't — progress is self-reported, like the original skill capture (ADR-0005).
+- *"Is the quiz validated?"* No. It's twelve statements of ours against O*NET's real interest profiles, labelled as simplified (ADR-0011).
+- *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
 
 ## Deferred on purpose
 
