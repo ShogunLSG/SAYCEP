@@ -1,6 +1,6 @@
 # Plan: plain-language pass, role detail, and a "My plan" dashboard
 
-*Written 30 September 2026. Status: **approved 30 September — building.***
+*Written 30 September 2026. Status: **built 30 September** — Tasks 1–5 done; Task 6's FR drafting and Assignment 3 update remain (see STATUS.md).*
 
 **Decisions taken (30 September):**
 1. Progress has **two states, "working on it" and "I can do this now"**. This
