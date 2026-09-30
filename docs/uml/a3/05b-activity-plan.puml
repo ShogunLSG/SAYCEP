@@ -1,6 +1,6 @@
 @startuml SAYCEP_A3_Activity_Plan
 ' Assignment 3 Q3.5, part B - the My plan dashboard and its progress loop
-' (UC-12, UC-13, FR-11), as implemented in frontend/app.js. Version 1.1.
+' (UC-12, UC-13, ADR-0005), as implemented in frontend/app.js. Version 1.1.
 title End-to-End Journey, part B: My plan dashboard (as implemented)
 skinparam ActivityBackgroundColor #FEFEFE
 

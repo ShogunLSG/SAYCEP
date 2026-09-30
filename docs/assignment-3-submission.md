@@ -5,9 +5,6 @@
 > from the repository — nothing is estimated. Test transcripts are in
 > `docs/test-results/*-v2.txt`, diagrams in `docs/uml/a3/`, screenshots in
 > `docs/screenshots/v2/`.
->
-> **⚠ Before submitting:** write FR-11 in 2.1 (marked below). It's your
-> assessed wording, not mine.
 
 ---
 
@@ -45,8 +42,7 @@ pathway, written in plain language rather than raw ratings. Saving the plan
 opens a dashboard that counts progress in must-have skills held, and it
 recalculates the gap and route as the user records skills they've learned.
 
-All eleven functional requirements are implemented, and 63 automated tests
-pass. The recommendation engine places a same-family occupation in its top five
+All ten functional requirements are implemented, and 63 automated tests pass. The recommendation engine places a same-family occupation in its top five
 for 59.7% of test profiles, against 25.8% for random selection. It ranks the
 full catalogue in 4.7 ms at the 95th percentile.
 
@@ -110,7 +106,9 @@ changes the data source or the emerging technology.
      unaffected (ADR-0006).
    - **Two-state progress (UC-13).** A skill can be marked "working on it" or
      "I can do this now", and only the second closes a gap (ADR-0005). This
-     behaviour is specified as FR-11.
+     behaviour is recorded in ADR-0005 and tested (TC-I07). It was added after
+     the requirements were baselined and is not yet written as a functional
+     requirement (see 2.2).
 
    The change added three endpoints, one table and one column, and all 63
    tests pass.
@@ -136,7 +134,7 @@ changes the data source or the emerging technology.
 | 0.4 | 26 Sep 2026 | Five-screen interface implemented; eighth endpoint added |
 | 0.5 | 29 Sep 2026 | Interface libraries bundled locally; no internet needed to run |
 | 1.0 | 30 Sep 2026 | Test suites (41 tests), as-built diagrams, loader defect fixed, TR-01 baseline corrected |
-| 1.1 | 30 Sep 2026 | Plain-language interface, occupation panel with task statements, *My plan* dashboard and progress tracking (FR-11); 11 endpoints; 63 tests; diagrams redrawn |
+| 1.1 | 30 Sep 2026 | Plain-language interface, occupation panel with task statements, *My plan* dashboard and progress tracking (ADR-0005); 11 endpoints; 63 tests; diagrams redrawn |
 
 **Glossary**
 
@@ -191,16 +189,6 @@ changes the data source or the emerging technology.
 | FR-08 | Must | The system shall generate a pathway of at least three intermediate occupations to the target, each step listing the skills that matter most in that role, marked as new to the user or as needing more depth than the previous step. | Given a profile and target, then at least three intermediate steps and the target are shown, every step names at least one skill, and each skill is marked new, deeper or neither. |
 | FR-09 | Should | The system shall show the source dataset and publication date for occupation and skill records. | Given any gap or pathway screen, then the dataset name is visible and every missing skill carries its rating date. |
 | FR-10 | Must | The system shall rebuild its database from the O\*NET files on demand and abort if a file's row count differs from O\*NET's published count. | Given intact files, then 879 occupations, 35 skills and 27,463 ratings are built; given a short file, the load aborts naming it. |
-| FR-11 | ⚠ *[priority]* | ⚠ **TO WRITE BEFORE SUBMITTING** — progress tracking (see note below). | ⚠ *[Given / when / then]* |
-
-> **Note for the author, not for submission. Delete this box once FR-11 is
-> written.** What the build does, which FR-11 must match: a skill on a profile
-> can be marked *working on it* or *I can do this now*, and either can be
-> undone. Only *I can do this now* changes the gap, the pathway and the
-> recommendations. Measurable figures for the criterion: the demo profile
-> against Electricians has 2 must-haves missing. Marking Troubleshooting
-> *working on it* leaves 2 (TC-I07b). Marking it *I can do this now* leaves 1
-> (TC-I07c). Removing it restores 2 (TC-I07e).
 
 **Non-functional requirements (FURPS+)**
 
@@ -227,7 +215,7 @@ The three emerging-technology requirements, TR-01 to TR-03, are covered in 2.3.
 | FR-08 | UC-08; sequence diagram; classes Pathway, PathwayStep, SkillFocus (Fig. 3a) | `pathway.py`; GET /profiles/{id}/pathway | TC-U03a–b, TC-I04a–d, TC-I07d, TC-S01b | Pass |
 | FR-09 | UC-09; ERD `source_dataset`, `source_date` | every catalogue response; interface provenance lines | TC-I03e, TC-I06c | Pass |
 | FR-10 | UC-10; deployment diagram; ERD | `load_onet.py` | TC-U04a, TC-U08a, PT-04 | Pass |
-| FR-11 | UC-12, UC-13; class UserSkill, Readiness; activity partition *My plan* | `app.py` GET /profiles/{id}, PUT and DELETE /profiles/{id}/skills/{element_id}; `repository.set_skill_status`; `pathway.step_readiness` | TC-I07a–h, TC-U07a–b | Pass |
+| ADR-0005 progress tracking *(not yet an FR)* | UC-12, UC-13; class UserSkill, Readiness; activity partition *My plan* | `app.py` GET /profiles/{id}, PUT and DELETE /profiles/{id}/skills/{element_id}; `repository.set_skill_status`; `pathway.step_readiness` | TC-I07a–h, TC-U07a–b | Pass |
 | NFR-01 | Deployment diagram | `app.py`, connection per request | PT-03, TC-I05b, TC-N01a | Pass |
 | NFR-02 | Activity diagram | `frontend/app.js` | Developer walkthrough (Figures 11–19) | **Partial** — five screens to the pathway confirmed, with the dashboard after them (ADR-0006); unassisted user test not yet run |
 | NFR-03 | Activity diagram, exception path | `app.py` startup check | TC-U05a–b | Pass |
@@ -236,8 +224,12 @@ The three emerging-technology requirements, TR-01 to TR-03, are covered in 2.3.
 | TR-02 | Sequence 16–21 | `recommend.py` | PT-02 | Pass |
 | TR-03 | Activity diagram; class RecommendationEngine | `recommend.py`, `app.py` | TC-U02d, TC-I05d | Pass |
 
-Seventeen of eighteen requirements pass their tests. NFR-02 is partial for the
-reason stated in 5.1.
+Sixteen of seventeen requirements pass their tests. NFR-02 is partial for the
+reason stated in 5.1. The ADR-0005 row traces a feature rather than a requirement.
+Progress tracking (UC-13) was added after the requirements were baselined. Its
+behaviour is fixed by ADR-0005 and verified by ten tests, but it has not yet
+been written as a functional requirement. Doing so is the first item of
+future work.
 
 ## 2.3 How the emerging-technology requirements are satisfied (2)
 
@@ -351,7 +343,7 @@ Three use cases were added at version 1.1:
 | | |
 |---|---|
 | Primary actor | Youth User |
-| Requirements | FR-11; ADR-0005 |
+| Requirements | ADR-0005 (not yet a functional requirement; see 2.2) |
 | Preconditions | A plan has been saved (UC-12): the profile has a target, and its identifier is stored in the browser |
 | Trigger | The user taps *Start learning* or *I can do this now* on a skill in the dashboard's *Skills to work on* list |
 | Postcondition | The skill's status is stored. If it is now held, the gap, pathway and readiness shown are recalculated |
@@ -755,7 +747,8 @@ you're ready for it, and your next step.
 - **Single process, single file.** SQLite on one machine suits a demonstration,
   not many concurrent users in production.
 
-**Unresolved risks.** User acceptance testing has not been run (5.1). A new
+**Unresolved risks.** User acceptance testing has not been run (5.1). Progress
+tracking has no functional requirement yet (2.2). A new
 O\*NET release will change row counts and the loader will refuse it — deliberate,
 but it needs the expected counts updated by hand.
 
