@@ -534,3 +534,46 @@ side by side.
   like the others.
 - Display only. The gap, pathway and recommendations are unchanged.
 
+---
+
+## ADR-0011 — A short interest quiz, matched to O\*NET's RIASEC profiles
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0004 (acts on its deferred RIASEC intake), `plans/full-app.md` slice 4
+
+### Context
+
+ADR-0004 said the school-leaver should start from interests rather than job
+names, and deferred it. `Interests.txt`, in the same Kaggle download, scores
+all 879 jobs on O\*NET's six interest areas (1–7 scale).
+
+### Decision
+
+- Load the six OI scores per job into `occupation_interests`: 5,274 rows,
+  which is 879 × 6.
+- **Twelve statements, two per area, written by us.** O\*NET's own Interest
+  Profiler is 60 items and wasn't used. The screen labels this as a
+  simplified version. Answers are *Not for me*, *Maybe* or *I'd enjoy it*
+  (0/1/2), summed per area (0–4).
+- Rank jobs by **Pearson correlation** between the user's six area scores
+  and each job's. Correlation compares the shape of the two profiles, which
+  suits two different scales. Answers with no variance get a message rather
+  than a ranking, following the TR-03 principle.
+- Fit labels are *Close fit* (≥ 0.8), *Good fit* (≥ 0.6) and *Some fit*. These
+  are a presentation choice, like the other labels in `plain.py`.
+- The quiz is a fourth tab in Explore, both in the journey and in the app.
+  The school-leaver sees only Job Zones 1–3.
+
+### Verification (30 September)
+
+All-hands-on answers put 10 of 10 top results in jobs whose top area is
+Realistic (TC-I13b). Helping plus creating answers rank teachers and nannies
+first. The school-leaver filter holds (TC-I13e).
+
+### Consequences
+
+- Schema change: one reference table.
+- It's discovery only. It doesn't feed the gap or the pathway. It isn't a
+  validated instrument and must not be presented as one.
+

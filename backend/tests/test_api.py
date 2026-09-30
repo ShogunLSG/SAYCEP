@@ -250,6 +250,26 @@ def main():
     s, sv2 = call("GET", f"/profiles/{cid}/saved")
     check("TC-I12f", "unsaving removes it", [j["soc_code"] for j in sv2["saved"]] == ["49-9051.00"])
 
+    print("\nTC-I13  Interest quiz  (slice 4, ADR-0011)")
+    s, qz = call("GET", "/interests/quiz")
+    from collections import Counter
+    check("TC-I13a", "twelve statements, two for each of the six interest areas",
+          len(qz["questions"]) == 12 and set(Counter(q["area"] for q in qz["questions"]).values()) == {2})
+    s, rm = call("GET", "/interests/match?r=4&limit=10")
+    check("TC-I13b", "all-hands-on answers rank jobs whose top area is Realistic first (10 of 10)",
+          all(j["areas"][0] == "Hands-on" for j in rm["results"]), str([j["areas"] for j in rm["results"][:3]]))
+    check("TC-I13c", "results are ordered by fit, best first",
+          all(a["correlation"] >= b["correlation"] for a, b in zip(rm["results"], rm["results"][1:])))
+    s, flat = call("GET", "/interests/match?r=2&i=2&a=2&s=2&e=2&c=2")
+    check("TC-I13d", "answers that lean nowhere get a message, not a meaningless ranking",
+          flat["results"] == [] and bool(flat["message"]))
+    s, z3 = call("GET", "/interests/match?s=4&max_job_zone=3&limit=20")
+    check("TC-I13e", "the school-leaver filter keeps every result at Job Zone 3 or below",
+          all(j["job_zone"] <= 3 for j in z3["results"]))
+    s, sm = call("GET", f"/interests/match?r=4&profile_id={pid}")
+    check("TC-I13f", "with a profile, each result also carries a skill-match label",
+          all(j["skill_match"] for j in sm["results"]))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

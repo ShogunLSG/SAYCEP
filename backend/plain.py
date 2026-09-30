@@ -31,6 +31,15 @@ MATCH_LEVELS = [
     (float("-inf"), "Some overlap"),
 ]
 
+# Pearson correlation between quiz answers and a job's RIASEC profile, -1..1.
+# A single-area answer set correlates about 0.9 with that area's purest jobs,
+# so 0.8 and above is a close fit. A presentation choice, like the others.
+INTEREST_FIT_LEVELS = [
+    (0.8, "Close fit"),
+    (0.6, "Good fit"),
+    (float("-inf"), "Some fit"),
+]
+
 # O*NET's Job Zones, in words. The education notes are U.S. ("high school
 # diploma", "associate's degree"); "matric" is our translation of the first and
 # the dev guide says so. The originals still travel in the API response.
@@ -68,6 +77,10 @@ def importance_level(importance):
 
 def match_level(score):
     return next(label for cut, label in MATCH_LEVELS if score >= cut)
+
+
+def interest_fit(r):
+    return next(label for cut, label in INTEREST_FIT_LEVELS if r >= cut)
 
 
 def preparation(zone):

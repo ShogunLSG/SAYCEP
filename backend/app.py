@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 
 from config import ESSENTIAL_THRESHOLD
 import gap as gap_analyser
+import interests as interest_matcher
 import pathway as pathway_service
 import plain
 import recommend as recommendation_engine
@@ -431,6 +432,62 @@ def compare_jobs(profile_id: str, soc: list[str] = Query(..., min_length=2, max_
     return {"profile_id": profile_id, "jobs": jobs,
             "shared_must_haves": sorted(({"element_id": e, "name": names[e], "held": e in held}
                                          for e in shared), key=lambda m: m["name"])}
+
+
+# ---------- interests (slice 4, ADR-0011) ----------
+
+@app.get("/interests/quiz", tags=["interests"])
+def interest_quiz():
+    """The twelve statements, in order. Our wording, a simplified version of
+    O*NET's 60-item Interest Profiler -- the note says so on screen."""
+    return {
+        "questions": [{"id": i, "area": a, "text": t} for i, (a, t) in enumerate(interest_matcher.QUESTIONS)],
+        "areas": interest_matcher.AREA_NAMES,
+        "answers": [{"value": 0, "label": "Not for me"}, {"value": 1, "label": "Maybe"},
+                    {"value": 2, "label": "I'd enjoy it"}],
+        "note": "A short, simplified version of O*NET's Interest Profiler. "
+                "Your answers are compared with O*NET's interest profile for every job.",
+    }
+
+
+@app.get("/interests/match", tags=["interests"])
+def interest_match(
+    r: int = Query(0, ge=0, le=4), i: int = Query(0, ge=0, le=4), a: int = Query(0, ge=0, le=4),
+    s: int = Query(0, ge=0, le=4), e: int = Query(0, ge=0, le=4), c: int = Query(0, ge=0, le=4),
+    max_job_zone: int | None = Query(None, ge=1, le=5),
+    profile_id: str | None = None, limit: int = Query(10, ge=1, le=30), con=Depends(db),
+):
+    """Jobs whose O*NET interest profile has the same shape as the answers.
+    Area scores are the sum of the two answers for that area (0-4). With a
+    profile, each result also says how well the user's skills match it."""
+    scores = {"R": r, "I": i, "A": a, "S": s, "E": e, "C": c}
+    ranked = interest_matcher.match(repository.interest_profiles(con, max_job_zone), scores, limit)
+    if ranked is None:
+        return {"your_areas": [], "results": [], "message":
+                "Your answers don't lean towards anything yet. Pick “I'd enjoy it” for a few."}
+    skill_score = None
+    if profile_id:
+        _require_profile(con, profile_id)
+        held = repository.profile_skill_ids(con, profile_id)
+        if held:
+            ids, vectors = recommendation_engine.load_vectors(con)
+            means = recommendation_engine.skill_means(vectors, len(ids))
+            centred = recommendation_engine.centre_occupations(vectors, means)
+            pv = recommendation_engine.centre_profile(ids, held, means)
+            skill_score = lambda soc: recommendation_engine.cosine(pv, centred[soc])
+    return {
+        "your_areas": [{"area": x, "name": interest_matcher.AREA_NAMES[x]}
+                       for x in interest_matcher.top_areas(scores) if scores[x] > 0],
+        "results": [
+            {"soc_code": soc, "title": job["title"], "job_zone": job["job_zone"],
+             "preparation": plain.preparation(job["job_zone"]),
+             "fit": plain.interest_fit(corr), "correlation": round(corr, 3),
+             "areas": [interest_matcher.AREA_NAMES[x] for x in interest_matcher.top_areas(job["scores"])],
+             "skill_match": plain.match_level(skill_score(soc)) if skill_score else None}
+            for soc, job, corr in ranked
+        ],
+        "message": None,
+    }
 
 
 @app.get("/skills/{element_id}", tags=["catalogue"])

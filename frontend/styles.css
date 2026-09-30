@@ -460,3 +460,14 @@ input{font-family:inherit}
 .okt{color:var(--ok); font-weight:600}
 .tabhost{position:absolute; inset:0}
 .page{background:var(--card); z-index:2}
+
+/* ---------- interest quiz (slice 4) ---------- */
+.tabs .tab{font-size:12.5px}
+.quiz{display:flex; flex-direction:column; gap:10px; margin-bottom:14px}
+.qz{border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+.qz.done{border-color:var(--accent-dim); background:var(--accent-soft)}
+.qz p{margin:0 0 8px; font-size:13.5px; font-weight:500}
+.qz-a{display:flex; gap:6px}
+.qa{flex:1; border:1.5px solid var(--line); background:var(--card); border-radius:999px; padding:6px 4px; font-size:12px; cursor:pointer; color:var(--ink-2)}
+.qa.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+.tabpane .cta{margin-top:4px}

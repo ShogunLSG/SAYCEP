@@ -260,7 +260,7 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
     ? `/occupations?q=${encodeURIComponent(term)}&limit=60` : null);
 
   const isPicked = (o) => target && target.soc_code === o.soc_code;
-  const TABS = [["foryou", "For you"], ["browse", "Browse"], ["search", "Search"]];
+  const TABS = [["foryou", "For you"], ["interests", "Interests"], ["browse", "Browse"], ["search", "Search"]];
 
   return html`
     ${head || html`<${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
@@ -285,6 +285,8 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
         </div>`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
       <//>`}
+
+    ${tab === "interests" && html`<${InterestQuiz} profileId=${profileId} maxZone=${leaver ? 3 : null} onOpen=${onOpen} />`}
 
     ${tab === "browse" && html`
       <p class="note">How much training does it take to start?</p>

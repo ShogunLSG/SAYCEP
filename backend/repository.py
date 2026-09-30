@@ -228,6 +228,21 @@ def readiness_basis_map(con, threshold, top_n):
             for soc, skills in by_soc.items()}
 
 
+def interest_profiles(con, max_job_zone=None):
+    """soc -> {area: score} for every job, with title and zone."""
+    sql = ("SELECT o.soc_code, o.title, o.job_zone, i.area, i.score FROM occupation_interests i"
+           "  JOIN occupations o ON o.soc_code = i.soc_code")
+    args = []
+    if max_job_zone:
+        sql += " WHERE o.job_zone <= ?"
+        args.append(max_job_zone)
+    out = {}
+    for r in con.execute(sql, args):
+        job = out.setdefault(r["soc_code"], {"title": r["title"], "job_zone": r["job_zone"], "scores": {}})
+        job["scores"][r["area"]] = r["score"]
+    return out
+
+
 def related_occupations(con, soc_code, primary_only=True):
     sql = ("SELECT r.related_soc_code, r.tier, r.sort_index, o.title, o.job_zone"
            "  FROM related_occupations r JOIN occupations o"
@@ -310,7 +325,7 @@ def remove_skill(con, profile_id, element_id):
 
 def saved_socs(con, profile_id):
     return [r[0] for r in con.execute(
-        "SELECT soc_code FROM saved_occupations WHERE profile_id = ? ORDER BY saved_at, soc_code",
+        "SELECT soc_code FROM saved_occupations WHERE profile_id = ? ORDER BY saved_at, rowid",
         (profile_id,))]
 
 
