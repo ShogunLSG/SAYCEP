@@ -286,3 +286,72 @@ input{font-family:inherit}
 .sheet-foot{padding:12px 20px 18px; border-top:1px solid var(--line-2); flex:none}
 .tl{border:0; background:none; padding:0; font:inherit; color:inherit; text-align:left; cursor:pointer; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px}
 .tl:hover{text-decoration-color:var(--accent)}
+
+/* ---------- my plan ---------- */
+.pane.plan{padding-top:4px; animation:in-right .32s cubic-bezier(.32,.72,0,1)}
+@media (prefers-reduced-motion: reduce){ .pane.plan{animation:none} }
+.toplink{border:0; background:var(--accent-soft); color:var(--accent-ink); font-weight:600; font-size:12.5px; border-radius:999px; padding:5px 11px; cursor:pointer}
+.lbl{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:3px}
+.goal{border-radius:16px; padding:16px; margin-bottom:14px; background:linear-gradient(160deg, var(--accent-soft), var(--sunk))}
+.goal h2{font-size:21px; line-height:1.2; margin-bottom:3px}
+.goal .meta{font-size:12px; color:var(--ink-2)}
+.ready{margin-top:14px}
+.big-count{margin:0 0 7px; font-size:14px; color:var(--ink-2)}
+.big-count b{font:700 30px/1 "Archivo", sans-serif; color:var(--ink); margin-right:2px}
+.big-count span{color:var(--ink)}
+.meter{display:flex; gap:4px}
+.meter span{flex:1; height:8px; border-radius:4px; background:var(--card); border:1px solid var(--line); transition:background .45s ease, border-color .45s ease}
+.meter span.on{background:var(--ok); border-color:var(--ok)}
+.meter.big span{height:10px}
+.ready-line{font-size:13px; color:var(--ink-2); margin:9px 0 0}
+.ready-line b{color:var(--ink)}
+.ready-line b.h{color:var(--ok)}
+.overall{display:flex; align-items:center; gap:10px; margin-top:11px; font-size:12px; color:var(--muted)}
+.overall span:first-child{flex:none}
+.thin{flex:1; height:4px; border-radius:2px; background:var(--line); overflow:hidden}
+.thin i{display:block; height:100%; background:var(--accent); transition:width .45s ease}
+.card{border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:14px}
+.ch{font-size:15px; margin-bottom:10px}
+.mini-route{display:flex; flex-direction:column; gap:2px; margin-bottom:10px}
+.mr{display:flex; align-items:center; gap:10px; border:0; background:none; padding:5px 4px; border-radius:8px; cursor:pointer; text-align:left; font-size:13px; color:var(--ink-2)}
+.mr:hover{background:var(--sunk)}
+.mdot{width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:grid; place-items:center; font:600 11px "IBM Plex Mono", monospace; color:var(--muted)}
+.mdot svg{width:11px; height:11px}
+.mr.done .mdot{background:var(--ok); border-color:var(--ok); color:#fff}
+.mr.next{color:var(--ink); font-weight:600}
+.mr.next .mdot{border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.mr.goal .mt::after{content:"  · goal"; color:var(--muted); font-weight:400}
+.nextbox{background:var(--sunk); border-radius:11px; padding:10px 12px; font-size:13px}
+.nextbox b{font-size:14px}
+.nextbox p{margin:3px 0 0; color:var(--ink-2); font-size:12.5px}
+.ps{border-top:1px solid var(--line-2); padding:10px 0}
+.ps-t b{display:block; font-size:13.5px}
+.ps-t span{display:block; font-size:12px; color:var(--muted); line-height:1.4}
+.ps.ess .ps-t b{color:var(--essential)}
+.ps.learning{background:var(--accent-soft); margin:0 -14px; padding:10px 14px; border-top-color:transparent}
+.ps-a{display:flex; gap:7px; margin-top:8px; flex-wrap:wrap}
+.btn{
+  border:1.5px solid var(--accent); background:var(--card); color:var(--accent-ink); border-radius:999px;
+  padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+}
+.btn svg{width:12px; height:12px}
+.btn.ok{background:var(--ok); border-color:var(--ok); color:#fff}
+.btn.ghost{border-color:var(--line); color:var(--ink-2)}
+.btn:disabled{opacity:.55; cursor:wait}
+.have{margin-top:12px; font-size:13px}
+.have summary{cursor:pointer; font-weight:600; color:var(--ok)}
+.hv{display:flex; align-items:center; gap:8px; padding:5px 0}
+.hv .mk{width:17px; height:17px; border-radius:50%; background:var(--ok); color:#fff; display:grid; place-items:center; flex:none}
+.hv .mk svg{width:10px; height:10px}
+.hv .n{flex:1}
+.undo{border:0; background:none; color:var(--muted); cursor:pointer; padding:4px; display:grid; place-items:center}
+.undo svg{width:14px; height:14px}
+.plan-actions{display:flex; gap:8px; margin-top:4px}
+.plan-actions .btn{flex:1; justify-content:center; padding:10px}
+.toast{
+  position:sticky; bottom:8px; margin:14px auto 0; width:fit-content; max-width:100%;
+  background:var(--ink); color:var(--card); font-size:13px; border-radius:999px; padding:9px 16px;
+  animation:up .25s ease; box-shadow:var(--shadow);
+}
+.plan-title{font:700 17px/1 "Archivo", sans-serif; color:var(--ink)}
+.route-note{margin:9px 0 0}

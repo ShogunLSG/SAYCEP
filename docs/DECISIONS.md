@@ -281,3 +281,85 @@ FR-3 is reworded accordingly.
   proposal, not built for October. Say which is which.
 - FR-3's wording changed on assessed material. The change and its reason are
   recorded here so the original can be explained if asked.
+
+---
+
+## ADR-0005 — Progress has two states; only "can do it now" closes a gap
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** `plans/ux-and-dashboard.md` (Tasks 3–4), FR-02, FR-07, ADR-0006
+
+### Context
+
+The "My plan" dashboard lets a user record progress on the skills their gap
+names. The choice was between one state ("I can do this now"), which only adds
+rows to `user_skills` and needs no schema change, and two states, which add
+"working on it". The two-state option was chosen on 30 September.
+
+### Decision
+
+`user_skills` gains `status` (`held` | `learning`, default `held`) and
+`updated_at`. `repository.profile_skill_ids` returns only `held` rows. It is the
+single function the gap analyser, pathway service and recommendation engine read
+a profile through, so **`learning` cannot close a gap, change a pathway, or move
+a recommendation**. Three endpoints serve it: `GET /profiles/{id}` reads it,
+`PUT /profiles/{id}/skills/{element_id}` sets a status, and `DELETE` removes one.
+
+### Consequences
+
+- **Schema change on the as-built schema.** `architecture.md` is updated.
+  `ensure_profile_tables` adds the column in place when it opens an older
+  database, and existing rows default to `held`, so no gap changes on upgrade
+  (TC-U07).
+- **Progress is self-reported.** SAYCEP has no way to check that someone can
+  now troubleshoot. That is the same trust basis as FR-02's skill capture, and
+  it should be said plainly if asked. Qualification verification is out of
+  scope.
+- **A new functional requirement is implied.** Recording progress and
+  recomputing the gap isn't covered by FR-01 to FR-10. Drafting it is the
+  project owner's work (CLAUDE.md), and it isn't recorded here.
+
+---
+
+## ADR-0006 — The dashboard comes after the journey, not inside it
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** NFR-02, ADR-0005, `plans/ux-and-dashboard.md`
+
+### Context
+
+NFR-02 requires that a first-time user reaches a displayed pathway in no more
+than five screens. Walking the built journey showed that it ended abruptly after
+the pathway, with nothing to come back to. The "My plan" dashboard answers that,
+so where it sits relative to NFR-02 needs a written answer.
+
+### Decision
+
+The journey stays at five screens and still ends on the displayed pathway. The
+dashboard opens only when the user chooses "Save as my plan" on screen 5. From
+then on it's the screen the app opens on. NFR-02 measures the path *to* the
+pathway, and that path is unchanged.
+
+The saved plan is a profile id in the browser's `localStorage`, **not an
+account**. There's no login, no password and no personal data beyond the
+skills ticked. If the browser forgets the id, the user walks the journey again.
+
+### Alternatives rejected
+
+- **Accounts.** They would give the plan real persistence, but they add a
+  security surface the demo would have to defend, and a sign-up screen would
+  break NFR-02's spirit even if it sat outside the count.
+- **The dashboard as screen 6.** That would break NFR-02 outright.
+
+### Consequences
+
+- Gamification stays off the table, as `BACKLOG.md` recorded on 26 September:
+  there are no streaks, XP or badges. Progress is counted in skills toward the
+  user's own goal ("1 of 2 must-haves").
+- The route on the dashboard re-sequences as skills are added, because FR-08
+  orders steps by closeness to the current profile. The screen says so. Freezing
+  the route at save time would need another schema change, and it's in
+  `BACKLOG.md`.
+

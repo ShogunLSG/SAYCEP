@@ -34,6 +34,14 @@ pen so nothing gets lost.
   days — and only after FR-01 to FR-10 actually work end to end.
   (Noticed 2026-09-26.)
 
+- **Freeze the dashboard route at save time?** The route re-sequences whenever a
+  skill is marked held (FR-08 orders by closeness to the current profile).
+  The dashboard says so on screen. Freezing it would need a stored route (a
+  schema change), so it's deferred unless user testing shows the reshuffle
+  confuses people. (Noticed 2026-09-30.)
+
+---
+
 ## Cleared 2026-09-10
 
 The four items carried here from August all concerned the ESSA/Adzuna job-data

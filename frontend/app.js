@@ -46,10 +46,13 @@ const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body),
   put: (path, body) => request("PUT", path, body),
+  del: (path) => request("DELETE", path),
 };
 
-/** Fetch whenever `path` changes; a null path fetches nothing. */
-function useFetch(path) {
+/** Fetch whenever `path` or `rev` changes; a null path fetches nothing.
+ *  The previous data stays on screen while a refetch is in flight, so a
+ *  progress tick updates in place instead of flashing "Loading…". */
+function useFetch(path, rev = 0) {
   const [state, setState] = useState({ data: null, error: null, loading: !!path });
   useEffect(() => {
     if (!path) { setState({ data: null, error: null, loading: false }); return; }
@@ -60,9 +63,18 @@ function useFetch(path) {
       (err) => live && setState({ data: null, error: err.message, loading: false }),
     );
     return () => { live = false; };
-  }, [path]);
+  }, [path, rev]);
   return state;
 }
+
+// The saved plan is a profile id in this browser -- not an account. If the
+// browser forgets it (private window, cleared data) the journey starts fresh.
+const SAVED = "saycep.plan";
+const saved = {
+  get: () => { try { return localStorage.getItem(SAVED); } catch (_) { return null; } },
+  set: (id) => { try { localStorage.setItem(SAVED, id); } catch (_) { /* plan lasts this visit */ } },
+  clear: () => { try { localStorage.removeItem(SAVED); } catch (_) { /* nothing to clear */ } },
+};
 
 // ---------- small pieces ----------
 
@@ -74,6 +86,7 @@ const Icon = {
   arrow: svg(html`<path d="M5 12h14M13 6l6 6-6 6" />`, 2.4),
   check: svg(html`<path d="M5 13l4 4L19 7" />`, 3.2),
   search: svg(html`<circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />`, 2),
+  undo: svg(html`<path d="M9 14L4 9l5-5" /><path d="M4 9h11a5 5 0 010 10h-3" />`, 2),
 };
 
 function Head({ kicker, fr, title, sub }) {
@@ -433,11 +446,172 @@ function StepPathway({ profileId, onOpen }) {
     <//>`;
 }
 
-// ---------- the journey ----------
+// ---------- my plan : the dashboard after the journey ----------
+//
+// Not a sixth step. NFR-02 caps the journey at five screens to a displayed
+// pathway, and it still is five; this is where the user lands afterwards and
+// every time they come back. ADR-0006.
 
-const CTA = ["Continue", "Find roles that fit", "See what's missing", "Show me the route", "Start again"];
+function Meter({ have, total, big }) {
+  return html`
+    <div class=${"meter" + (big ? " big" : "")} role="progressbar"
+         aria-valuemin="0" aria-valuemax=${total} aria-valuenow=${have}>
+      ${Array.from({ length: total }, (_, i) => html`<span key=${i} class=${i < have ? "on" : ""}></span>`)}
+    </div>`;
+}
+
+function Readiness({ r }) {
+  const what = r.basis === "essential" ? "must-have skills" : `most important skills`;
+  const names = r.missing.map((m) => m.name);
+  const list = names.length <= 2 ? names.join(" and ")
+    : `${names.slice(0, 2).join(", ")} and ${names.length - 2} more`;
+  return html`
+    <div class="ready">
+      <p class="big-count"><b>${r.have}</b> of ${r.total} <span>${what}</span></p>
+      <${Meter} have=${r.have} total=${r.total} big />
+      <p class="ready-line">${r.ready
+        ? html`<b class="h">You have everything this job depends on.</b> Keep building the rest, or aim higher.`
+        : html`Learn <b>${list}</b> to have every one.`}</p>
+      <div class="overall">
+        <span>${r.overall_have} of ${r.overall_total} skills this job uses</span>
+        <span class="thin"><i style=${{ width: `${(r.overall_have / r.overall_total) * 100}%` }}></i></span>
+      </div>
+      ${r.basis !== "essential" && html`<p class="note">This job has no single must-have skill, so we count its five most important.</p>`}
+    </div>`;
+}
+
+function PlanSkill({ k, status, busy, onSet }) {
+  return html`
+    <div class=${"ps" + (status === "learning" ? " learning" : "") + (k.classification === "essential" ? " ess" : "")}>
+      <div class="ps-t">
+        <b>${k.name}</b>
+        <span>${k.description}</span>
+      </div>
+      <div class="ps-a">
+        ${status === "learning"
+          ? html`
+            <button class="btn ok" disabled=${busy} onClick=${() => onSet(k, "held")}>${Icon.check} I can do this now</button>
+            <button class="btn ghost" disabled=${busy} onClick=${() => onSet(k, null)}>Stop</button>`
+          : html`
+            <button class="btn" disabled=${busy} onClick=${() => onSet(k, "learning")}>Start learning</button>
+            <button class="btn ghost" disabled=${busy} onClick=${() => onSet(k, "held")}>I can already</button>`}
+      </div>
+    </div>`;
+}
+
+function Plan({ profileId, onOpen, onJourney, onStartOver }) {
+  const [rev, setRev] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [moreNice, setMoreNice] = useState(false);
+  const prof = useFetch(`/profiles/${profileId}`, rev);
+  const gap = useFetch(`/profiles/${profileId}/gap`, rev);
+  const route = useFetch(`/profiles/${profileId}/pathway`, rev);
+
+  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3200); return () => clearTimeout(t); }, [toast]);
+
+  async function setStatus(k, status) {
+    setBusy(true);
+    try {
+      if (status) await api.put(`/profiles/${profileId}/skills/${k.element_id}`, { status });
+      else await api.del(`/profiles/${profileId}/skills/${k.element_id}`);
+      setToast(status === "held" ? `${k.name} added to your skills.`
+        : status === "learning" ? `Working on ${k.name}.` : `${k.name} moved back to your list.`);
+      setRev((n) => n + 1);
+    } catch (e) {
+      setToast(`Couldn't save that: ${e.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const first = prof.data && gap.data && route.data;
+  if (!first) {
+    const err = prof.error || gap.error || route.error;
+    return html`<div class="pane plan">${err ? html`<div class="banner">${err}</div>` : html`<p class="loading">Loading your plan…</p>`}</div>`;
+  }
+  const p = prof.data, g = gap.data, rt = route.data, r = p.readiness;
+  const status = Object.fromEntries(p.skills.map((k) => [k.element_id, k.status]));
+  const learning = g.missing.filter((m) => status[m.element_id] === "learning");
+  const must = g.missing.filter((m) => m.classification === "essential" && !status[m.element_id]);
+  const nice = g.missing.filter((m) => m.classification !== "essential" && !status[m.element_id]);
+  const have = p.skills.filter((k) => k.status === "held");
+  // Ready for the goal itself? Then the goal is the answer, not a stepping stone.
+  const goal = rt.steps[rt.steps.length - 1];
+  const next = goal.ready ? goal : rt.steps.find((st) => !st.ready);
+
+  return html`
+    <div class="pane plan">
+      ${PRESENTER && html`<p class="kicker">My plan · dashboard · ADR-0005 · ADR-0006</p>`}
+
+      <section class="goal">
+        <span class="lbl">Your goal</span>
+        <h2><button class="tl" onClick=${() => onOpen(p.target)}>${p.target.title}</button></h2>
+        <span class="meta">${p.target.preparation.label}<${Figure}> · ${p.target.soc_code}<//></span>
+        <${Readiness} r=${r} />
+      </section>
+
+      <section class="card">
+        <h3 class="ch">Your route</h3>
+        <div class="mini-route">
+          ${rt.steps.map((st) => html`
+            <button key=${st.soc_code} onClick=${() => onOpen(st)}
+                    class=${"mr" + (st.ready ? " done" : "") + (st === next ? " next" : "") + (st.is_target ? " goal" : "")}>
+              <span class="mdot">${st.ready ? Icon.check : st.step}</span>
+              <span class="mt">${st.title}</span>
+            </button>`)}
+        </div>
+        <div class="nextbox">
+          <span class="lbl">${next.is_target ? (next.ready ? "Ready for your goal" : "Next: your goal") : `Next: step ${next.step}`}</span>
+          <b>${next.title}</b>
+          ${next.ready
+            ? html`<p>You have every skill this job depends on. The steps before it are optional now.</p>`
+            : html`<p>To be ready: ${next.ready_missing.map((m) => m.name).join(", ")}.</p>`}
+        </div>
+        <p class="note route-note">Your route updates as your skills grow — the job closest to what you can do comes first.</p>
+        <button class="more" onClick=${() => onJourney(4, p)}>See the whole route →</button>
+      </section>
+
+      <section class="card">
+        <h3 class="ch">Skills to work on</h3>
+        ${learning.length > 0 && html`
+          <h4 class="sect">Working on now</h4>
+          ${learning.map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} status="learning" busy=${busy} onSet=${setStatus} />`)}`}
+        ${must.length > 0 && html`
+          <h4 class="sect e">Must-haves <span>— the job depends on these</span></h4>
+          ${must.map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} busy=${busy} onSet=${setStatus} />`)}`}
+        ${nice.length > 0 && html`
+          <h4 class="sect">Nice to have</h4>
+          ${(moreNice ? nice : nice.slice(0, 3)).map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} busy=${busy} onSet=${setStatus} />`)}
+          ${nice.length > 3 && html`<button class="more" onClick=${() => setMoreNice(!moreNice)}>
+            ${moreNice ? "Show fewer" : `Show all ${nice.length}`}</button>`}`}
+        ${g.missing.length === 0 && html`<p class="note">Nothing left to learn for this job. Time to aim higher?</p>`}
+        <details class="have">
+          <summary>Skills you have (${have.length})</summary>
+          ${have.map((k) => html`
+            <div key=${k.element_id} class="hv">
+              <span class="mk">${Icon.check}</span><span class="n">${k.name}</span>
+              <button class="undo" aria-label=${`Remove ${k.name}`} disabled=${busy} onClick=${() => setStatus(k, null)}>${Icon.undo}</button>
+            </div>`)}
+        </details>
+      </section>
+
+      <div class="plan-actions">
+        <button class="btn" onClick=${() => onJourney(2, p)}>Change my goal</button>
+        <button class="btn ghost" onClick=${() => onJourney(1, p)}>Update my skills</button>
+      </div>
+      <button class="link" onClick=${onStartOver}>Start over from scratch</button>
+      <p class="prov">${rt.source_dataset}</p>
+      ${toast && html`<div class="toast" role="status">${toast}</div>`}
+    </div>`;
+}
+
+// ---------- the app ----------
+
+const CTA = ["Continue", "Find roles that fit", "See what's missing", "Show me the route", "Save as my plan"];
 
 function App() {
+  const [view, setView] = useState(() => (saved.get() ? "boot" : "journey")); // boot | journey | plan
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState("fwd");
   const [type, setType] = useState(null);
@@ -449,8 +623,28 @@ function App() {
   const [error, setError] = useState(null);
 
   // A profile is created from a type and a skill set. Change either and the
-  // next continue creates a fresh one -- profiles are ephemeral in the demo.
-  const profileKey = `${type}|${[...held].sort().join(",")}`;
+  // next continue creates a fresh one; the saved plan then follows the new id.
+  const keyOf = (t, ids) => `${t}|${[...ids].sort().join(",")}`;
+  const profileKey = keyOf(type, held);
+
+  // Coming back: reopen the saved plan, or quietly start fresh if it's gone.
+  useEffect(() => {
+    if (view !== "boot") return;
+    api.get(`/profiles/${saved.get()}`).then(
+      (p) => { if (p.target) { hydrate(p); setView("plan"); } else { saved.clear(); setView("journey"); } },
+      () => { saved.clear(); setView("journey"); },
+    );
+  }, []);
+
+  /** Load a stored profile into the journey's state, so going back into the
+   *  journey from the plan edits the same profile rather than a copy. */
+  function hydrate(p) {
+    const ids = p.skills.filter((k) => k.status === "held").map((k) => k.element_id);
+    setType(p.profile_type);
+    setHeld(new Set(ids));
+    setProfile({ id: p.profile_id, key: keyOf(p.profile_type, ids) });
+    setTarget(p.target && { soc_code: p.target.soc_code, title: p.target.title, job_zone: p.target.job_zone });
+  }
 
   const go = (n) => { setDir(n > step ? "fwd" : "bwd"); setError(null); setSheet(null); setStep(n); };
 
@@ -458,18 +652,36 @@ function App() {
     setHeld((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   }
 
-  function restart() {
-    setType(null); setHeld(new Set()); setProfile(null); setTarget(null); go(0);
+  function startOver() {
+    saved.clear();
+    setType(null); setHeld(new Set()); setProfile(null); setTarget(null);
+    setView("journey"); setDir("bwd"); setSheet(null); setStep(0);
   }
 
+  function enterJourney(n, p) { hydrate(p); setView("journey"); setDir("bwd"); setSheet(null); setStep(n); }
+
   async function advance() {
-    if (step === 4) return restart();
     setError(null); setBusy(true);
     try {
+      if (step === 4) { saved.set(profile.id); setSheet(null); setView("plan"); return; }
       if (step === 1 && (!profile || profile.key !== profileKey)) {
-        const d = await api.post("/profiles", { profile_type: type, skills: [...held] });
-        setProfile({ id: d.profile_id, key: profileKey });
-        setTarget(null);
+        const [oldType, oldIds] = profile ? profile.key.split("|") : [null, ""];
+        if (profile && oldType === type && saved.get() === profile.id) {
+          // Editing a saved plan's skills: change that profile in place, so its
+          // target and "working on it" marks survive.
+          const before = new Set(oldIds ? oldIds.split(",") : []);
+          await Promise.all([
+            ...[...held].filter((id) => !before.has(id)).map((id) =>
+              api.put(`/profiles/${profile.id}/skills/${id}`, { status: "held" })),
+            ...[...before].filter((id) => !held.has(id)).map((id) =>
+              api.del(`/profiles/${profile.id}/skills/${id}`)),
+          ]);
+          setProfile({ id: profile.id, key: profileKey });
+        } else {
+          const d = await api.post("/profiles", { profile_type: type, skills: [...held] });
+          setProfile({ id: d.profile_id, key: profileKey });
+          setTarget(null);
+        }
       }
       if (step === 2) {
         await api.put(`/profiles/${profile.id}/target`, { soc_code: target.soc_code });
@@ -482,7 +694,27 @@ function App() {
     }
   }
 
+  const sheetEl = sheet && html`<${RoleSheet} key=${sheet.soc_code} soc=${sheet.soc_code} profileId=${profile && profile.id}
+    isTarget=${target && target.soc_code === sheet.soc_code}
+    onAim=${sheet.canAim ? (occ) => setTarget({ soc_code: occ.soc_code, title: occ.title, job_zone: occ.job_zone }) : null}
+    onClose=${() => setSheet(null)} />`;
+
+  if (view === "boot") return html`<div class="app"><p class="loading">Loading…</p></div>`;
+
+  if (view === "plan") return html`
+    <div class="app">
+      <div class="top">
+        <div class="toprow"><span class="steplabel plan-title">My plan</span><span class="brand">SAYCEP</span></div>
+      </div>
+      <div class="body">
+        <${Plan} profileId=${profile.id} onJourney=${enterJourney} onStartOver=${startOver}
+                 onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: false })} />
+      </div>
+      ${sheetEl}
+    </div>`;
+
   const ready = [type !== null, held.size > 0, target !== null, true, true][step];
+  const hasPlan = !!saved.get();
 
   const panes = [
     html`<${StepStart} type=${type} onPick=${setType} />`,
@@ -500,7 +732,9 @@ function App() {
         <div class="toprow">
           <button class="back" aria-label="Back" disabled=${step === 0 || busy} onClick=${() => go(step - 1)}>${Icon.back}</button>
           <span class="steplabel">Step <b>${step + 1}</b> of 5</span>
-          <span class="brand">SAYCEP</span>
+          ${hasPlan && profile && target
+            ? html`<button class="toplink" onClick=${() => { saved.set(profile.id); setView("plan"); }}>My plan</button>`
+            : html`<span class="brand">SAYCEP</span>`}
         </div>
         <div class="segments" aria-hidden="true">
           ${[0, 1, 2, 3, 4].map((i) => html`<span key=${i} class=${"seg" + (i <= step ? " on" : "")}><i></i></span>`)}
@@ -522,10 +756,7 @@ function App() {
         ${step === 4 && html`<button class="link" onClick=${() => go(2)}>Try a different target</button>`}
       </div>
 
-      ${sheet && html`<${RoleSheet} key=${sheet.soc_code} soc=${sheet.soc_code} profileId=${profile && profile.id}
-        isTarget=${target && target.soc_code === sheet.soc_code}
-        onAim=${sheet.canAim ? (occ) => setTarget({ soc_code: occ.soc_code, title: occ.title, job_zone: occ.job_zone }) : null}
-        onClose=${() => setSheet(null)} />`}
+      ${sheetEl}
     </div>`;
 }
 

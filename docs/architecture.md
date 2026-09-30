@@ -37,8 +37,9 @@ occupation_skills   (soc_code, element_id, importance, importance_scale_max,
 related_occupations (soc_code, related_soc_code, tier, sort_index)
 job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
 
-users               (id, profile_type, target_soc_code)   -- with the API
-user_skills         (user_id, element_id)                 -- with the API
+users               (profile_id PK, profile_type, target_soc_code, created_at)
+user_skills         (profile_id, element_id, status, updated_at,
+                     PK(profile_id, element_id))  -- status: 'held' | 'learning'
 ```
 
 What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
@@ -48,6 +49,10 @@ What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
 - **`skills.category` dropped.** No source data supplies one.
 - **`user_skills.level` dropped.** Capture is "do you have this skill", which is
   all the gap needs.
+- **`user_skills.status` added (30 September, ADR-0005).** It's either `held`
+  or `learning`, for the "My plan" dashboard's progress tracking. Only `held`
+  counts toward a gap, pathway or recommendation. It is still not a proficiency
+  level. It just separates "I can do this" from "I'm working on it".
 - **`job_zone` added to occupations**, and `related_occupations` / 
   `job_zone_reference` added outright. Neither existed in the sketch because
   neither dataset behind it had the data. O*NET does, and they are what make FR-1's
@@ -55,7 +60,7 @@ What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
 - **`importance` stores O*NET's raw 1–5 rating** rather than an essential/desirable
   boolean, so the threshold stays a query-time decision.
 
-A gap is `occupation_skills` for the target minus `user_skills`. A pathway walks
+A gap is `occupation_skills` for the target minus the `held` rows of `user_skills`. A pathway walks
 `related_occupations` in its expert-review order. One structure, two modules —
 that is the whole reason this pair is cheap to build together.
 

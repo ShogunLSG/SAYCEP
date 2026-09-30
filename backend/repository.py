@@ -21,12 +21,19 @@ CREATE TABLE IF NOT EXISTS users (
     created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- status: 'held' is a skill the user can do now, and the only kind the gap,
+-- pathway and recommendations count. 'learning' is one they are working on --
+-- it shows on the dashboard and never closes a gap. ADR-0005.
 CREATE TABLE IF NOT EXISTS user_skills (
     profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
     element_id  TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'held' CHECK (status IN ('held', 'learning')),
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (profile_id, element_id)
 );
 """
+
+SKILL_STATUSES = ("held", "learning")
 
 
 def connect():
@@ -38,6 +45,14 @@ def connect():
 
 def ensure_profile_tables(con):
     con.executescript(PROFILE_SCHEMA)
+    # A database built before ADR-0005 has user_skills without status. The
+    # loader rebuilds from scratch so this rarely matters, but a server started
+    # on an old file must not fail on its first profile call.
+    cols = {r[1] for r in con.execute("PRAGMA table_info(user_skills)")}
+    if "status" not in cols:
+        con.execute("ALTER TABLE user_skills ADD COLUMN status TEXT NOT NULL DEFAULT 'held'"
+                    " CHECK (status IN ('held', 'learning'))")
+        con.execute("ALTER TABLE user_skills ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''")
     con.commit()
 
 
@@ -136,8 +151,33 @@ def get_profile(con, profile_id):
 
 
 def profile_skill_ids(con, profile_id):
+    """Skills the user holds now. 'learning' is deliberately excluded: every
+    gap, pathway and recommendation is measured against this list."""
     return [r[0] for r in con.execute(
-        "SELECT element_id FROM user_skills WHERE profile_id = ?", (profile_id,))]
+        "SELECT element_id FROM user_skills WHERE profile_id = ? AND status = 'held'",
+        (profile_id,))]
+
+
+def profile_skills(con, profile_id):
+    return con.execute(
+        "SELECT us.element_id, s.name, s.description, us.status, us.updated_at"
+        "  FROM user_skills us JOIN skills s ON s.element_id = us.element_id"
+        " WHERE us.profile_id = ? ORDER BY s.name", (profile_id,)).fetchall()
+
+
+def set_skill_status(con, profile_id, element_id, status):
+    con.execute(
+        "INSERT INTO user_skills (profile_id, element_id, status) VALUES (?,?,?)"
+        " ON CONFLICT (profile_id, element_id)"
+        " DO UPDATE SET status = excluded.status, updated_at = datetime('now')",
+        (profile_id, element_id, status))
+    con.commit()
+
+
+def remove_skill(con, profile_id, element_id):
+    con.execute("DELETE FROM user_skills WHERE profile_id = ? AND element_id = ?",
+                (profile_id, element_id))
+    con.commit()
 
 
 def set_target(con, profile_id, soc_code):

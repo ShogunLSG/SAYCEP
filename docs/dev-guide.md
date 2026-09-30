@@ -261,6 +261,23 @@ so that a catalogue read never claims the user lacks a skill. The target is set
 from the panel's "Aim for this job" button. That adds one tap to the demo path,
 and it's the tap that makes exploring possible.
 
+**Tasks 3–4, "My plan" and progress.** Screen 5's button is now "Save as my
+plan". It stores the profile id in `localStorage` (ADR-0006) and opens the
+dashboard, which shows:
+
+- **The goal and readiness.** Readiness is *counted*: "1 of 2 must-have
+  skills". 166 of the 879 occupations have no skill at or above 3.5, so for
+  those it counts the five most important skills instead (`ready_basis`).
+- **The route, with each step ticked when ready.** `pathway.step_readiness`
+  adds `ready` and `ready_missing` to every step.
+- **Skills to work on.** Each one moves through *Start learning* to *I can do
+  this now*. Only the second closes a gap (ADR-0005, TC-I07).
+- **"Update my skills" and "Change my goal".** These reopen screens 2 and 3
+  against the *same* profile. When skills are edited from a saved plan, the
+  change is applied in place (PUT/DELETE per skill), so "working on it" marks
+  survive. Editing before a plan is saved still creates a fresh profile, as
+  before.
+
 These cut-points are presentation choices, not findings from the data. The
 classification itself, essential against desirable at 3.5, is unchanged, so
 FR-07's behaviour is too.

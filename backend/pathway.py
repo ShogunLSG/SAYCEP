@@ -45,6 +45,10 @@ import repository
 # A rise smaller than this is noise on a 1-5 survey scale, not a development goal.
 MIN_MEANINGFUL_RISE = 0.25
 
+# 166 of the 879 occupations have no skill at or above the essential threshold.
+# For those, "ready" means holding this many of the role's most important skills.
+READY_FALLBACK_TOP_N = 5
+
 
 def generate_pathway(con, profile_id, soc_code):
     held = set(repository.profile_skill_ids(con, profile_id))
@@ -62,6 +66,7 @@ def generate_pathway(con, profile_id, soc_code):
             r for r in ordered if r["related_soc_code"] == step_soc)
 
         focus = _step_focus(con, step_soc, held, previous)
+        readiness = step_readiness(con, step_soc, held)
 
         steps.append({
             "step": position,
@@ -72,6 +77,7 @@ def generate_pathway(con, profile_id, soc_code):
             "expert_review_index": None if is_target else row["sort_index"],
             "focus": focus,
             "is_target": is_target,
+            **readiness,
         })
         previous = step_soc
 
@@ -92,6 +98,26 @@ def generate_pathway(con, profile_id, soc_code):
             "that matter most in that role by O*NET importance, badged as new to "
             "the user or as demanding more depth than the previous step."
         ),
+    }
+
+
+def step_readiness(con, soc_code, held_ids):
+    """Has the user got what this role depends on? Drives the dashboard's
+    "your next step": the first step on the route that is not yet ready.
+
+    Ready means every essential skill is held. For an occupation with no
+    essential skills that would be trivially true, so it falls back to the
+    role's READY_FALLBACK_TOP_N most important skills instead.
+    """
+    required = repository.required_skills(con, soc_code)  # most important first
+    essential = [r for r in required if r["importance"] >= ESSENTIAL_THRESHOLD]
+    basis = essential or required[:READY_FALLBACK_TOP_N]
+    missing = [r for r in basis if r["element_id"] not in held_ids]
+    return {
+        "ready": not missing,
+        "ready_basis": "essential" if essential else f"top_{READY_FALLBACK_TOP_N}",
+        "ready_total": len(basis),
+        "ready_missing": [{"element_id": r["element_id"], "name": r["name"]} for r in missing],
     }
 
 

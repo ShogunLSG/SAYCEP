@@ -96,6 +96,21 @@ def main():
     check("TC-U06e", "a negative similarity still gets a match label, not an error",
           plain.match_level(-0.2) == "Some overlap")
 
+    print("\nTC-U07  a pre-ADR-0005 database gains the status column  (ADR-0005)")
+    import sqlite3
+    old = sqlite3.connect(":memory:")
+    old.executescript("CREATE TABLE users (profile_id TEXT PRIMARY KEY, profile_type TEXT NOT NULL,"
+                      " target_soc_code TEXT, created_at TEXT);"
+                      "CREATE TABLE user_skills (profile_id TEXT NOT NULL, element_id TEXT NOT NULL,"
+                      " PRIMARY KEY (profile_id, element_id));"
+                      "INSERT INTO users VALUES ('p1', 'student', NULL, '');"
+                      "INSERT INTO user_skills VALUES ('p1', '2.A.1.a');")
+    repository.ensure_profile_tables(old)
+    cols = {r[1] for r in old.execute("PRAGMA table_info(user_skills)")}
+    check("TC-U07a", "status column added in place", "status" in cols, str(cols))
+    check("TC-U07b", "existing skills default to held, so no gap changes on upgrade",
+          repository.profile_skill_ids(old, "p1") == ["2.A.1.a"])
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

@@ -119,6 +119,42 @@ def main():
     check("TC-I05d", "an empty skill set returns no recommendations with a message (TR-03)",
           empty_rec["recommendations"] == [] and bool(empty_rec.get("message")))
 
+    print("\nTC-I07  Progress: working on it and can do it now  (dashboard, ADR-0005)")
+    s, pp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    ppid = pp["profile_id"]
+    call("PUT", f"/profiles/{ppid}/target", {"soc_code": "47-2111.00"})
+    s, dash = call("GET", f"/profiles/{ppid}")
+    check("TC-I07a", "GET profile reports readiness 0 of 2 must-haves, 6 of 34 overall",
+          s == 200 and (dash["readiness"]["have"], dash["readiness"]["total"],
+                        dash["readiness"]["overall_have"], dash["readiness"]["overall_total"]) == (0, 2, 6, 34),
+          str(dash.get("readiness")))
+    trouble = ids["Troubleshooting"]
+    s, r = call("PUT", f"/profiles/{ppid}/skills/{trouble}", {"status": "learning"})
+    s, g = call("GET", f"/profiles/{ppid}/gap")
+    s, dash = call("GET", f"/profiles/{ppid}")
+    check("TC-I07b", "'working on it' is recorded but does not close the gap",
+          dash["learning_count"] == 1 and g["missing_essential_count"] == 2,
+          f'learning {dash["learning_count"]}, essential missing {g["missing_essential_count"]}')
+    s, r = call("PUT", f"/profiles/{ppid}/skills/{trouble}", {"status": "held"})
+    s, g = call("GET", f"/profiles/{ppid}/gap")
+    s, dash = call("GET", f"/profiles/{ppid}")
+    check("TC-I07c", "'can do it now' closes it: 1 must-have left, readiness 1 of 2",
+          g["missing_essential_count"] == 1 and dash["readiness"]["have"] == 1 and dash["learning_count"] == 0,
+          f'{g["missing_essential_count"]}, {dash["readiness"]["have"]}')
+    s, pw2 = call("GET", f"/profiles/{ppid}/pathway")
+    check("TC-I07d", "the pathway recomputes and still has 3 steps, each saying whether it is ready",
+          s == 200 and pw2["intermediate_steps"] >= 3 and all("ready" in st for st in pw2["steps"]))
+    s, r = call("DELETE", f"/profiles/{ppid}/skills/{trouble}")
+    s, g = call("GET", f"/profiles/{ppid}/gap")
+    check("TC-I07e", "DELETE undoes it: back to 2 must-haves missing", g["missing_essential_count"] == 2,
+          str(g["missing_essential_count"]))
+    s, e = call("PUT", f"/profiles/{ppid}/skills/{trouble}", {"status": "mastered"})
+    check("TC-I07f", "an unknown status is rejected with 422", s == 422, str(s))
+    s, e = call("PUT", f"/profiles/{ppid}/skills/9.Z.9", {"status": "held"})
+    check("TC-I07g", "an unknown skill returns 404", s == 404, str(s))
+    s, e = call("GET", "/profiles/does-not-exist")
+    check("TC-I07h", "GET an unknown profile returns 404, so the app can forget a stale id", s == 404, str(s))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

@@ -1,4 +1,4 @@
-"""SAYCEP API -- the seven endpoints specified in the proposal, plus one.
+"""SAYCEP API -- the seven endpoints specified in the proposal, plus four.
 
 Run from the repo root:
     python -m uvicorn app:app --app-dir backend --port 8000
@@ -7,6 +7,10 @@ Then open http://127.0.0.1:8000 for the app, /docs for the API.
 The eighth endpoint, PUT /profiles/{id}/target, exists because FR-03 requires
 the system to record a target and replace any previous one, and none of the
 seven specified endpoints can do that without a GET that writes.
+
+The other three serve the "My plan" dashboard (docs/plans/ux-and-dashboard.md):
+GET /profiles/{id} rebuilds it after a reload, and PUT/DELETE on
+/profiles/{id}/skills/{element_id} record progress (ADR-0005).
 
 Named to match the component in the sequence diagram. Routes only: the gap,
 pathway and recommendation logic live in their own modules so the ML component
@@ -67,6 +71,10 @@ class ProfileIn(BaseModel):
 
 class TargetIn(BaseModel):
     soc_code: str
+
+
+class SkillStatusIn(BaseModel):
+    status: str = Field(..., pattern="^(held|learning)$")
 
 
 def _resolve_target(profile, soc_code):
@@ -198,6 +206,65 @@ def create_profile(body: ProfileIn, con=Depends(db)):
         "skills_captured": len(set(body.skills)),
         "target_soc_code": body.target_soc_code,
     }
+
+
+@app.get("/profiles/{profile_id}", tags=["profile"])
+def get_profile(profile_id: str, con=Depends(db)):
+    """The dashboard's read: who the user is, what they hold, how close they are.
+
+    Readiness is counted, not scored: "4 of 7 must-haves", never a weighted
+    percentage the user would have to take on trust. For an occupation with no
+    essential skills it counts the five most important instead (ready_basis).
+    """
+    profile = _require_profile(con, profile_id)
+    skills = [dict(r) for r in repository.profile_skills(con, profile_id)]
+    target, readiness = None, None
+    if profile["target_soc_code"]:
+        soc = profile["target_soc_code"]
+        target = _with_preparation(dict(_require_occupation(con, soc)))
+        held = set(repository.profile_skill_ids(con, profile_id))
+        step = pathway_service.step_readiness(con, soc, held)
+        gap = gap_analyser.compute_gap(con, profile_id, soc)
+        readiness = {
+            "basis": step["ready_basis"],
+            "have": step["ready_total"] - len(step["ready_missing"]),
+            "total": step["ready_total"],
+            "missing": step["ready_missing"],
+            "ready": step["ready"],
+            "overall_have": gap["already_held_count"],
+            "overall_total": gap["required_total"],
+        }
+    return {
+        "profile_id": profile_id,
+        "profile_type": profile["profile_type"],
+        "created_at": profile["created_at"],
+        "target": target,
+        "skills": skills,
+        "held_count": sum(s["status"] == "held" for s in skills),
+        "learning_count": sum(s["status"] == "learning" for s in skills),
+        "readiness": readiness,
+    }
+
+
+@app.put("/profiles/{profile_id}/skills/{element_id}", tags=["profile"])
+def set_skill_status(profile_id: str, element_id: str, body: SkillStatusIn, con=Depends(db)):
+    """Progress: mark a skill 'learning' (working on it) or 'held' (can do it now).
+
+    Only 'held' changes the gap, the pathway and the recommendations.
+    """
+    _require_profile(con, profile_id)
+    if element_id not in repository.valid_skill_ids(con):
+        raise HTTPException(404, f"No skill {element_id}")
+    repository.set_skill_status(con, profile_id, element_id, body.status)
+    return {"profile_id": profile_id, "element_id": element_id, "status": body.status}
+
+
+@app.delete("/profiles/{profile_id}/skills/{element_id}", tags=["profile"])
+def remove_skill(profile_id: str, element_id: str, con=Depends(db)):
+    """Undo: the skill goes back to neither held nor being learned."""
+    _require_profile(con, profile_id)
+    repository.remove_skill(con, profile_id, element_id)
+    return {"profile_id": profile_id, "element_id": element_id, "status": None}
 
 
 @app.put("/profiles/{profile_id}/target", tags=["profile"])
