@@ -187,6 +187,7 @@ def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)
         for s in repository.required_skills(con, soc_code)
     ]
     essential = [s for s in skills if s["classification"] == "essential"]
+    saved = soc_code in repository.saved_socs(con, profile_id) if profile_id else None
     tasks, task_total = repository.occupation_tasks(con, soc_code)
     tool_groups, tool_total = repository.occupation_tool_groups(con, soc_code)
     related = [
@@ -206,6 +207,7 @@ def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)
         "tool_groups": tool_groups,
         "tool_total": tool_total,
         "required_skills": skills,
+        "saved": saved,
         "essential_count": len(essential),
         "essential_held": None if held is None else sum(s["held"] for s in essential),
         "held_count": None if held is None else sum(s["held"] for s in skills),
@@ -361,6 +363,74 @@ def remove_skill(profile_id: str, element_id: str, con=Depends(db)):
     after = set(repository.profile_skill_ids(con, profile_id))
     return {"profile_id": profile_id, "element_id": element_id, "status": None,
             "changes": _changes(con, profile, before, after)}
+
+
+# ---------- saved jobs and comparison (slice 3, ADR-0010) ----------
+
+def _job_summary(con, soc, held):
+    """One job, measured against the user: the shape both the saved list and
+    the comparison use."""
+    occ = repository.get_occupation(con, soc)
+    required = repository.required_skills(con, soc)
+    ready = pathway_service.step_readiness(con, soc, held)
+    return {
+        "soc_code": soc, "title": occ["title"], "job_zone": occ["job_zone"],
+        "preparation": plain.preparation(occ["job_zone"]),
+        "readiness": {"basis": ready["ready_basis"], "total": ready["ready_total"],
+                      "have": ready["ready_total"] - len(ready["ready_missing"]),
+                      "ready": ready["ready"]},
+        "overall_have": sum(r["element_id"] in held for r in required),
+        "overall_total": len(required),
+        # What stands between the user and "ready", by the same rule as the
+        # count above -- so a job with no essential skills never reads as
+        # "4 of 5" and "nothing left to learn" at once.
+        "to_learn": [{"element_id": m["element_id"], "name": m["name"]} for m in ready["ready_missing"]],
+        "must_haves": [{"element_id": r["element_id"], "name": r["name"],
+                        "held": r["element_id"] in held}
+                       for r in required if r["importance"] >= ESSENTIAL_THRESHOLD],
+    }
+
+
+@app.get("/profiles/{profile_id}/saved", tags=["profile"])
+def list_saved(profile_id: str, con=Depends(db)):
+    """Saved jobs, oldest first, each with the user's readiness for it."""
+    _require_profile(con, profile_id)
+    held = set(repository.profile_skill_ids(con, profile_id))
+    return {"profile_id": profile_id,
+            "saved": [_job_summary(con, soc, held) for soc in repository.saved_socs(con, profile_id)]}
+
+
+@app.put("/profiles/{profile_id}/saved/{soc_code}", tags=["profile"])
+def save_job(profile_id: str, soc_code: str, con=Depends(db)):
+    _require_profile(con, profile_id)
+    _require_occupation(con, soc_code)
+    repository.save_occupation(con, profile_id, soc_code)
+    return {"profile_id": profile_id, "soc_code": soc_code, "saved": True}
+
+
+@app.delete("/profiles/{profile_id}/saved/{soc_code}", tags=["profile"])
+def unsave_job(profile_id: str, soc_code: str, con=Depends(db)):
+    _require_profile(con, profile_id)
+    repository.unsave_occupation(con, profile_id, soc_code)
+    return {"profile_id": profile_id, "soc_code": soc_code, "saved": False}
+
+
+@app.get("/profiles/{profile_id}/compare", tags=["profile"])
+def compare_jobs(profile_id: str, soc: list[str] = Query(..., min_length=2, max_length=3),
+                 con=Depends(db)):
+    """Two or three jobs side by side, measured against the user: training,
+    must-haves held, and which must-have skills they share."""
+    _require_profile(con, profile_id)
+    for code in soc:
+        _require_occupation(con, code)
+    held = set(repository.profile_skill_ids(con, profile_id))
+    jobs = [_job_summary(con, code, held) for code in dict.fromkeys(soc)]
+    sets = [{m["element_id"] for m in j["must_haves"]} for j in jobs]
+    shared = set.intersection(*sets) if sets else set()
+    names = {m["element_id"]: m["name"] for j in jobs for m in j["must_haves"]}
+    return {"profile_id": profile_id, "jobs": jobs,
+            "shared_must_haves": sorted(({"element_id": e, "name": names[e], "held": e in held}
+                                         for e in shared), key=lambda m: m["name"])}
 
 
 @app.get("/skills/{element_id}", tags=["catalogue"])

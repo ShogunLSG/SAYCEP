@@ -78,10 +78,21 @@ function JobDetail({ data, full, onOpenJob }) {
     <p class="prov">${data.source_dataset}</p>`;
 }
 
-function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, children }) {
+function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, onSavedChange }) {
   const { data, error, loading } = useFetch(
     `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(null);
+  const isSaved = saved ?? (data && data.saved);
+  async function toggleSave() {
+    const next = !isSaved;
+    setSaved(next);
+    try {
+      if (next) await api.put(`/profiles/${profileId}/saved/${soc}`);
+      else await api.del(`/profiles/${profileId}/saved/${soc}`);
+      onSavedChange && onSavedChange();
+    } catch (_) { setSaved(!next); }
+  }
   const isGoal = goalSoc === soc;
   return html`
     <div class="page">
@@ -89,7 +100,8 @@ function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, children }) {
         ${data && html`
           <div class="page-body"><${JobDetail} data=${data} full onOpenJob=${onOpenJob} /></div>
           <div class="page-foot">
-            ${children}
+            <button class=${"btn full" + (isSaved ? " ok" : "")} aria-pressed=${!!isSaved} onClick=${toggleSave}>
+              ${isSaved ? html`${Icon.check} Saved` : "Save this job"}</button>
             <button class="cta" disabled=${isGoal || busy}
                     onClick=${async () => { setBusy(true); try { await onMakeGoal(data); } finally { setBusy(false); } }}>
               ${isGoal ? "This is your goal" : busy ? "Working…" : "Make this my goal"}</button>

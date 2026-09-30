@@ -499,3 +499,38 @@ already loaded, as *Jobs like this*.
   858 of 879 jobs, and its US qualification percentages would mislead a South
   African user (`plans/full-app.md`).
 
+---
+
+## ADR-0010 — Saved jobs and comparison
+
+**Date:** 2026-09-30
+**Status:** Accepted
+**Relates to:** ADR-0005, `plans/full-app.md` slice 3
+
+### Context
+
+Once a user has found a few jobs they like, their real question is "which of
+these is closest for me?" There was nowhere to keep jobs, and no way to set them
+side by side.
+
+### Decision
+
+- A new profile table: `saved_occupations (profile_id, soc_code, saved_at)`.
+  Saving the same job twice is a no-op.
+- `GET /profiles/{id}/saved` returns saved jobs with the user's readiness for
+  each.
+- `GET /profiles/{id}/compare?soc=…` takes two or three jobs and returns
+  training, readiness, all-skills coverage, what is still to learn, and the
+  must-haves they share.
+- Readiness uses the same rule everywhere: `pathway.step_readiness`, meaning
+  the essential skills, or the top five where a job has none. "Still to learn"
+  is drawn from that same rule, so a job can never read as "4 of 5" and
+  "nothing to learn" at once. That bug was found in the browser before release
+  (TC-I12c).
+
+### Consequences
+
+- Schema change: one table added to the profile schema, created on startup
+  like the others.
+- Display only. The gap, pathway and recommendations are unchanged.
+

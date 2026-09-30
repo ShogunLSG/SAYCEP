@@ -225,6 +225,31 @@ def main():
     s, sk2 = call("GET", f"/skills/{ids['Troubleshooting']}?profile_id={uid}")
     check("TC-I11f", "with a profile, the skill page says where the user stands", sk2["status"] == "held")
 
+    print("\nTC-I12  Saved jobs and comparison  (slice 3, ADR-0010)")
+    s, cp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held, "target_soc_code": "47-2111.00"})
+    cid = cp["profile_id"]
+    for soc in ("49-9051.00", "47-2111.00", "49-9051.00"):
+        call("PUT", f"/profiles/{cid}/saved/{soc}")
+    s, sv = call("GET", f"/profiles/{cid}/saved")
+    check("TC-I12a", "saving twice keeps one copy; saved jobs come back with readiness",
+          [j["soc_code"] for j in sv["saved"]] == ["49-9051.00", "47-2111.00"]
+          and sv["saved"][1]["readiness"] == {"basis": "essential", "total": 2, "have": 0, "ready": False},
+          str([j["soc_code"] for j in sv["saved"]]))
+    s, occ_s = call("GET", f"/occupations/47-2111.00?profile_id={cid}")
+    check("TC-I12b", "a job page says whether it is saved", occ_s["saved"] is True)
+    s, cmpd = call("GET", f"/profiles/{cid}/compare?soc=49-9051.00&soc=47-2111.00")
+    pl, el = cmpd["jobs"]
+    check("TC-I12c", "compare: a job with no essential skills counts its top five, and 'to learn' agrees",
+          pl["readiness"]["basis"] == "top_5" and pl["readiness"]["total"] - pl["readiness"]["have"] == len(pl["to_learn"]),
+          f'{pl["readiness"]} {pl["to_learn"]}')
+    check("TC-I12d", "compare: Electricians still needs Troubleshooting and Repairing",
+          sorted(m["name"] for m in el["to_learn"]) == ["Repairing", "Troubleshooting"], str(el["to_learn"]))
+    s, e = call("GET", f"/profiles/{cid}/compare?soc=47-2111.00")
+    check("TC-I12e", "comparing fewer than two jobs is rejected", s == 422, str(s))
+    call("DELETE", f"/profiles/{cid}/saved/47-2111.00")
+    s, sv2 = call("GET", f"/profiles/{cid}/saved")
+    check("TC-I12f", "unsaving removes it", [j["soc_code"] for j in sv2["saved"]] == ["49-9051.00"])
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

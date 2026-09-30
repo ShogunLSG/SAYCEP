@@ -476,7 +476,7 @@ function PlanSkill({ k, status, busy, onSet }) {
     </div>`;
 }
 
-function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock }) {
+function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, children }) {
   const [rev, setRev] = useState(0);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
@@ -551,6 +551,8 @@ function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock }
         <p class="note route-note">Your route updates as your skills grow — the job closest to what you can do comes first.</p>
         <button class="more" onClick=${() => onJourney(4, p)}>See the whole route →</button>
       </section>
+
+      ${children}
 
       <section class="card">
         <h3 class="ch">Skills to work on</h3>

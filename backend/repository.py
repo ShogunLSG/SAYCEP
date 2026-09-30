@@ -37,6 +37,14 @@ CREATE TABLE IF NOT EXISTS user_skills (
     updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (profile_id, element_id)
 );
+
+-- Jobs a user has saved to come back to or compare (slice 3, ADR-0010).
+CREATE TABLE IF NOT EXISTS saved_occupations (
+    profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
+    soc_code    TEXT NOT NULL,
+    saved_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (profile_id, soc_code)
+);
 """
 
 SKILL_STATUSES = ("held", "learning")
@@ -297,6 +305,24 @@ def set_skill_status(con, profile_id, element_id, status):
 def remove_skill(con, profile_id, element_id):
     con.execute("DELETE FROM user_skills WHERE profile_id = ? AND element_id = ?",
                 (profile_id, element_id))
+    con.commit()
+
+
+def saved_socs(con, profile_id):
+    return [r[0] for r in con.execute(
+        "SELECT soc_code FROM saved_occupations WHERE profile_id = ? ORDER BY saved_at, soc_code",
+        (profile_id,))]
+
+
+def save_occupation(con, profile_id, soc_code):
+    con.execute("INSERT OR IGNORE INTO saved_occupations (profile_id, soc_code) VALUES (?,?)",
+                (profile_id, soc_code))
+    con.commit()
+
+
+def unsave_occupation(con, profile_id, soc_code):
+    con.execute("DELETE FROM saved_occupations WHERE profile_id = ? AND soc_code = ?",
+                (profile_id, soc_code))
     con.commit()
 
 

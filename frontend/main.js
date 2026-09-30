@@ -24,6 +24,7 @@ function App() {
   const [rev, setRev] = useState(0);            // bumped when the goal changes, so Home refetches
   const [skillRev, setSkillRev] = useState(0);  // bumped on any skill change, for Skills and skill pages
   const [unlock, setUnlock] = useState(null);   // { name, status, changes } -- the unlock card
+  const [savedRev, setSavedRev] = useState(0);  // bumped when a job is saved or unsaved
   const [name, setName] = useState("");         // from the welcome screen; sent with POST /profiles
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState("fwd");
@@ -161,26 +162,37 @@ function App() {
     const page = stack[stack.length - 1];
     const openJob = (o) => push({ kind: "job", soc_code: o.soc_code, title: o.title });
     const openSkill = (k) => push({ kind: "skill", element_id: k.element_id });
+    const openCompare = (socs) => push({ kind: "compare", socs });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
-    let body;
+    // The tab stays mounted under any pushed page, so coming back finds the
+    // search, filter and scroll position exactly as they were.
+    let pageEl = null;
     if (page && page.kind === "job") {
-      body = html`<${JobPage} key=${page.soc_code} soc=${page.soc_code} profileId=${profile.id}
-                   goalSoc=${target && target.soc_code} onOpenJob=${openJob} onMakeGoal=${makeGoal} />`;
+      pageEl = html`<${JobPage} key=${page.soc_code} soc=${page.soc_code} profileId=${profile.id}
+                   goalSoc=${target && target.soc_code} onOpenJob=${openJob} onMakeGoal=${makeGoal}
+                   onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
+    } else if (page && page.kind === "compare") {
+      pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
     } else if (page && page.kind === "skill") {
-      body = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
+      pageEl = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
                    rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;
-    } else if (tab === "skills") {
-      body = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} />`;
+    }
+    let tabEl;
+    if (tab === "skills") {
+      tabEl = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} />`;
     } else if (tab === "explore") {
-      body = html`<div class="pane tabpane"><${StepExplore} profileId=${profile.id} type=${type} target=${target}
+      tabEl = html`<div class="pane tabpane"><${StepExplore} profileId=${profile.id} type=${type} target=${target}
                    onOpen=${openJob}
                    head=${html`<p class="sub tight">Find jobs by how well they fit you, how much training
                      they take, or any name you know them by.</p>`} /></div>`;
     } else {
-      body = html`<${Plan} key=${rev} profileId=${profile.id} onOpen=${openJob}
+      tabEl = html`<${Plan} key=${rev} profileId=${profile.id} onOpen=${openJob}
                    onJourney=${enterJourney} onStartOver=${startOver} onSignOut=${signOut}
-                   onUnlock=${(u) => { setUnlock(u); setSkillRev((r) => r + 1); }} />`;
+                   onUnlock=${(u) => { setUnlock(u); setSkillRev((r) => r + 1); }}>
+                 <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
+               <//>`;
     }
+    const body = html`<div class="tabhost" aria-hidden=${!!page}>${tabEl}</div>${pageEl}`;
     return html`
       <div class="app">
         <div class="top">
