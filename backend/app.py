@@ -128,6 +128,15 @@ def _format_code(code):
     return f"{code[:3]}-{code[3:]}" if code else None
 
 
+def _dates(values):
+    """FR-09: the distinct O*NET collection dates behind what a screen shows,
+    oldest first. O*NET writes them MM/YYYY."""
+    def key(d):
+        m, _, y = d.partition("/")
+        return (y, m)
+    return sorted({v for v in values if v}, key=key)
+
+
 def _with_level(skill):
     return {**skill, "level": plain.importance_level(skill["importance"])}
 
@@ -204,6 +213,10 @@ def get_occupation(soc_code: str, profile_id: str | None = None, con=Depends(db)
         # Job page (ADR-0009): O*NET's expert-reviewed related occupations, in
         # review order; software (hot technologies first); tools by category.
         "related": related,
+        # FR-09: the publication dates behind this page's skills and tasks.
+        "provenance": {"dataset": occ["source_dataset"],
+                       "skill_rating_dates": _dates(s["source_date"] for s in skills),
+                       "task_dates": _dates(t["source_date"] for t in tasks)},
         "technology": [dict(t) for t in repository.occupation_technology(con, soc_code)],
         "tool_groups": tool_groups,
         "tool_total": tool_total,
@@ -404,6 +417,7 @@ def _job_summary(con, soc, held):
         # count above -- so a job with no essential skills never reads as
         # "4 of 5" and "nothing left to learn" at once.
         "to_learn": [{"element_id": m["element_id"], "name": m["name"]} for m in ready["ready_missing"]],
+        "rating_dates": _dates(r["source_date"] for r in required),
         "must_haves": [{"element_id": r["element_id"], "name": r["name"],
                         "held": r["element_id"] in held}
                        for r in required if r["importance"] >= ESSENTIAL_THRESHOLD],
@@ -447,7 +461,7 @@ def compare_jobs(profile_id: str, soc: list[str] = Query(..., min_length=2, max_
     sets = [{m["element_id"] for m in j["must_haves"]} for j in jobs]
     shared = set.intersection(*sets) if sets else set()
     names = {m["element_id"]: m["name"] for j in jobs for m in j["must_haves"]}
-    return {"profile_id": profile_id, "jobs": jobs,
+    return {"profile_id": profile_id, "jobs": jobs, "dataset": repository.get_occupation(con, soc[0])["source_dataset"],
             "shared_must_haves": sorted(({"element_id": e, "name": names[e], "held": e in held}
                                          for e in shared), key=lambda m: m["name"])}
 
@@ -501,9 +515,11 @@ def interest_match(
              "preparation": plain.preparation(job["job_zone"]),
              "fit": plain.interest_fit(corr), "correlation": round(corr, 3),
              "areas": [interest_matcher.AREA_NAMES[x] for x in interest_matcher.top_areas(job["scores"])],
-             "skill_match": plain.match_level(skill_score(soc)) if skill_score else None}
+             "skill_match": plain.match_level(skill_score(soc)) if skill_score else None,
+             "source_date": job["source_date"]}
             for soc, job, corr in ranked
         ],
+        "dataset": repository.get_occupation(con, ranked[0][0])["source_dataset"] if ranked else None,
         "message": None,
     }
 
@@ -523,6 +539,7 @@ def get_skill(element_id: str, profile_id: str | None = None, con=Depends(db)):
     skill = repository.get_skill(con, element_id)
     if skill is None:
         raise HTTPException(404, f"No skill {element_id}")
+    top = repository.jobs_for_skill(con, element_id)
     status = None
     if profile_id:
         _require_profile(con, profile_id)
@@ -536,9 +553,10 @@ def get_skill(element_id: str, profile_id: str | None = None, con=Depends(db)):
         "top_jobs": [
             {"soc_code": r["soc_code"], "title": r["title"], "job_zone": r["job_zone"],
              "importance": round(r["importance"], 2), "level": plain.importance_level(r["importance"]),
-             "preparation": plain.preparation(r["job_zone"])}
-            for r in repository.jobs_for_skill(con, element_id)
+             "preparation": plain.preparation(r["job_zone"]), "source_date": r["source_date"]}
+            for r in top
         ],
+        "rating_dates": _dates(r["source_date"] for r in top),
     }
 
 

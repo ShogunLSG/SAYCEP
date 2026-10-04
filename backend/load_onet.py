@@ -141,6 +141,7 @@ CREATE TABLE occupation_interests (
     soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
     area            TEXT NOT NULL CHECK (area IN ('R','I','A','S','E','C')),
     score           REAL NOT NULL,
+    source_date     TEXT,
     PRIMARY KEY (soc_code, area)
 );
 
@@ -294,8 +295,8 @@ def main():
          for r in tools if r["O*NET-SOC Code"] in usable],
     )
     con.executemany(
-        "INSERT INTO occupation_interests VALUES (?,?,?)",
-        [(r["O*NET-SOC Code"], r["Element Name"][0], float(r["Data Value"]))
+        "INSERT INTO occupation_interests VALUES (?,?,?,?)",
+        [(r["O*NET-SOC Code"], r["Element Name"][0], float(r["Data Value"]), r["Date"])
          for r in interests if r["Scale ID"] == "OI" and r["O*NET-SOC Code"] in usable],
     )
     # The profile tables are empty but must exist. The loader deletes the whole

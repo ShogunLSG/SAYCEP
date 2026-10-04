@@ -54,6 +54,7 @@ function ComparePage({ profileId, socs, onOpen }) {
                       <b class="cmp-big">${j.readiness.have}<small> of ${j.readiness.total}</small></b>
                       <${Meter} have=${j.readiness.have} total=${j.readiness.total} /></div>
                     <div class="cmp-row"><span class="lbl">All skills</span>${j.overall_have} of ${j.overall_total}</div>
+                    <div class="cmp-row dated">Ratings dated ${j.rating_dates.join(", ")}</div>
                     <div class="cmp-row"><span class="lbl">Still to learn</span>
                       ${j.to_learn.length === 0
                         ? html`<span class="okt">Nothing — you're ready</span>`
@@ -66,7 +67,7 @@ function ComparePage({ profileId, socs, onOpen }) {
                 <p class="note">Learning these moves you closer to all of them at once.</p>
                 <ul class="sk">${data.shared_must_haves.map((m) => html`
                   <li key=${m.element_id} class=${m.held ? "have" : ""}><span class="mk">${m.held ? Icon.check : null}</span><span>${m.name}</span></li>`)}</ul>`}
-              <p class="prov">O*NET 29.0 (August 2024 release)</p>`;
+              <${Prov} dataset=${data.dataset} />`;
           })()}
         <//>
       </div>

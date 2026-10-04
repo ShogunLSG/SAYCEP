@@ -289,6 +289,23 @@ def main():
     check("TC-I14c", "the start event records how many skills the plan began with",
           hist["events"][-1]["skill_count"] == 6)
 
+    print("\nTC-I15  FR-09 on the newer screens: dataset and record dates")
+    import re as _re
+    dated = lambda ds: bool(ds) and all(_re.fullmatch(r"\d{2}/\d{4}", d) for d in ds)
+    s, jp = call("GET", "/occupations/47-2111.00")
+    check("TC-I15a", "job page: dataset plus the dates of its skill ratings and tasks",
+          bool(jp["provenance"]["dataset"]) and dated(jp["provenance"]["skill_rating_dates"])
+          and dated(jp["provenance"]["task_dates"]), str(jp["provenance"]))
+    s, sp = call("GET", f"/skills/{ids['Troubleshooting']}")
+    check("TC-I15b", "skill page: every listed job's rating carries its date, and the dates are listed",
+          all(j["source_date"] for j in sp["top_jobs"]) and dated(sp["rating_dates"]))
+    s, cm = call("GET", f"/profiles/{pid}/compare?soc=49-9051.00&soc=47-2111.00")
+    check("TC-I15c", "compare: each job carries its rating dates, and the dataset is named",
+          bool(cm["dataset"]) and all(dated(j["rating_dates"]) for j in cm["jobs"]))
+    s, im = call("GET", "/interests/match?r=4&limit=5")
+    check("TC-I15d", "quiz results: each job's interest profile carries its date",
+          bool(im["dataset"]) and all(_re.fullmatch(r"\d{2}/\d{4}", j["source_date"]) for j in im["results"]))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

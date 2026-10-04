@@ -219,7 +219,7 @@ def get_skill(con, element_id):
 def jobs_for_skill(con, element_id, limit=12):
     """Where this skill matters most, by O*NET importance."""
     return con.execute(
-        "SELECT o.soc_code, o.title, o.job_zone, os.importance FROM occupation_skills os"
+        "SELECT o.soc_code, o.title, o.job_zone, os.importance, os.source_date FROM occupation_skills os"
         "  JOIN occupations o ON o.soc_code = os.soc_code"
         " WHERE os.element_id = ? ORDER BY os.importance DESC, o.title LIMIT ?",
         (element_id, limit)).fetchall()
@@ -246,7 +246,8 @@ def readiness_basis_map(con, threshold, top_n):
 
 def interest_profiles(con, max_job_zone=None):
     """soc -> {area: score} for every job, with title and zone."""
-    sql = ("SELECT o.soc_code, o.title, o.job_zone, i.area, i.score FROM occupation_interests i"
+    sql = ("SELECT o.soc_code, o.title, o.job_zone, i.area, i.score, i.source_date"
+           "  FROM occupation_interests i"
            "  JOIN occupations o ON o.soc_code = i.soc_code")
     args = []
     if max_job_zone:
@@ -254,7 +255,8 @@ def interest_profiles(con, max_job_zone=None):
         args.append(max_job_zone)
     out = {}
     for r in con.execute(sql, args):
-        job = out.setdefault(r["soc_code"], {"title": r["title"], "job_zone": r["job_zone"], "scores": {}})
+        job = out.setdefault(r["soc_code"], {"title": r["title"], "job_zone": r["job_zone"],
+                                             "scores": {}, "source_date": r["source_date"]})
         job["scores"][r["area"]] = r["score"]
     return out
 

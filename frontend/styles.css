@@ -511,3 +511,5 @@ form.card .btn{margin-top:-4px}
   .printable section{break-inside:avoid; margin-bottom:6px}
   .printable footer{margin-top:14px; padding-top:6px; border-top:1px solid #ccc; font-size:8.5pt; color:#555}
 }
+.prov.tight{margin-top:0; padding-top:0; border-top:0}
+.cmp-row.dated{font-size:10.5px; color:var(--muted)}

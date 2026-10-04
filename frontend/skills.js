@@ -88,7 +88,7 @@ function SkillPage({ elementId, profileId, rev, onSet, onOpenJob }) {
                   <span class="chev">›</span>
                 </button>`)}
             </div>
-            <p class="prov">${data.source_dataset}</p>`}
+            <${Prov} dataset=${data.source_dataset} dates=${data.rating_dates} />`}
         <//>
       </div>
     </div>`;

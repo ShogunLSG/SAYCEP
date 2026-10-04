@@ -75,7 +75,9 @@ function JobDetail({ data, full, onOpenJob }) {
           </button>`)}
       </div>`}
 
-    <p class="prov">${data.source_dataset}</p>`;
+    <${Prov} dataset=${data.provenance.dataset} dates=${data.provenance.skill_rating_dates} label="skill ratings dated" />
+    ${data.provenance.task_dates.length > 0 && data.tasks.length > 0 &&
+      html`<p class="prov tight">Tasks dated ${data.provenance.task_dates.join(", ")}</p>`}`;
 }
 
 function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, onSavedChange }) {

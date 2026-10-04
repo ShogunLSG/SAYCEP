@@ -74,7 +74,7 @@ The `source_dataset` / `source_date` columns exist so the system can show where
 every record came from. That directly answers the data-provenance concern behind
 the Kaggle rule (see FR-4 in `functional-requirements.md`). Note that `source_date`
 sits on `occupation_skills` rather than `skills`: O*NET dates the *rating*, and
-those dates genuinely span 2019 to 2024.
+those dates genuinely span 2010 to 2024 (checked 4 October; an earlier version of this line said 2019, which was wrong).
 
 ## Core modules
 

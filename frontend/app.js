@@ -78,6 +78,13 @@ const saved = {
 
 // ---------- small pieces ----------
 
+/** FR-09: the source line every screen ends with -- dataset and the O*NET
+ *  collection dates of the records on that screen, as the API reports them. */
+function Prov({ dataset, dates, label = "ratings dated" }) {
+  return html`<p class="prov">${dataset || "O*NET 29.0 (August 2024 release)"}${dates && dates.length
+    ? ` · ${label} ${dates.join(", ")}` : ""}${PRESENTER ? " · FR-09" : ""}</p>`;
+}
+
 const svg = (d, w = 2.2) => html`
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${w}
        strokeLinecap="round" strokeLinejoin="round">${d}</svg>`;

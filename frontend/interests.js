@@ -33,10 +33,11 @@ function InterestQuiz({ profileId, maxZone, onOpen }) {
                 <button key=${j.soc_code} class="occ" onClick=${() => onOpen(j)}>
                   <span class="t">${j.title}
                     <span class="meta"><b class="match">${j.fit}</b>${j.skill_match ? ` · skills: ${j.skill_match.toLowerCase()}` : ""}${" · "}${j.preparation.label}<${Figure}> · r=${j.correlation}<//></span>
-                    <span class="aka">${j.areas.join(" · ")}</span></span>
+                    <span class="aka">${j.areas.join(" · ")} · interest profile dated ${j.source_date}</span></span>
                   <span class="chev">›</span>
                 </button>`)}
-            </div>`}`}
+            </div>
+            <${Prov} dataset=${res.data.dataset} />`}`}
     <//>
     <button class="btn full" onClick=${() => setAsked(false)}>Change my answers</button>`;
 
