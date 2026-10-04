@@ -417,6 +417,9 @@ function StepPathway({ profileId, onOpen }) {
                   ${s.is_target && html`<span class="pill">Your goal</span>`}
                 </div>
                 <div class="zn">${s.preparation.label}<${Figure}> · Zone ${s.job_zone}<//></div>
+                ${s.closeness_label && html`<div class="why-step">
+                  ${i === 0 ? html`<b>Closest to you now.</b> ` : ""}${s.closeness_label} with your skills · you have ${s.held_count} of its ${s.required_count}
+                  <${Figure}> · ${s.closeness.toFixed(3)}<//></div>`}
                 ${s.focus.slice(0, 4).map((f) => html`
                   <div key=${f.element_id} class="fs">
                     <span class="n">${f.name}</span>

@@ -317,6 +317,17 @@ def main():
           len(why["recommendations"]) == 5 and all(a["score"] >= b["score"] for a, b in
               zip(why["recommendations"], why["recommendations"][1:])))
 
+    print("\nTC-I17  FR-08: each route step says why it is there")
+    s, rw = call("GET", f"/profiles/{pid}/pathway")
+    closes = [st["closeness"] for st in rw["steps"][:-1]]
+    check("TC-I17a", "the intermediate steps are ordered by their closeness score, closest first",
+          all(a >= b for a, b in zip(closes, closes[1:])), str([round(c, 3) for c in closes]))
+    check("TC-I17b", "each step says how many of its skills the user has, and labels its closeness",
+          all(st["required_count"] > 0 and 0 <= st["held_count"] <= st["required_count"] and st["closeness_label"]
+              for st in rw["steps"]))
+    check("TC-I17c", "the demo route is unchanged", [st["soc_code"] for st in rw["steps"]] ==
+          ["47-2011.00", "49-9051.00", "49-2094.00", "47-2111.00"], str([st["soc_code"] for st in rw["steps"]]))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

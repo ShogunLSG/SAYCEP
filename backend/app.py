@@ -593,7 +593,9 @@ def get_pathway(profile_id: str, soc_code: str | None = None, con=Depends(db)):
     result = pathway_service.generate_pathway(con, profile_id, target)
     result["target"] = _with_preparation(result["target"])
     result["steps"] = [{**_with_preparation(st),
-                        "focus": [_with_level(f) for f in st["focus"]]}
+                        "focus": [_with_level(f) for f in st["focus"]],
+                        "closeness_label": (plain.match_level(st["closeness"])
+                                            if st["closeness"] is not None else None)}
                        for st in result["steps"]]
     return result
 

@@ -515,3 +515,5 @@ form.card .btn{margin-top:-4px}
 .cmp-row.dated{font-size:10.5px; color:var(--muted)}
 .why-rec{display:block; font-size:11.5px; color:var(--ink-2); margin-top:2px; line-height:1.35}
 .why-rec b{font-weight:600; color:var(--ok)}
+.why-step{font-size:11.5px; color:var(--ink-2); margin:-3px 0 7px}
+.why-step b{color:var(--ok)}
