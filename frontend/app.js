@@ -135,6 +135,7 @@ function OccRow({ occ, picked, onPick, score, match }) {
       ${score != null && html`<${Ring} score=${score} label=${match} />`}
       <span class="t">${occ.title}
         ${occ.also_called && html`<span class="aka">also called ${occ.also_called}</span>`}
+        ${occ.because && occ.because.length > 0 && html`<span class="why-rec" title="Skills you have that this job needs more than most jobs do">Because you have:${" "}<b>${occ.because.join(", ")}</b></span>`}
         <span class="meta">
           ${match && html`<b class="match">${match}</b>
             <span class="score mono" title="Similarity score (FR-06)">${score.toFixed(2)}</span>${" · "}`}${occ.preparation ? occ.preparation.label : ""}

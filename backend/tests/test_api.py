@@ -306,6 +306,17 @@ def main():
     check("TC-I15d", "quiz results: each job's interest profile carries its date",
           bool(im["dataset"]) and all(_re.fullmatch(r"\d{2}/\d{4}", j["source_date"]) for j in im["results"]))
 
+    print("\nTC-I16  FR-06: each recommendation says why")
+    s, why = call("GET", f"/recommendations?profile_id={pid}&limit=5&max_job_zone=3")
+    reasons = [r["because"] for r in why["recommendations"]]
+    check("TC-I16a", "every recommendation names 1-3 reasons, all of them skills the user holds",
+          all(1 <= len(b) <= 3 and set(b) <= set(demo_skills) for b in reasons), str(reasons[:2]))
+    check("TC-I16b", "skills every job needs (Active Listening, Critical Thinking) are never offered as a reason",
+          not any({"Active Listening", "Critical Thinking"} & set(b) for b in reasons))
+    check("TC-I16c", "the ranking itself is unchanged: still five, best first",
+          len(why["recommendations"]) == 5 and all(a["score"] >= b["score"] for a, b in
+              zip(why["recommendations"], why["recommendations"][1:])))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

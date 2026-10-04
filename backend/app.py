@@ -617,6 +617,15 @@ def get_recommendations(
     held = repository.profile_skill_ids(con, profile_id)
     results = recommendation_engine.recommend(con, held, limit, max_job_zone)
     zones = repository.occupation_zones(con)
+    why = {}
+    if results:
+        ids, vectors = recommendation_engine.load_vectors(con)
+        means = recommendation_engine.skill_means(vectors, len(ids))
+        centred = recommendation_engine.centre_occupations(vectors, means)
+        pv = recommendation_engine.centre_profile(ids, held, means)
+        names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+        why = {soc: [names[e] for e in recommendation_engine.reasons(ids, centred[soc], pv, held)]
+               for soc, _, _ in results}
     return {
         "profile_id": profile_id,
         "method": "mean-centred cosine similarity over 35-dimensional "
@@ -625,6 +634,8 @@ def get_recommendations(
         "recommendations": [
             {"soc_code": soc, "title": title, "score": round(score, 3),
              "match": plain.match_level(score), "job_zone": zones.get(soc),
+             # FR-06: the held skills that lifted this job most (recommend.reasons).
+             "because": why.get(soc, []),
              "preparation": plain.preparation(zones.get(soc))}
             for soc, title, score in results
         ],
