@@ -1,6 +1,6 @@
 # Plan: strengthen the existing requirements, add no new ones
 
-*Written 4 October 2026. Status: **approved — building.***
+*Written 4 October 2026. Status: **done 4 October.** A, B and C are built and tested. D was measured and not built (ADR-0013).*
 
 The aim is to make FR-01 to FR-10 easier to defend in the presentation without
 promising anything new. Every change below shows more of what a requirement

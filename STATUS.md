@@ -67,9 +67,9 @@ Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3
 
 1. **Welcome.** Type a first name (Thabo) → *Start my plan*. Say: no email, no password — a plan code instead.
 2. **I left school**, then tick: Operation and Control · Operations Monitoring · Equipment Maintenance · Active Listening · Critical Thinking · Monitoring
-3. *For you* shows operator roles with scores (FR-06). *Search* "electric", tap **Electricians** — the panel shows what the job is and *A day in this job*. **Aim for this job**.
+3. *For you* shows operator roles with scores, and **why** each one: "Because you have: Operation and Control, Equipment Maintenance…" (FR-06). *Search* "electric", tap **Electricians** — the panel shows what the job is and *A day in this job*. **Aim for this job**.
 4. The gap: "You already have **6 of the 34** skills… **2 must-haves**" — Troubleshooting and Repairing.
-5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians. **Save as my plan**.
+5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians. Each step says why it's there ("Closest to you now. Good match with your skills"). **Save as my plan**.
 6. **Home.** Troubleshooting → *Start learning* (nothing changes — learning isn't having), then *I can do this now* → **the unlock card**: 1 of 2, Power-Line Installers now ready, 106 jobs with every must-have (up 4).
 7. **Explore → Search** "conduit installer" — Electricians, *also called Conduit Installer*. Open it: tools of the trade, software, jobs like this. *Save this job*. Save Power-Line Installers and Boilermakers too.
 8. **Explore → Interests.** Answer the twelve; show jobs that fit. Say it's a simplified version of O*NET's profiler.
@@ -82,6 +82,7 @@ Questions to expect, with the honest answers:
 - *"Why no real login?"* Nothing personal is held beyond an optional first name, so a password would protect nothing a code doesn't. The code is a bearer credential and the screen says so (ADR-0008).
 - *"How do you know they can really do it now?"* We don't — progress is self-reported, like the original skill capture (ADR-0005).
 - *"Is the quiz validated?"* No. It's twelve statements of ours against O*NET's real interest profiles, labelled as simplified (ADR-0011).
+- *"Your accuracy only beats the target by 4.7 points. Can you improve it?"* Measured on 4 October: adding O*NET Knowledge and Abilities to the job vectors moves it from 59.7% to 60.5%, which is noise, because users don't record those. It would only help if users did, and that's a new capture step. Assignment 3 suggested otherwise; measuring showed it was wrong (ADR-0013).
 - *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
 
 ## Deferred on purpose

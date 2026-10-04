@@ -50,6 +50,13 @@ pen so nothing gets lost.
   stops someone guessing codes. That's fine on a laptop, but it's needed before
   any public deployment (ADR-0008). (Noticed 2026-09-30.)
 
+- **Capture knowledge and abilities from users, if TR-01 must go higher.**
+  Measured on 4 October (ADR-0013): richer job vectors alone take TR-01 from
+  59.7% to 60.5%, which is noise. With user input the upper bound is 90.3%,
+  but that's inflated by how PT-01 builds its profiles. Doing it needs a new
+  capture screen, a new FR, and a way to ask about 85 items without breaking
+  NFR-02. Possibly a short quiz like the interest one. (Noticed 2026-10-04.)
+
 ---
 
 ## Cleared 2026-09-10

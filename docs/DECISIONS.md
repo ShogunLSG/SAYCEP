@@ -608,3 +608,51 @@ Progress needs a history to read as a story rather than a bar.
 - History starts from this change. Plans saved earlier have no history before
   it, which is stated here rather than back-filled with invented dates.
 
+---
+
+## ADR-0013 — Richer job vectors are not built: they need richer user input
+
+**Date:** 2026-10-04
+**Status:** Accepted
+**Relates to:** TR-01, FR-06, Assignment 3 §5.4, `plans/strengthen-frs.md` item D
+
+### Context
+
+TR-01 passes at 59.7% against a 55% target, a margin of 4.7 points. Assignment
+3 §5.4 named adding O\*NET Knowledge (33) and Abilities (52) to the vectors as
+"the most direct way to raise TR-01". There was a catch: users record only
+skills, so the new dimensions have no user value.
+
+### Measurement
+
+Same 124 profiles, seed and metric as PT-01
+(`backend/tests/experiment_richer_vectors.py`, output in
+`docs/test-results/experiment-richer-vectors-2026-10-04.txt`).
+
+| Variant | Same family in top 5 | Mean share |
+|---|---|---|
+| V0, as shipped: 35 skills | 59.7% | 30.6% |
+| V1, jobs gain 85 knowledge/ability dimensions; user value unknown | 60.5% | 31.8% |
+| V2, upper bound: users also record knowledge and abilities | 90.3% | 57.4% |
+
+### Decision
+
+**Don't build V1.** Its gain is one profile in 124, which is noise, and not
+worth two new tables and a re-measured TR-01.
+
+**V2 isn't built either.** It would need a new capture step, which means a new
+requirement, a longer journey (against NFR-02) and asking a school-leaver to
+rate 85 items. Its 90.3% is also an **upper bound, not an estimate**: PT-01
+builds each test profile from the target job's own data, so giving the
+profile more of that data makes it match its own family almost by
+construction.
+
+### Consequences
+
+- **Assignment 3 §5.4's improvement claim was wrong as stated.** Richer job
+  vectors don't raise TR-01 on their own. They help only if users also record
+  knowledge and abilities. Say so if it comes up in the presentation. Finding
+  this out by measuring is the better answer.
+- The real lever is **richer user input**, recorded in `BACKLOG.md` as future
+  work with its cost.
+
