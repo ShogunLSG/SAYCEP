@@ -14,6 +14,7 @@ import gap
 import pathway
 import recommend
 import plain
+import cvscan
 from config import ESSENTIAL_THRESHOLD
 
 PASS, FAIL = [], []
@@ -124,6 +125,26 @@ def main():
     cols_u = {r[1] for r in old.execute("PRAGMA table_info(users)")}
     check("TC-U09c", "an older database gains display_name and plan_code in place",
           {"display_name", "plan_code"} <= cols_u, str(cols_u))
+
+    print("\nTC-U10  CV scanner: rules, product names, privacy  (ADR-0014)")
+    idx = cvscan.Index(con)
+    ev = cvscan.skill_evidence(idx, "Fixed broken bicycles for neighbours.\nTutored Grade 10 learners.\n"
+                                    "Reading circuit diagrams.")
+    names_found = {idx.skills[e][0] for e in ev}
+    check("TC-U10a", "plain CV lines trigger the expected skills, each quoting its line",
+          {"Repairing", "Instructing", "Reading Comprehension"} <= names_found
+          and all(isinstance(v[0], str) for v in ev.values()), str(sorted(names_found)))
+    check("TC-U10b", "every one of the 35 skills has a rule", len(idx.rules) == 35)
+    sw = cvscan.named(idx.software, "kept records, fitted plug points, used power drills and Microsoft Excel",
+                      common=idx.common)
+    check("TC-U10c", "ordinary words don't match software ('points', 'records', 'power'); Microsoft Excel does",
+          sw == {"Microsoft Excel"}, str(sw))
+    check("TC-U10d", "a one-word product name that is ordinary English needs its vendor (Teams, Windows)",
+          not cvscan.named(idx.software, "I worked in teams and cleaned windows", common=idx.common))
+    import inspect
+    src = inspect.getsource(cvscan)
+    check("TC-U10e", "the scanner never writes to the database (no INSERT/UPDATE/DELETE in cvscan.py)",
+          not any(w in src.upper() for w in ("INSERT ", "UPDATE ", "DELETE ")))
 
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0

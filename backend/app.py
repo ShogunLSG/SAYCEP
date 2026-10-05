@@ -28,6 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from config import ESSENTIAL_THRESHOLD
+import cvscan
 import gap as gap_analyser
 import interests as interest_matcher
 import pathway as pathway_service
@@ -72,6 +73,13 @@ class ProfileIn(BaseModel):
     target_soc_code: str | None = None
     # Optional, and the only personal detail SAYCEP ever holds (ADR-0008).
     display_name: str | None = Field(None, max_length=40)
+
+
+class CvIn(BaseModel):
+    # Never stored or logged (ADR-0014). The cap keeps one request cheap.
+    text: str = Field(..., min_length=20, max_length=15000)
+    soc_code: str | None = None
+    profile_id: str | None = None
 
 
 class NameIn(BaseModel):
@@ -464,6 +472,70 @@ def compare_jobs(profile_id: str, soc: list[str] = Query(..., min_length=2, max_
     return {"profile_id": profile_id, "jobs": jobs, "dataset": repository.get_occupation(con, soc[0])["source_dataset"],
             "shared_must_haves": sorted(({"element_id": e, "name": names[e], "held": e in held}
                                          for e in shared), key=lambda m: m["name"])}
+
+
+# ---------- CV scanner (module 3, ADR-0014) ----------
+
+_cv_index = {"mtime": None, "index": None}
+
+# Filled in from backend/tests/benchmark_cv.py's latest run (ADR-0014).
+BENCHMARK_NOTE = ("Measured on 172 held-out CVs: the goal score tracks human match scores "
+                  "better than naive word overlap. See ADR-0014.")
+
+
+def _cv(con):
+    """The scanner's index, rebuilt only when the database file changes."""
+    from config import DB_PATH
+    mtime = DB_PATH.stat().st_mtime
+    if _cv_index["mtime"] != mtime:
+        _cv_index.update(index=cvscan.Index(con), mtime=mtime)
+    return _cv_index["index"]
+
+
+@app.post("/cv/scan", tags=["cv"])
+def scan_cv(body: CvIn, con=Depends(db)):
+    """Read a pasted CV: suggest skills it shows evidence of, and check it
+    against a goal occupation. **The text is processed and discarded -- never
+    stored.** Suggestions are suggestions: the user confirms each one through
+    the ordinary skill endpoints (FR-02's self-report rule)."""
+    index = _cv(con)
+    held = {}
+    soc = body.soc_code
+    if body.profile_id:
+        profile = _require_profile(con, body.profile_id)
+        held = {r["element_id"]: r["status"] for r in repository.profile_skills(con, body.profile_id)}
+        soc = soc or profile["target_soc_code"]
+    if soc:
+        _require_occupation(con, soc)
+
+    evidence = cvscan.skill_evidence(index, body.text)
+    software = cvscan.named(index.software, body.text, common=index.common)
+    tools = cvscan.named(index.tools, body.text)
+    out = {
+        "suggestions": [{**sg, "status": held.get(sg["element_id"])} for sg in cvscan.suggestions(index, evidence)],
+        "software_named": sorted(software), "tools_named": sorted(tools),
+        "checks": cvscan.checks(body.text),
+        "goal": None,
+        "stored": False,
+    }
+    if soc:
+        occ = repository.get_occupation(con, soc)
+        sc = cvscan.goal_score(index, evidence, software, tools, soc)
+        req = {r["element_id"]: r for r in repository.required_skills(con, soc)}
+        essential = [e for e in sc["top_skills"] if req[e]["importance"] >= ESSENTIAL_THRESHOLD] or sc["top_skills"][:5]
+        mention = [t["example"] for t in repository.occupation_technology(con, soc, limit=12)
+                   if t["example"] not in software][:6]
+        out["goal"] = {
+            "soc_code": soc, "title": occ["title"],
+            "score": sc["value"], "overlap": sc["overlap"], "coverage": sc["coverage"],
+            "named_for_this_job": sc["named"],
+            "key_skills": [{"element_id": e, "name": index.skills[e][0],
+                            "evidence": evidence[e][0] if e in evidence else None,
+                            "held": held.get(e) == "held"} for e in essential],
+            "worth_mentioning": mention,
+            "basis": BENCHMARK_NOTE,
+        }
+    return out
 
 
 # ---------- interests (slice 4, ADR-0011) ----------

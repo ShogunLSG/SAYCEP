@@ -328,6 +328,34 @@ def main():
     check("TC-I17c", "the demo route is unchanged", [st["soc_code"] for st in rw["steps"]] ==
           ["47-2011.00", "49-9051.00", "49-2094.00", "47-2111.00"], str([st["soc_code"] for st in rw["steps"]]))
 
+    print("\nTC-I18  CV scanner endpoint  (ADR-0014)")
+    sample_cv = ("Career objective: become an electrician.\nMatric with Mathematics and Physical Science.\n"
+                 "- Helped install wiring and plug points.\n- Fixed broken bicycles for neighbours.\n"
+                 "Skills: multimeter, soldering irons, Microsoft Excel, working in a team. Phone 072 555 0134")
+    s, before_scan = call("GET", f"/profiles/{pid}")
+    s, cvr = call("POST", "/cv/scan", {"text": sample_cv, "profile_id": pid})
+    sug = {x["name"]: x for x in cvr["suggestions"]}
+    check("TC-I18a", "suggests Repairing and Installation, quoting the lines, and marks skills already held",
+          s == 200 and "Repairing" in sug and "Installation" in sug and "wiring" in sug["Installation"]["evidence"]
+          and sug.get("Coordination", {}).get("status") in (None, "held"), str(sorted(sug)))
+    g = cvr["goal"]
+    check("TC-I18b", "with a profile, the goal check uses the profile's goal (Electricians) and names its evidence",
+          g and g["soc_code"] == "47-2111.00" and "Multimeters" in g["named_for_this_job"]
+          and "Microsoft Excel" in g["named_for_this_job"], str(g and g["named_for_this_job"]))
+    check("TC-I18c", "the response says the CV was not stored", cvr["stored"] is False)
+    s, after_scan = call("GET", f"/profiles/{pid}")
+    s, hist_scan = call("GET", f"/profiles/{pid}/history")
+    check("TC-I18d", "scanning changes nothing on the profile: same skills, same history, nothing added",
+          before_scan == after_scan and not any(e["kind"] == "skill" and e["element_id"] == sug["Repairing"]["element_id"]
+                                                for e in hist_scan["events"]))
+    s, e = call("POST", "/cv/scan", {"text": "too short"})
+    check("TC-I18e", "a too-short CV is rejected with 422", s == 422, str(s))
+    s, e = call("POST", "/cv/scan", {"text": "x" * 15001})
+    check("TC-I18f", "a CV over 15,000 characters is rejected with 422", s == 422, str(s))
+    s, nog = call("POST", "/cv/scan", {"text": sample_cv})
+    check("TC-I18g", "without a profile or job there are suggestions but no goal check",
+          s == 200 and nog["goal"] is None and len(nog["suggestions"]) > 0)
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]
