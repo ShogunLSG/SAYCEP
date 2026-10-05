@@ -144,6 +144,29 @@ Worth more than its "CV scorer" slot suggests. It carries a real `skills`
 vocabulary at volume alongside `degree_names` — the qualification→skills link the
 enrolled-student profile needs.
 
+**Verified 5 October 2026 (downloaded and measured, step 0 of `plans/cv-scorer.md`):**
+
+- **9,544 rows are 341 distinct CVs crossed with 28 job adverts.** The effective
+  sample is 341 CVs, not 9,544.
+- **There is a ground truth:** `matched_score` (0.00–0.97, mean 0.66) for each
+  CV–advert pair. The data card doesn't say how it was produced (it's from a
+  hackathon, Bitfest 2025), but it behaves sensibly. CVs with machine-learning
+  skills average 0.82 for *ML Engineer* and 0.40 for *Civil Engineer*. The
+  advert explains 28% of its variance and the CV 22%; the rest depends on the
+  pairing, which is what a matcher must capture. Naive word overlap reaches
+  only r = 0.16 against it.
+- **Defect:** the CV's `responsibilities` column is identical to the advert's
+  `responsibilities.1` in all 9,544 rows. The CVs' own experience text is
+  missing.
+- **Domain:** tech and office work in South Asia (Python, machine learning,
+  SQL, Excel; adverts for civil, AI and HR roles). It doesn't resemble a South
+  African school-leaver or trades CV.
+- **Vocabulary link to O\*NET:** 50.3% of CV skill mentions match an O\*NET
+  *Technology Skills* example (Python, SQL, Excel), which links them to
+  occupations rather than directly to the 35 skills. 48.4% match nothing
+  ("machine learning", "leadership", "budgets"), and under 2% name an O\*NET
+  skill or knowledge area directly.
+
 ### 4. Resume and Job Description
 
 `resume_dataset_1200.csv`, 507 kB, 14 columns, ~1,200 rows (967 unique names).

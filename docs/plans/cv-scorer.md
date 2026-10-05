@@ -1,7 +1,20 @@
 # Plan: the CV scorer (module 3 of the proposal)
 
-*Written 5 October 2026. Status: **draft — blocked on step 0 (the data check).**
-Nothing is built until step 0 is done and you've read this.*
+*Written 5 October 2026. Status: **step 0 done — waiting for a go/no-go.** Findings
+are in `data-sources.md` §3 and summarised below.*
+
+## Step 0 result (5 October)
+
+**Usable as a benchmark, with real limits.** There's a ground truth
+(`matched_score`), and it's sensible and non-trivial. But there are only 341
+CVs, from tech and office domains unlike SAYCEP's users, the CVs' own
+experience text is lost, and about half of CV skill phrases don't map to O\*NET
+at all. A scorer *can* be measured against it, as TR-01 is. The honest
+expectation is a modest correlation, and it would be a result on this
+benchmark, not a claim about South African CVs.
+
+**A user question the data raises:** the school-leaver profile usually has no
+CV. This module mainly serves the enrolled student.
 
 ## Why now
 
