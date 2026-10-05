@@ -57,6 +57,15 @@ pen so nothing gets lost.
   capture screen, a new FR, and a way to ask about 85 items without breaking
   NFR-02. Possibly a short quiz like the interest one. (Noticed 2026-10-04.)
 
+- **Software Developers and Data Scientists can't be goals.** O\*NET 29.0 has
+  no skill ratings for these newer codes, so they're among the 137 excluded
+  jobs. A school-leaver interested in software is pointed at Computer
+  Programmers or Web Developers instead. Revisit when O\*NET rates them.
+  (Noticed 2026-10-05.)
+- **Measure the CV scanner on trades CVs.** Its tool evidence is built but
+  unmeasured, because the benchmark has no trades CVs. A Kaggle dataset of
+  trades or South African CVs would fix that. (Noticed 2026-10-05.)
+
 ---
 
 ## Cleared 2026-09-10

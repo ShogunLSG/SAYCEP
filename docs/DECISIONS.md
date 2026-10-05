@@ -656,3 +656,86 @@ construction.
 - The real lever is **richer user input**, recorded in `BACKLOG.md` as future
   work with its cost.
 
+---
+
+## ADR-0014 — The CV scanner: rule-based skill suggestions, a measured goal score, nothing stored
+
+**Date:** 2026-10-05
+**Status:** Accepted
+**Relates to:** proposal module 3, `plans/cv-scorer.md`, ADR-0002, ADR-0005, ADR-0008, FR-02
+
+### Context
+
+The core modules had landed, so the proposal's CV scorer was built: paste a
+CV, get skill suggestions and a check against your goal. The Kaggle Resume
+Dataset (`saugataroyarghya/resume-dataset`, CC BY-NC 4.0) was verified first
+(`data-sources.md` §3). It holds 344 CVs crossed with 28 adverts, each pair
+with a human-style `matched_score`. The CVs' own experience text is lost to a
+data defect, and the domain is South Asian tech and office work.
+
+### What was measured
+
+Benchmark: `backend/tests/benchmark_cv.py`, which scores the shipped code.
+CVs are split in half with a fixed seed, settings were chosen on the tuning
+half, and the test half is reported. Transcript:
+`docs/test-results/benchmark-cv-2026-10-05.txt`.
+
+| Held-out test half (172 CVs, 4,750 pairs) | r vs matched_score |
+|---|---|
+| Naive word overlap | 0.163 |
+| **Shipped goal score** | **0.266** (95% CI 0.195–0.333) |
+| Shipped minus naive | +0.023 to +0.178 (bootstrap over CVs) |
+
+**Three free-text designs were tried and rejected.** Each tried to infer
+O\*NET's 35 skills from CV wording:
+
+1. TF-IDF against each skill's O\*NET wording (anchors, linked work
+   activities).
+2. The same, adding 95,742 linked task statements.
+3. The nearest single O\*NET sentence.
+
+All three tracked the benchmark *worse* than naive word overlap. In practice
+they suggested "Writing" for "Fixed broken bicycles". **What carries the
+score is concrete evidence: the software and tools a job uses (as O\*NET lists
+them) that the CV names.**
+
+### Decision
+
+- **Skill suggestions come from explicit trigger words per skill**
+  (`cvscan.SKILL_RULES`), written by us and kept conservative. Each
+  suggestion quotes the CV line that triggered it, and **the user confirms
+  every one** (FR-02's self-report rule). No accuracy is claimed for the
+  suggestions.
+- **The goal score** is the software and tools the job uses that the CV
+  names, plus 0.3 × the share of the job's eight most important skills with
+  rule evidence. The screen shows the parts, not a single number. The number
+  is visible in presenter mode.
+- **Ordinary English is not software.** A one-word product name ("Calyx
+  Point" → "point") only counts if the word appears in fewer than 3 O\*NET
+  task statements. Real product names appear in none.
+- **The CV text is never stored.** `cvscan.py` has no write statements
+  (TC-U10e), scanning changes nothing on the profile (TC-I18d), and the
+  response says `stored: false`. ADR-0008's privacy argument holds.
+- The resume dataset is **a benchmark only**. It is never loaded into
+  `saycep.db`.
+
+### Honest limits
+
+- **The test half was viewed more than once.** It was viewed once in the
+  experiment and again for each shipped revision (three in total). No setting
+  was tuned on it, but the reader should know.
+- **r = 0.27 is modest**, and it's a result on South Asian tech and office
+  CVs, not a claim about South African school-leavers. Trades evidence (tools
+  such as multimeters) is included but **isn't measured**, because the
+  benchmark has no trades CVs.
+- **O\*NET 29.0 has no skill ratings for "Software Developers" or "Data
+  Scientists"**, which are newer job codes. They're among the 137 jobs
+  SAYCEP excludes, so neither can be a goal.
+
+### Consequences
+
+- New code: `cvscan.py`, `POST /cv/scan`, the CV page.
+- **No schema change.** It uses existing tables.
+- New requirements are implied (CV import, CV check). As before, drafting
+  them is the project owner's job.
+

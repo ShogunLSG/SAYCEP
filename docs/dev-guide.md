@@ -315,6 +315,17 @@ In short:
 - The frontend split into plain scripts that share globals. See
   `frontend/README.md`.
 
+### 5 October: the CV scanner (module 3)
+
+See ADR-0014, which is the important one to read. In short, the obvious design
+of TF-IDF from CV text to O\*NET's 35 skills was built three ways, measured,
+and lost to plain word overlap each time. The shipped scanner suggests skills
+from explicit trigger words (quoted back to the user for confirmation) and
+scores a CV against a goal by the software and tools it names. That approach
+is measured at r = 0.27 against 0.16 on held-out CVs. The CV is never stored.
+The benchmark (`backend/tests/benchmark_cv.py`) scores the shipped code, so
+rerun it after changing `cvscan.py`.
+
 ---
 
 ## 5. Where things are

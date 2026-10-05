@@ -1,7 +1,6 @@
 # Plan: the CV scorer (module 3 of the proposal)
 
-*Written 5 October 2026. Status: **step 0 done — waiting for a go/no-go.** Findings
-are in `data-sources.md` §3 and summarised below.*
+*Written 5 October 2026. Status: **built 5 October** (ADR-0014). The design changed from TF-IDF to rule-based suggestions after measurement; see the ADR.*
 
 ## Step 0 result (5 October)
 
