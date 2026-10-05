@@ -48,6 +48,60 @@ conversation. That should be said plainly.
   outside South Africa, and the screen must say so.
 - Needs Kaggle access again, through the environment variable, not the chat.
 
+### Step 0 result (5 October) — the data links, but it isn't "opportunities"
+
+Script: `backend/tests/check_job_postings.py`. Output:
+`test-results/job-postings-step0-2026-10-05.txt`.
+
+**Rejected: `samanthalucywu/2023-2025-mba-jobs-data-south-africa`.** It's the
+only South African candidate, and it's **synthetic**:
+- 3,817 rows sampled, with only 40 titles, 10 summaries and **4 description
+  templates**;
+- invented company names, with every row claiming Adzuna as its source;
+- MBA roles only.
+
+Loading it would present made-up adverts as real ones.
+
+**Candidate: `arshkon/linkedin-job-postings`** (CC BY-SA 4.0, 123,849 real
+LinkedIn adverts).
+- **US only, listed 24 March – 20 April 2024.** Every advert has expired.
+- Its "skills" are LinkedIn's 35 broad job functions (Sales, IT…), which
+  don't map onto O\*NET's 35 skills. The only possible link is **advert
+  title → O\*NET title or alternate title**.
+- Exact title match links 41.8% of adverts, but generic titles go wrong at
+  volume:
+  - "director" → Producers and Directors (824);
+  - "project manager" → Construction Managers (837);
+  - "sales associate" → Online Merchants (530).
+- **Strict link** (one candidate occupation only, generic titles dropped):
+  - 26,472 adverts (21.4%);
+  - **438 of 879 occupations have 5 or more adverts**, and 219 have 20 or
+    more;
+  - by preparation level: Job Zone 2, 105 of 285; Zone 3, 116 of 209;
+    Zone 1, only 8 of 31;
+  - Electricians 84, truck drivers 91, customer service 89, restaurant
+    cooks 11;
+  - 7,542 strictly linked adverts are entry level or internships.
+- **Precision, my hand check of 50 random strict links:** 44 clearly right,
+  4 debatable (for example, HR Coordinator → HR Managers), 2 wrong (Shuttle
+  Driver → underground mining loaders; Solution Architect → QA testers).
+  This is one person's judgement, not an independent check.
+
+**Verdict.** The linking problem is solvable: about 88% precision on half
+the occupations. But the data can't do what "opportunity matching"
+promises. These are expired American adverts, so there's nothing a South
+African user can apply for. What it honestly supports is **"What employers
+ask for"**: real advert examples for the goal job, how many there were, the
+share open to entry-level applicants, and the requirements they repeat. It
+would be labelled as US, April 2024.
+
+**That changes what module 4 promises, so it's your decision.** Also:
+- **CC BY-SA ShareAlike** applies to anything derived from the adverts
+  that's redistributed. That's fine for coursework, but it needs
+  attribution.
+- Advert text can name recruiters, so show titles, levels and extracted
+  requirement phrases, not full adverts.
+
 ## 4. Hosting — last
 
 As discussed: split user data from reference data, load the data on deploy,
