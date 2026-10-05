@@ -23,7 +23,7 @@ function StatusActions({ status, busy, onSet }) {
     </div>`;
 }
 
-function SkillsTab({ profileId, rev, onOpenSkill }) {
+function SkillsTab({ profileId, rev, onOpenSkill, onOpenCv }) {
   const all = useFetch("/skills");
   const prof = useFetch(`/profiles/${profileId}`, rev);
   const [show, setShow] = useState("all");
@@ -37,6 +37,7 @@ function SkillsTab({ profileId, rev, onOpenSkill }) {
   return html`
     <div class="pane tabpane">
       <p class="sub tight">All 35 skills O*NET measures. Tap one to see what it opens up.</p>
+      ${onOpenCv && html`<button class="btn full cvbtn" onClick=${onOpenCv}>Find skills in my CV</button>`}
       <div class="tabs" role="tablist">
         ${FILTERS.map(([k, label]) => html`
           <button key=${k} role="tab" aria-selected=${show === k} class=${"tab" + (show === k ? " on" : "")}

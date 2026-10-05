@@ -165,6 +165,7 @@ function App() {
     const openJob = (o) => push({ kind: "job", soc_code: o.soc_code, title: o.title });
     const openSkill = (k) => push({ kind: "skill", element_id: k.element_id });
     const openCompare = (socs) => push({ kind: "compare", socs });
+    const openCv = () => push({ kind: "cv" });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
     // The tab stays mounted under any pushed page, so coming back finds the
     // search, filter and scroll position exactly as they were.
@@ -175,6 +176,8 @@ function App() {
                    onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
     } else if (page && page.kind === "compare") {
       pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
+    } else if (page && page.kind === "cv") {
+      pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} />`;
     } else if (page && page.kind === "skill") {
       pageEl = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
                    rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;
@@ -185,7 +188,7 @@ function App() {
                    onPrint=${() => setPrinting(true)} onJourney=${enterJourney}
                    onSignOut=${signOut} onStartOver=${startOver} />`;
     } else if (tab === "skills") {
-      tabEl = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} />`;
+      tabEl = html`<${SkillsTab} profileId=${profile.id} rev=${skillRev} onOpenSkill=${openSkill} onOpenCv=${openCv} />`;
     } else if (tab === "explore") {
       tabEl = html`<div class="pane tabpane"><${StepExplore} profileId=${profile.id} type=${type} target=${target}
                    onOpen=${openJob}
@@ -198,6 +201,7 @@ function App() {
                    onChanged=${() => setSkillRev((r) => r + 1)}>
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
                  <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
+                 <${CvCard} onOpen=${openCv} />
                <//>`;
     }
     const body = html`<div class="tabhost" aria-hidden=${!!page}>${tabEl}</div>${pageEl}`;
