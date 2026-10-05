@@ -166,6 +166,7 @@ function App() {
     const openSkill = (k) => push({ kind: "skill", element_id: k.element_id });
     const openCompare = (socs) => push({ kind: "compare", socs });
     const openCv = () => push({ kind: "cv" });
+    const openPractice = () => push({ kind: "practice" });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
     // The tab stays mounted under any pushed page, so coming back finds the
     // search, filter and scroll position exactly as they were.
@@ -176,6 +177,8 @@ function App() {
                    onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
     } else if (page && page.kind === "compare") {
       pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
+    } else if (page && page.kind === "practice") {
+      pageEl = html`<${PracticePage} profileId=${profile.id} />`;
     } else if (page && page.kind === "cv") {
       pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} />`;
     } else if (page && page.kind === "skill") {
@@ -202,6 +205,7 @@ function App() {
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
                  <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
                  <${CvCard} onOpen=${openCv} />
+                 <${PracticeCard} onOpen=${openPractice} />
                <//>`;
     }
     const body = html`<div class="tabhost" aria-hidden=${!!page}>${tabEl}</div>${pageEl}`;

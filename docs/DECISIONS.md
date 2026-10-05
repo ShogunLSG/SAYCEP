@@ -739,3 +739,46 @@ them) that the CV names.**
 - New requirements are implied (CV import, CV check). As before, drafting
   them is the project owner's job.
 
+---
+
+## ADR-0015 — Interview practice with rule-based feedback, not a chatbot
+
+**Date:** 2026-10-05
+**Status:** Accepted
+**Relates to:** proposal module 5, `plans/next-three.md`, CLAUDE.md (no LLM), ADR-0014
+
+### Context
+
+The proposal specifies an "interview chatbot". CLAUDE.md rules out an LLM in
+the build. A real conversation isn't possible without one, but useful
+practice is.
+
+### Decision
+
+- **Questions are built from the goal job's O\*NET data:**
+  - an opener;
+  - one behavioural question per must-have skill (or the top three where a
+    job has none), from 35 templates in our wording, written so that school,
+    home, church, sport and piece work all count;
+  - one question quoting the job's most important task.
+- **Feedback is a checklist with a tip for each miss, not a score.** It
+  checks five things: the skill asked about is shown (the CV scanner's rules,
+  plus a few spoken-answer phrasings kept in `interview.py` so the measured
+  CV rules don't change); situation → action → result; the speaker's own
+  part ("I", not only "we"); a specific detail; and a length of 40–250
+  words.
+- **Answers are never stored**, the same as CVs (ADR-0014).
+- **No accuracy is claimed.** There's no ground truth for answer quality.
+  The rules are unit-tested on worked examples: a full answer meets 7 of 7;
+  "I need a job" isn't counted as an action; a "we"-only story is flagged
+  (TC-U11).
+
+### Consequences
+
+- Four of the proposal's five modules are now built. Opportunity matching
+  remains.
+- It must be presented as **practice with guidance**, never as an AI
+  interviewer.
+- A new requirement is implied (interview practice). Drafting it is the
+  project owner's job.
+

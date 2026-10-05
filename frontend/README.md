@@ -27,6 +27,7 @@ Plain scripts that share globals, loaded in this order by `index.html`:
 | `history.js` | Progress history (ADR-0012) |
 | `me.js` | Me tab and the printable plan |
 | `cv.js` | The CV check page and its Home card (ADR-0014) |
+| `practice.js` | Interview practice page and its Home card (ADR-0015) |
 | `main.js` | `App`: which screen shows, the tab bar, the page stack. Loaded last; mounts the app |
 | `styles.css` | The whole visual system: tokens at the top, one section per part |
 

@@ -76,8 +76,9 @@ Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3
 9. **Skills → Repairing → I can already** → the goal is complete: 2 of 2, 131 jobs.
 10. **Home → Saved jobs →** tick three → **Compare**. Then **Your progress**: 0 → 0 → 1 → 2 of 2.
 11. **Home → Check my CV → Use an example CV → Check my CV.** Skills it shows, each quoting its line. *Add* Repairing → the unlock card. Then *How it reads for Electricians*: Multimeters and Excel named, Troubleshooting not shown yet. Say: "never saved".
-12. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
-13. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
+12. **Home → Practise for an interview.** Question 2 (Troubleshooting): type "I fixed it." → 2 of 7 with tips; paste a full story → 7 of 7. Say: practice with guidance, not a chatbot, and nothing is saved.
+13. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
+14. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
 
 Questions to expect, with the honest answers:
 - *"Why no real login?"* Nothing personal is held beyond an optional first name, so a password would protect nothing a code doesn't. The code is a bearer credential and the screen says so (ADR-0008).
@@ -85,6 +86,7 @@ Questions to expect, with the honest answers:
 - *"Is the quiz validated?"* No. It's twelve statements of ours against O*NET's real interest profiles, labelled as simplified (ADR-0011).
 - *"Your accuracy only beats the target by 4.7 points. Can you improve it?"* Measured on 4 October: adding O*NET Knowledge and Abilities to the job vectors moves it from 59.7% to 60.5%, which is noise, because users don't record those. It would only help if users did, and that's a new capture step. Assignment 3 suggested otherwise; measuring showed it was wrong (ADR-0013).
 - *"How good is the CV scanner?"* On 172 held-out CVs from a Kaggle benchmark, its goal score tracks human match scores at r = 0.27, against 0.16 for word matching. That's modest, and it's from tech and office CVs, not South African ones. The skill suggestions are rules we wrote, quoted back for the user to confirm, because three smarter text-matching designs did worse than plain word matching (ADR-0014).
+- *"Your proposal said interview chatbot. Where is it?"* A chatbot needs a language model, and the project rules out an LLM, so it's interview practice instead: questions from the job's real skills and tasks, and a checklist on each answer. Four of the five modules are built (ADR-0015).
 - *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
 
 ## Deferred on purpose

@@ -326,6 +326,14 @@ is measured at r = 0.27 against 0.16 on held-out CVs. The CV is never stored.
 The benchmark (`backend/tests/benchmark_cv.py`) scores the shipped code, so
 rerun it after changing `cvscan.py`.
 
+### 5 October: interview practice (module 5)
+
+ADR-0015. The proposal's "chatbot" became practice with rule-based feedback,
+because no LLM is allowed. Questions come from the goal's must-have skills and
+its top task. Feedback is a checklist: skill shown, situation → action →
+result, your own part, a specific detail, length. Nothing is stored and no
+accuracy is claimed.
+
 ---
 
 ## 5. Where things are
