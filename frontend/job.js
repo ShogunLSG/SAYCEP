@@ -5,7 +5,7 @@
  * tools added (ADR-0009). Like everything else, it only displays the API.
  */
 
-function JobDetail({ data, full, onOpenJob }) {
+function JobDetail({ data, full, onOpenJob, profileId, focus, onOpenSkill }) {
   const [all, setAll] = useState(false);
   const [allTasks, setAllTasks] = useState(false);
   const [allTools, setAllTools] = useState(false);
@@ -46,6 +46,8 @@ function JobDetail({ data, full, onOpenJob }) {
     ${rest.length > 6 && html`<button class="more" onClick=${() => setAll(!all)}>
       ${all ? "Show fewer" : `Show all ${rest.length}`}</button>`}
 
+    ${full && html`<${EmployersAsk} soc=${data.soc_code} profileId=${profileId} focus=${focus} onOpenSkill=${onOpenSkill} />`}
+
     ${full && data.tool_groups.length > 0 && html`
       <h4 class="sect">Tools of the trade</h4>
       <div class="tools">
@@ -80,7 +82,7 @@ function JobDetail({ data, full, onOpenJob }) {
       html`<p class="prov tight">Tasks dated ${data.provenance.task_dates.join(", ")}</p>`}`;
 }
 
-function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, onSavedChange }) {
+function JobPage({ soc, profileId, goalSoc, focus, onOpenJob, onOpenSkill, onMakeGoal, onSavedChange }) {
   const { data, error, loading } = useFetch(
     `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
   const [busy, setBusy] = useState(false);
@@ -100,7 +102,8 @@ function JobPage({ soc, profileId, goalSoc, onOpenJob, onMakeGoal, onSavedChange
     <div class="page">
       <${Status} loading=${loading} error=${error}>
         ${data && html`
-          <div class="page-body"><${JobDetail} data=${data} full onOpenJob=${onOpenJob} /></div>
+          <div class="page-body"><${JobDetail} data=${data} full onOpenJob=${onOpenJob}
+                                                   profileId=${profileId} focus=${focus} onOpenSkill=${onOpenSkill} /></div>
           <div class="page-foot">
             <button class=${"btn full" + (isSaved ? " ok" : "")} aria-pressed=${!!isSaved} onClick=${toggleSave}>
               ${isSaved ? html`${Icon.check} Saved` : "Save this job"}</button>

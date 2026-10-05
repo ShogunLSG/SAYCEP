@@ -16,6 +16,7 @@ import recommend
 import plain
 import cvscan
 import interview
+import adverts
 from config import ESSENTIAL_THRESHOLD
 
 PASS, FAIL = [], []
@@ -164,6 +165,31 @@ def main():
           not next(i for i in we_only["items"] if i["key"] == "ownership")["ok"])
     check("TC-U11d", "every one of the 35 skills has a practice question",
           set(interview.SKILL_QUESTIONS) == {n for n, _ in idx.skills.values()})
+
+    print("\nTC-U12  Advert linking and requirement rules  (ADR-0017)")
+    lookup = adverts.build_lookup(con)
+    check("TC-U12a", "a plain trade title links to its one occupation, seniority and location stripped",
+          adverts.link("Senior Maintenance Electrician - Night Shift, Dallas", lookup) == "47-2111.00",
+          str(adverts.link("Senior Maintenance Electrician - Night Shift, Dallas", lookup)))
+    check("TC-U12b", "generic titles are dropped, not guessed (Director, Project Manager, Sales Associate)",
+          all(adverts.link(t, lookup) is None for t in ("Director", "Project Manager", "Sales Associate")))
+    amb = next(k for k, v in lookup.items() if len(v) > 1 and k not in adverts.GENERIC)
+    check("TC-U12c", "a title matching several occupations is dropped", adverts.link(amb, lookup) is None, amb)
+    req = adverts.requirements("High school diploma or GED required. Valid driver's license. "
+                               "Must be able to lift up to 50 lbs. No experience necessary - we will train!")
+    check("TC-U12d", "requirement rules find school, driver's licence, lifting and training",
+          req == {"school", "driver", "lifting", "train"}, str(req))
+    check("TC-U12e", "'certified as a Great Place to Work' and a CDL data link are not requirements",
+          not adverts.requirements("We were certified as a Great Place to Work. Tactical data links (Link-16, CDL)."))
+    check("TC-U12f", "years asked: run-together text, ranges, 'yrs', and the lowest figure wins",
+          [adverts.years_asked(t) for t in ("preferred1-3 years of experience", "3-5 yrs. experience",
+           "5+ years of experience; 2 years' experience with forklifts", "founded 100 years ago")] == [1, 3, 2, None])
+    tbl = adverts.aliases({"Microsoft Excel", "Timpani Chat"}, {"Canes", "Multimeters"})
+    found = adverts.named_in(tbl, "You can chat to us. Must use Excel and multimeters.", idx.common)
+    check("TC-U12g", "named tools: vendor dropped only for known vendors; 'can' is not Canes",
+          found == {"Microsoft Excel", "Multimeters"}, str(found))
+    check("TC-U12h", "shares read as words: 7 in 10, almost all, a few",
+          [adverts.share_words(n, 84) for n in (62, 84, 3)] == ["7 in 10", "almost all", "a few"])
 
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0

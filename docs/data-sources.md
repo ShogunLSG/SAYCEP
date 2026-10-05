@@ -203,6 +203,33 @@ a clean example of why the verification step exists.
 Requirements that promise something the data can't deliver are the ones that fall
 apart under questioning. Two of these would have done exactly that.
 
+## Job adverts for "What employers ask for" (5 October 2026, ADR-0017)
+
+Searched again for module 4. Full results are in
+`test-results/job-postings-step0-2026-10-05.txt` and
+`test-results/adverts-2026-10-05.txt`.
+
+- **`samanthalucywu/2023-2025-mba-jobs-data-south-africa`, rejected as
+  synthetic.**
+  - It's 786 MB, MIT-licensed and published July 2026.
+  - 3,817 sampled rows have only 40 titles, 10 summaries and 4 description
+    templates.
+  - The company names are invented, and every row claims Adzuna as its
+    source.
+  - It covers MBA roles only.
+  - It's the second Kaggle "South Africa jobs" set to fail verification.
+- **`arshkon/linkedin-job-postings`, used.**
+  - CC BY-SA 4.0, 123,849 real LinkedIn adverts, US only, listed 24 March –
+    20 April 2024.
+  - It's linked to O\*NET by **title only**: one candidate occupation, with
+    generic titles dropped. That links 21.4% of adverts, and 438 of 879
+    occupations have 5 or more adverts. 44 of 50 links were clearly right on
+    a hand check.
+  - Only counts are stored, never advert text.
+  - **ShareAlike:** anything derived from it that's redistributed carries the
+    same licence. For coursework that means attribution, which the screen
+    gives.
+
 ## Background statistics (proposal section 2.1 only)
 
 Cite these in the written background. Do not load them into the system.

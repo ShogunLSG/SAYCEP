@@ -102,6 +102,8 @@ would be labelled as US, April 2024.
 - Advert text can name recruiters, so show titles, levels and extracted
   requirement phrases, not full adverts.
 
+*Decision 5 October: build "What employers ask for". Built (ADR-0017).*
+
 ## 4. Hosting — last
 
 As discussed: split user data from reference data, load the data on deploy,

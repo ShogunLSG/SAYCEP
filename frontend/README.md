@@ -28,6 +28,7 @@ Plain scripts that share globals, loaded in this order by `index.html`:
 | `me.js` | Me tab and the printable plan |
 | `cv.js` | The CV check page and its Home card (ADR-0014) |
 | `practice.js` | Interview practice page and its Home card (ADR-0015) |
+| `employers.js` | What employers ask for: the job-page section and its Home card (ADR-0017) |
 | `main.js` | `App`: which screen shows, the tab bar, the page stack. Loaded last; mounts the app |
 | `styles.css` | The whole visual system: tokens at the top, one section per part |
 

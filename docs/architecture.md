@@ -42,6 +42,15 @@ occupation_alt_titles (soc_code, title, short_title)          -- ADR-0009
 occupation_technology (soc_code, example, category, hot, in_demand) -- ADR-0009
 occupation_tools    (soc_code, example, category)             -- ADR-0009
 
+-- "What employers ask for" (ADR-0017), from Kaggle LinkedIn job postings.
+-- Counts only: no advert text, companies or links are stored.
+advert_summary      (soc_code PK, adverts, entry_level, years_n, years_median,
+                     listed_from, listed_to, source_dataset)
+advert_counts       (soc_code, kind, item, n, PK(soc_code, kind, item))
+                     -- kind: 'skill' | 'tool' | 'software' | 'req'
+advert_titles       (soc_code, title, n)       -- normalised advert titles
+advert_baseline     (kind, item, n)            -- the same counts over all linked adverts
+
 users               (profile_id PK, profile_type, target_soc_code, created_at,
                      display_name, plan_code UNIQUE)   -- ADR-0008
 user_skills         (profile_id, element_id, status, updated_at,
@@ -82,12 +91,12 @@ those dates genuinely span 2010 to 2024 (checked 4 October; an earlier version o
 1. **Career Pathway Builder** (central) — the declared hub; ties profile, skills and target into an ordered path.
 2. **Skills gap analyser** — compares captured skills against the target occupation's required set.
 
-### Designed, not built
-3. **CV builder / scorer** — stretch goal if the core lands early; demos well but CV parsing is a time sink.
-4. **Opportunity matching engine** — no longer blocked, but dead as designed: the SA job postings dataset was verified and is not South African (see `data-sources.md`). Specify it; there is no Kaggle data behind it.
-5. **Interview prep chatbot** — cheap to build with an LLM but shallow under questioning; low priority.
+### Built once the core landed (5 October)
+3. **CV scanner** (ADR-0014). It's rule-based skill suggestions plus a goal score measured on a Kaggle CV benchmark. The CV is never stored.
+4. **What employers ask for** (ADR-0017). This stands in for *opportunity matching*: the only real advert data on Kaggle is American and expired (March–April 2024), so the module summarises what employers asked for, not jobs to apply to.
+5. **Interview practice** (ADR-0015). Rule-based feedback, not a chatbot, because there's no LLM in the build.
 
-Specify all five fully in the proposal. Build two properly. Say clearly in the presentation which is which — claiming more than is built is the fastest way to lose the room.
+*As first planned (September):* build two, specify three. Modules 3–5 were added after the core was finished, each in a reduced form that's stated plainly. Say clearly in the presentation what each one is and isn't. Claiming more than is built is the fastest way to lose the room.
 
 ## Decisions still open
 

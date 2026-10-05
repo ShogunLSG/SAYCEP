@@ -161,7 +161,8 @@ function App() {
   const push = (page) => {
     openers.current.push(document.activeElement);
     setStack((s) => [...s, page]);
-    setTimeout(() => focusWhenReady(".page .sheet-title", ".top .back"), 60);
+    // A page opened at a section (page.focus) focuses that section itself.
+    if (!page.focus) setTimeout(() => focusWhenReady(".page .sheet-title", ".top .back"), 60);
   };
   const pop = () => {
     const opener = openers.current.pop();
@@ -194,7 +195,8 @@ function App() {
     let pageEl = null;
     if (page && page.kind === "job") {
       pageEl = html`<${JobPage} key=${page.soc_code} soc=${page.soc_code} profileId=${profile.id}
-                   goalSoc=${target && target.soc_code} onOpenJob=${openJob} onMakeGoal=${makeGoal}
+                   goalSoc=${target && target.soc_code} focus=${page.focus === "employers"}
+                   onOpenJob=${openJob} onOpenSkill=${openSkill} onMakeGoal=${makeGoal}
                    onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
     } else if (page && page.kind === "compare") {
       pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
@@ -226,6 +228,8 @@ function App() {
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
                  <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
                  <${CvCard} onOpen=${openCv} />
+                 <${EmployersCard} profileId=${profile.id} goal=${target}
+                   onOpen=${() => push({ kind: "job", soc_code: target.soc_code, title: target.title, focus: "employers" })} />
                  <${PracticeCard} onOpen=${openPractice} />
                <//>`;
     }

@@ -850,3 +850,83 @@ walk failed every focus check it could run.
   presentation.
 - Any new screen should be added to both scripts. A colour that isn't a token
   is how this regresses.
+
+## ADR-0017 — Module 4 becomes "What employers ask for": real adverts, summarised, never offered as openings
+
+**Date:** 2026-10-05
+**Status:** Accepted. The project owner chose this over leaving module 4
+unbuilt.
+**Relates to:** proposal module 4 (opportunity matching), ADR-0002 (Kaggle
+only), ADR-0014, `plans/next-three.md` §3, `plans/employers-ask-for.md`
+
+### Context
+
+Opportunity matching needs live adverts that a South African user can apply
+to. Step 0 found none on Kaggle:
+- The only South African dataset is synthetic (4 description templates).
+- The best real one is 123,849 LinkedIn adverts from the **US, March–April
+  2024**, all closed.
+
+Its "skills" are LinkedIn job functions, so the only link to O\*NET is the
+advert title.
+
+### Decision
+
+- **Summarise, don't match.** For each job, the screen shows:
+  - how many adverts there were;
+  - how many were open to beginners;
+  - the requirements they mention (school, degree, trade licence, driver's
+    licence, training given, lifting, years of experience);
+  - the job's own O\*NET tools and software they name;
+  - example advert titles;
+  - the skills they mention more than adverts in general.
+
+  It always says **United States, March–April 2024, closed**.
+- **Strict title linking.** A link needs one candidate occupation, with
+  generic titles ("director", "project manager") dropped. 26,472 adverts are
+  linked (21.4%), and 438 of 879 jobs have 5 or more. On a hand check, 44 of
+  50 links were clearly right.
+- **Below 5 adverts, the screen says there are too few** rather than show
+  noise.
+- **Skills are a weak signal, and the screen frames them that way.** A skill
+  is shown only if 25% or more of the adverts mention it and it's 1.5 times
+  more common than in adverts generally. Against O\*NET's importance ranking
+  for the same job, the median Spearman is +0.23, against +0.09 for another
+  job; the right job wins in 179 of 219 occupations. So these are "words these
+  adverts use more than most", and O\*NET's ratings stay the guide to what
+  the job needs.
+- **Requirement rules are ours and hand-checked**, 11–12 of 12 per rule.
+  The false matches found were fixed: "certified as a Great Place to Work"
+  and "CDL" as a military data link.
+- **Software and tools use stricter matching than the CV scanner:**
+  - only the job's own list;
+  - one-word names need 4 or more letters;
+  - the vendor can be dropped only for known vendors.
+
+  This found a scanner bug, now logged in `BACKLOG.md`.
+- **Only counts and normalised titles are stored.** Never advert text,
+  companies or links, partly because advert text can name recruiters.
+- **The two-minute advert pass is cached** beside the data, fingerprinted on
+  every input (the advert file, the O\*NET files it links through, the rule
+  code). An O\*NET rebuild stays at about 2.5 s, inside NFR-04, and only a
+  changed input triggers recomputing.
+- **Where it appears:**
+  - a section on the job page;
+  - a card on Home for the goal.
+
+  It isn't in the journey's quick panel, so NFR-02's five screens are
+  unchanged.
+
+### Consequences
+
+- **All five proposal modules are now built, three of them in a reduced
+  form** (CV scanner, this module, interview practice). Each is stated
+  plainly.
+- **The "real South African jobs" question gets a better answer than before:**
+  "We looked twice, and both 'South African' sets on Kaggle failed
+  verification. Here's what real adverts ask for, labelled as American."
+- **New requirements are implied.** Drafting them is the project owner's
+  job.
+- **The advert file isn't in the repo:** it's 517 MB and gitignored. Without
+  it, the section says the data isn't loaded. Hosting must fetch it, or ship
+  the 717 KB cache.

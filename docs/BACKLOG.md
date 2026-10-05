@@ -65,6 +65,13 @@ pen so nothing gets lost.
 - **Measure the CV scanner on trades CVs.** Its tool evidence is built but
   unmeasured, because the benchmark has no trades CVs. A Kaggle dataset of
   trades or South African CVs would fix that. (Noticed 2026-10-05.)
+- **CV scanner bug: "can" counts as the tool "Canes".** `cvscan._words` folds
+  plurals, so the O\*NET tool "Canes" becomes the one-word alias "can", and
+  `named()` only rejects words under 3 letters. Any CV saying "I can…" names
+  Canes, which inflates the goal score a little for jobs that list it (nursing
+  and care). Fix: require 4+ letters for a one-word tool match, as
+  `adverts.named_in` already does. Then rerun `benchmark_cv.py`, since the
+  measured r may move. (Found 2026-10-05 while building ADR-0017.)
 
 ---
 

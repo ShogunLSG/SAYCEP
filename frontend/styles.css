@@ -544,3 +544,14 @@ form.card .btn{margin-top:-4px}
 .fbk .tip{font-size:12px; color:var(--ink-2)}
 .fbk li{align-items:flex-start}
 .fbk .mk{margin-top:2px}
+
+/* ---------- what employers ask for (ADR-0017) ---------- */
+.emp .sub-h{font-size:12.5px; font-weight:600; color:var(--ink-2); margin:14px 0 6px}
+.emp-facts{display:flex; flex-direction:column; gap:4px; background:var(--sunk); border-radius:10px; padding:10px 12px; margin:6px 0 4px}
+.emp-facts p{margin:0; font-size:13.5px}
+.emp-list{list-style:none; margin:0; padding:0}
+.emp-list li{display:flex; gap:10px; align-items:baseline; padding:6px 0; border-top:1px solid var(--line-2); font-size:13.5px}
+.emp-list li:first-child{border-top:0}
+.emp-list .share{flex:none; width:68px; font-weight:600; color:var(--accent); font-size:12.5px}
+.tag.held{background:var(--ok-soft); color:var(--ok)}
+.tag.learning{background:var(--accent-soft); color:var(--accent)}

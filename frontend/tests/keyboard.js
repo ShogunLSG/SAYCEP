@@ -83,6 +83,11 @@ const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++
   await tabTo((x) => x.tag === 'TEXTAREA', 'answer box'); await p.keyboard.type('Last year at church I organised five volunteers. In the end we finished on time.');
   await tabTo(has('Get feedback'), 'Get feedback'); await p.keyboard.press('Enter'); await p.waitForSelector('.fbk');
   ok(await p.evaluate(() => !!document.querySelector('[aria-live=polite] .fbk')), 'practice: feedback appears inside a polite live region');
+  // what employers ask for: Home card opens the job page at the section
+  await tabTo((x) => x.text === 'Back', 'Back', true); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+  await tabTo(has('See what employers ask for'), 'See what employers ask for'); await p.keyboard.press('Enter');
+  await p.waitForSelector('.emp'); await p.waitForTimeout(500);
+  a = await act(); ok(a.text.startsWith('What employers ask for'), `employers: focus on the section heading ("${a.text.slice(0, 30)}")`);
   console.log(errs.length ? 'PAGE ERRORS: ' + errs.join(' | ') : 'no page errors');
   console.log(fails ? `${fails} FAILED` : 'ALL PASSED');
   process.exitCode = fails || errs.length ? 1 : 0;

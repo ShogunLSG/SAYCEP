@@ -319,6 +319,15 @@ def main():
           f"(no skills, job zone or related occupations).")
     print(f"  {len(not_relevant)} skill ratings excluded as not relevant "
           f"to their occupation.")
+
+    # "What employers ask for" (ADR-0017) is optional: without the advert
+    # file the job page says the advert data isn't loaded.
+    import load_adverts
+    if load_adverts.POSTINGS.exists():
+        print()
+        load_adverts.load(con)
+    else:
+        print(f"\n  No {load_adverts.POSTINGS.relative_to(ROOT.parent)}: skipping adverts.")
     con.close()
 
 

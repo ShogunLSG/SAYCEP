@@ -30,6 +30,7 @@ saycep/
 ├── STATUS.md       # current state, next actions
 ├── backend/
 │   ├── load_onet.py            # builds saycep.db from the O*NET files
+│   ├── load_adverts.py         # adds advert counts (Kaggle LinkedIn postings), cached
 │   ├── app.py                  # the API — eight endpoints, and serves the app
 │   ├── gap.py, pathway.py      # the two built modules
 │   └── recommend.py            # the emerging technology

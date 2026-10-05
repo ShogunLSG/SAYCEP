@@ -76,9 +76,10 @@ Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3
 9. **Skills → Repairing → I can already** → the goal is complete: 2 of 2, 131 jobs.
 10. **Home → Saved jobs →** tick three → **Compare**. Then **Your progress**: 0 → 0 → 1 → 2 of 2.
 11. **Home → Check my CV → Use an example CV → Check my CV.** Skills it shows, each quoting its line. *Add* Repairing → the unlock card. Then *How it reads for Electricians*: Multimeters and Excel named, Troubleshooting not shown yet. Say: "never saved".
-12. **Home → Practise for an interview.** Question 2 (Troubleshooting): type "I fixed it." → 2 of 7 with tips; paste a full story → 7 of 7. Say: practice with guidance, not a chatbot, and nothing is saved.
-13. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
-14. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
+12. **Home → What employers ask for → See what employers ask for.** It opens Electricians at the section: 84 US adverts, 6 in 10 open to beginners, 7 in 10 mention a trade licence; Installation, Repairing and Troubleshooting are the skills they stress. Say: real adverts, American and closed, so it shows what employers ask for, not jobs to apply for.
+13. **Home → Practise for an interview.** Question 2 (Troubleshooting): type "I fixed it." → 2 of 7 with tips; paste a full story → 7 of 7. Say: practice with guidance, not a chatbot, and nothing is saved.
+14. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
+15. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
 
 Questions to expect, with the honest answers:
 - *"Why no real login?"* Nothing personal is held beyond an optional first name, so a password would protect nothing a code doesn't. The code is a bearer credential and the screen says so (ADR-0008).
@@ -86,7 +87,8 @@ Questions to expect, with the honest answers:
 - *"Is the quiz validated?"* No. It's twelve statements of ours against O*NET's real interest profiles, labelled as simplified (ADR-0011).
 - *"Your accuracy only beats the target by 4.7 points. Can you improve it?"* Measured on 4 October: adding O*NET Knowledge and Abilities to the job vectors moves it from 59.7% to 60.5%, which is noise, because users don't record those. It would only help if users did, and that's a new capture step. Assignment 3 suggested otherwise; measuring showed it was wrong (ADR-0013).
 - *"How good is the CV scanner?"* On 172 held-out CVs from a Kaggle benchmark, its goal score tracks human match scores at r = 0.27, against 0.16 for word matching. That's modest, and it's from tech and office CVs, not South African ones. The skill suggestions are rules we wrote, quoted back for the user to confirm, because three smarter text-matching designs did worse than plain word matching (ADR-0014).
-- *"Your proposal said interview chatbot. Where is it?"* A chatbot needs a language model, and the project rules out an LLM, so it's interview practice instead: questions from the job's real skills and tasks, and a checklist on each answer. Four of the five modules are built (ADR-0015).
+- *"Your proposal said interview chatbot. Where is it?"* A chatbot needs a language model, and the project rules out an LLM, so it's interview practice instead: questions from the job's real skills and tasks, and a checklist on each answer. All five modules are now built, three in a reduced form (ADR-0014, ADR-0015, ADR-0017).
+- *"Why aren't these South African jobs?"* There are none on Kaggle that are real. The two "South African" sets failed verification: one is mostly Indian and German company scrapes, the other is generated from four templates. So the app shows what 84 real (American, 2024) electrician adverts asked for and says so, rather than inventing local openings. Links are by job title, 44 of 50 checked right (ADR-0017).
 - *"Is it accessible?"* Measured on 5 October against WCAG 2.1 AA: an automated audit of all 22 screens went from 169 failures to 0 (light and dark mode, and at 320 px wide), and a keyboard-only walk of the whole demo now passes 19 of 19 checks. It hasn't been tested with a real screen reader or disabled users, and that's the honest gap (ADR-0016).
 - *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
 
@@ -94,6 +96,12 @@ Questions to expect, with the honest answers:
 
 - WCAG 2.1 AA pass. Contrast tokens fixed for both themes, focus moves to each new screen and page and back again, the sheets trap focus and close on Escape, and segmented controls have honest roles. Before and after are in `docs/test-results/accessibility-2026-10-05.txt`.
 - Rerun with `frontend/tests/a11y_audit.js` and `frontend/tests/keyboard.js`. Both are test-time scripts and not app dependencies.
+
+## Built on 5 October — what employers ask for (ADR-0017)
+
+- Module 4, as the data allows. Real LinkedIn adverts (US, March–April 2024), linked to O*NET by title, summarised per job: beginners' share, requirements, tools named, skills stressed, titles. It's on the job page and in a Home card for the goal.
+- Checked: skills agree weakly but really with O*NET (Spearman +0.23 vs +0.09). The requirement rules were hand-checked at 11–12 of 12. See `docs/test-results/adverts-2026-10-05.txt`.
+- The advert file (517 MB) is gitignored in `backend/data/linkedin/`. The counts are cached, so rebuilds stay at about 2.5 s.
 
 ## Deferred on purpose
 

@@ -346,6 +346,21 @@ honest toggle buttons. The result is 0 automated failures in both themes and
 at 320 px, and 19 of 19 keyboard checks. No real screen-reader test has been
 done.
 
+### 5 October: what employers ask for (module 4)
+
+ADR-0017. Step 0 found no real South African adverts on Kaggle; the one
+labelled as such was generated from four templates. So module 4 summarises
+real American adverts from 2024 instead of offering openings. The link to
+O\*NET is the advert title, kept strict (one candidate, generic titles
+dropped). The tempting shortcut was to reuse the CV scanner's matching
+unchanged. Measuring it on adverts found boilerplate ("customers", "teams")
+everywhere, and a plural-folding bug that read "can" as the tool Canes. So
+skills are shown only where they're over-represented against all adverts,
+with a measured, weak agreement with O\*NET. Tools use a stricter matcher.
+The advert pass is slow, so it's cached and fingerprinted on its inputs.
+Get the data with the Kaggle API (`arshkon/linkedin-job-postings`), unzip it
+into `backend/data/linkedin/`, and run `python backend/load_onet.py`.
+
 ---
 
 ## 5. Where things are

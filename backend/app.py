@@ -28,6 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from config import ESSENTIAL_THRESHOLD
+import adverts as advert_summary
 import cvscan
 import gap as gap_analyser
 import interview as interview_practice
@@ -569,6 +570,65 @@ def interview_feedback(body: AnswerIn, con=Depends(db)):
     if body.skill_element_id and body.skill_element_id not in index.skills:
         raise HTTPException(404, f"No skill {body.skill_element_id}")
     return {**interview_practice.feedback(index, body.answer, body.skill_element_id), "stored": False}
+
+
+# ---------- what employers ask for (module 4, ADR-0017) ----------
+
+ADVERT_NOTE = ("Real job adverts from the United States, listed March to April 2024. "
+               "They have closed — this shows what employers asked for, not jobs to apply for.")
+SKILL_MIN_SHARE, SKILL_MIN_LIFT = 0.25, 1.5     # "noticeably more than adverts in general"
+OTHER_MIN_SHARE = 0.05                          # below this a requirement or tool is noise
+
+
+@app.get("/occupations/{soc_code}/adverts", tags=["adverts"])
+def occupation_adverts(soc_code: str, profile_id: str | None = None, con=Depends(db)):
+    """A summary of real adverts linked to this occupation by title: how
+    many, how many took beginners, the requirements they mention, the tools
+    they name, and the skills they stress more than adverts in general.
+    Counts only -- no advert text is stored. With a profile_id, each skill
+    carries the profile's status for it."""
+    occ = _require_occupation(con, soc_code)
+    out = {"soc_code": soc_code, "title": occ["title"], "loaded": repository.adverts_loaded(con),
+           "adverts": 0, "enough": False, "min_adverts": advert_summary.MIN_ADVERTS,
+           "note": ADVERT_NOTE, "dataset": None}
+    held = ({r["element_id"]: r["status"] for r in repository.profile_skills(con, _require_profile(con, profile_id)["profile_id"])}
+            if profile_id else {})
+    if not out["loaded"]:
+        return out
+    row = repository.advert_summary(con, soc_code)
+    if row is None:
+        return out
+    n = row["adverts"]
+    out.update(adverts=n, enough=n >= advert_summary.MIN_ADVERTS, dataset=row["source_dataset"],
+               listed_from=row["listed_from"], listed_to=row["listed_to"])
+    if not out["enough"]:
+        return out
+
+    words = lambda k: advert_summary.share_words(k, n)
+    base, total = repository.advert_baseline(con)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    reqs, tools, skills = [], [], []
+    for kind, item, k in repository.advert_counts(con, soc_code):
+        share = k / n
+        if kind == "req" and share >= OTHER_MIN_SHARE:
+            reqs.append({"key": item, "label": advert_summary.REQUIREMENT_LABELS[item],
+                         "n": k, "share": round(share, 3), "words": words(k)})
+        elif kind in ("tool", "software") and share >= OTHER_MIN_SHARE:
+            tools.append({"name": item, "kind": kind, "n": k, "share": round(share, 3), "words": words(k)})
+        elif kind == "skill" and base.get(("skill", item)):
+            lift = share / (base[("skill", item)] / total)
+            if share >= SKILL_MIN_SHARE and lift >= SKILL_MIN_LIFT:
+                skills.append({"element_id": item, "name": names[item], "n": k, "share": round(share, 3),
+                               "lift": round(lift, 2), "words": words(k), "status": held.get(item)})
+    skills.sort(key=lambda x: -x["lift"])
+    out.update(
+        entry_level=row["entry_level"], entry_words=words(row["entry_level"]),
+        years=({"stated": row["years_n"], "median": row["years_median"]} if row["years_n"] >= 3 else None),
+        requirements=reqs, tools=tools[:6], skills=skills[:5],
+        titles=[dict(t) for t in repository.advert_titles(con, soc_code)],
+        basis=("Skills are the ones these adverts mention noticeably more than adverts in general. "
+               "Checked against O*NET's ratings: a weak but real agreement (ADR-0017)."))
+    return out
 
 
 # ---------- interests (slice 4, ADR-0011) ----------

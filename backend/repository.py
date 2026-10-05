@@ -211,6 +211,33 @@ def occupation_tool_groups(con, soc_code, groups=8, per_group=3):
              "examples": sorted(r["examples"].split("|"))[:per_group]} for r in rows], total
 
 
+def adverts_loaded(con):
+    """Whether load_adverts.py has run (the advert data is optional)."""
+    return con.execute("SELECT 1 FROM sqlite_master WHERE name = 'advert_summary'").fetchone() is not None
+
+
+def advert_summary(con, soc_code):
+    return con.execute("SELECT * FROM advert_summary WHERE soc_code = ?", (soc_code,)).fetchone()
+
+
+def advert_counts(con, soc_code):
+    """[(kind, item, n)] for one occupation, commonest first."""
+    return con.execute("SELECT kind, item, n FROM advert_counts WHERE soc_code = ?"
+                       " ORDER BY n DESC, item", (soc_code,)).fetchall()
+
+
+def advert_titles(con, soc_code, limit=5):
+    return con.execute("SELECT title, n FROM advert_titles WHERE soc_code = ?"
+                       " ORDER BY n DESC, title LIMIT ?", (soc_code, limit)).fetchall()
+
+
+def advert_baseline(con):
+    """({(kind, item): n}, total linked adverts)."""
+    rows = con.execute("SELECT kind, item, n FROM advert_baseline").fetchall()
+    base = {(k, i): n for k, i, n in rows}
+    return base, base.get(("all", "adverts"), 0)
+
+
 def get_skill(con, element_id):
     return con.execute("SELECT element_id, name, description, source_dataset FROM skills"
                        " WHERE element_id = ?", (element_id,)).fetchone()
