@@ -15,6 +15,7 @@ import pathway
 import recommend
 import plain
 import cvscan
+import interview
 from config import ESSENTIAL_THRESHOLD
 
 PASS, FAIL = [], []
@@ -145,6 +146,24 @@ def main():
     src = inspect.getsource(cvscan)
     check("TC-U10e", "the scanner never writes to the database (no INSERT/UPDATE/DELETE in cvscan.py)",
           not any(w in src.upper() for w in ("INSERT ", "UPDATE ", "DELETE ")))
+
+    print("\nTC-U11  Interview practice feedback rules  (ADR-0015)")
+    good = ("Last year at my uncle's house the kitchen lights stopped working. I checked the plug points "
+            "with a multimeter and found a loose wire in the switch. I switched off the power, tightened "
+            "the wire and tested it again. In the end the lights worked and my uncle saved R450.")
+    fb = interview.feedback(idx, good, next(e for e, (n, _) in idx.skills.items() if n == "Troubleshooting"))
+    check("TC-U11a", "a full situation-action-result answer meets every item",
+          fb["met"] == fb["of"], str([i["key"] for i in fb["items"] if not i["ok"]]))
+    weak = interview.feedback(idx, "I need a job and I want to be an electrician.")
+    check("TC-U11b", "'I need' and 'I want' are not counted as actions; a short answer gets tips",
+          not next(i for i in weak["items"] if i["key"] == "action")["ok"]
+          and all(i["tip"] for i in weak["items"] if not i["ok"]))
+    we_only = interview.feedback(idx, "Last term at school our team built a robot. We planned it and we tested it "
+                                      "for two weeks. In the end we won second place out of twelve schools.")
+    check("TC-U11c", "an answer told only as 'we' is flagged for your own part",
+          not next(i for i in we_only["items"] if i["key"] == "ownership")["ok"])
+    check("TC-U11d", "every one of the 35 skills has a practice question",
+          set(interview.SKILL_QUESTIONS) == {n for n, _ in idx.skills.values()})
 
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0

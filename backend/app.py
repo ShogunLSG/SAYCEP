@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field
 from config import ESSENTIAL_THRESHOLD
 import cvscan
 import gap as gap_analyser
+import interview as interview_practice
 import interests as interest_matcher
 import pathway as pathway_service
 import plain
@@ -80,6 +81,12 @@ class CvIn(BaseModel):
     text: str = Field(..., min_length=20, max_length=15000)
     soc_code: str | None = None
     profile_id: str | None = None
+
+
+class AnswerIn(BaseModel):
+    # Never stored (ADR-0015).
+    answer: str = Field(..., max_length=5000)
+    skill_element_id: str | None = None
 
 
 class NameIn(BaseModel):
@@ -536,6 +543,32 @@ def scan_cv(body: CvIn, con=Depends(db)):
             "basis": BENCHMARK_NOTE,
         }
     return out
+
+
+# ---------- interview practice (module 5, ADR-0015) ----------
+
+@app.get("/interview/questions", tags=["interview"])
+def interview_questions(soc_code: str | None = None, profile_id: str | None = None, con=Depends(db)):
+    """Practice questions for a job: an opener, one per key skill, one from
+    its most important O*NET task. With a profile and no soc_code, its goal."""
+    if not soc_code and profile_id:
+        soc_code = _require_profile(con, profile_id)["target_soc_code"]
+    if not soc_code:
+        raise HTTPException(400, "Pass soc_code, or a profile_id with a goal.")
+    occ = _require_occupation(con, soc_code)
+    return {"soc_code": soc_code, "title": occ["title"],
+            "questions": interview_practice.questions(con, soc_code, _cv(con)),
+            "note": "Practice with guidance, not a scored test. Your answers are not saved."}
+
+
+@app.post("/interview/feedback", tags=["interview"])
+def interview_feedback(body: AnswerIn, con=Depends(db)):
+    """A checklist for one answer: the skill shown, situation -> action ->
+    result, your own part, a specific detail, length. Never stored."""
+    index = _cv(con)
+    if body.skill_element_id and body.skill_element_id not in index.skills:
+        raise HTTPException(404, f"No skill {body.skill_element_id}")
+    return {**interview_practice.feedback(index, body.answer, body.skill_element_id), "stored": False}
 
 
 # ---------- interests (slice 4, ADR-0011) ----------

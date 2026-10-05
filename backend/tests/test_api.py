@@ -356,6 +356,23 @@ def main():
     check("TC-I18g", "without a profile or job there are suggestions but no goal check",
           s == 200 and nog["goal"] is None and len(nog["suggestions"]) > 0)
 
+    print("\nTC-I19  Interview practice  (ADR-0015)")
+    s, iq = call("GET", f"/interview/questions?profile_id={pid}")
+    kinds = [q["kind"] for q in iq["questions"]]
+    check("TC-I19a", "questions for the profile's goal: an opener, one per must-have, one from a task",
+          s == 200 and iq["soc_code"] == "47-2111.00" and kinds == ["opener", "skill", "skill", "task"]
+          and {q["skill"]["name"] for q in iq["questions"] if q["skill"]} == {"Troubleshooting", "Repairing"},
+          str(kinds))
+    sq = next(q for q in iq["questions"] if q["kind"] == "skill")
+    s, ifb = call("POST", "/interview/feedback", {"answer": "I fixed it.", "skill_element_id": sq["skill"]["element_id"]})
+    check("TC-I19b", "feedback returns a checklist with tips for what is missing, and is not stored",
+          s == 200 and ifb["stored"] is False and ifb["met"] < ifb["of"]
+          and all(i["tip"] for i in ifb["items"] if not i["ok"]))
+    s, e = call("GET", "/interview/questions")
+    check("TC-I19c", "questions without a job or a profile goal return 400", s == 400, str(s))
+    s, e = call("POST", "/interview/feedback", {"answer": "x", "skill_element_id": "9.Z.9"})
+    check("TC-I19d", "an unknown skill returns 404", s == 404, str(s))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]
