@@ -23,7 +23,7 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
 
   async function scan() {
     setBusy(true); setError(null);
-    try { setRes(await api.post("/cv/scan", { text, profile_id: profileId })); setAdded(new Set()); }
+    try { setRes(await api.post("/cv/scan", { text, profile_id: profileId })); setAdded(new Set()); focusWhenReady("#cv-found"); }
     catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
@@ -36,7 +36,7 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
         <p class="kicker">Check my CV${PRESENTER ? " · ADR-0014" : ""}</p>
         <h3 class="sheet-title">What does your CV show?</h3>
         <p class="about">Paste your CV below. We'll point out the skills it shows and how it reads for your goal.${" "}<b>It's read and forgotten — never saved.</b></p>
-        <textarea id="cv-text" class="cvbox" rows="9" maxLength="15000" value=${text}
+        <textarea id="cv-text" class="cvbox" aria-label="Your CV text" rows="9" maxLength="15000" value=${text}
                   placeholder="Paste the text of your CV here…" onInput=${(e) => setText(e.target.value)}></textarea>
         <div class="plan-actions">
           <button class="btn" disabled=${busy || text.trim().length < 20} onClick=${scan}>${busy ? "Reading…" : "Check my CV"}</button>
@@ -45,7 +45,7 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
         ${error && html`<div class="banner">${error}</div>`}
 
         ${res && html`
-          <h4 class="sect">Skills your CV shows</h4>
+          <h4 class="sect" id="cv-found">Skills your CV shows</h4>
           ${res.suggestions.length === 0
             ? html`<p class="note">We couldn't spot any clearly. Describe what you did in plain words — "fixed", "taught", "served customers".</p>`
             : html`<p class="note">Add the ones that are true. We only go by the words — you know what you can do.</p>
@@ -77,7 +77,7 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
 
           <h4 class="sect">CV checklist</h4>
           <ul class="sk">${res.checks.map((c) => html`
-            <li key=${c.key} class=${c.present ? "have" : ""}><span class="mk">${c.present ? Icon.check : null}</span>
+            <li key=${c.key} class=${c.present ? "have" : ""}><span class="mk" role="img" aria-label=${c.present ? "Yes" : "Not yet"}>${c.present ? Icon.check : null}</span>
               <span>${c.label}${c.present ? "" : " — missing"}</span></li>`)}</ul>
           <p class="prov">Skills found by trigger words we wrote; tools and software as O*NET 29.0 lists them for each job.</p>`}
       </div>

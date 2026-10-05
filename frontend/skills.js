@@ -38,9 +38,9 @@ function SkillsTab({ profileId, rev, onOpenSkill, onOpenCv }) {
     <div class="pane tabpane">
       <p class="sub tight">All 35 skills O*NET measures. Tap one to see what it opens up.</p>
       ${onOpenCv && html`<button class="btn full cvbtn" onClick=${onOpenCv}>Find skills in my CV</button>`}
-      <div class="tabs" role="tablist">
+      <div class="tabs" role="group" aria-label="Show skills">
         ${FILTERS.map(([k, label]) => html`
-          <button key=${k} role="tab" aria-selected=${show === k} class=${"tab" + (show === k ? " on" : "")}
+          <button key=${k} aria-pressed=${show === k} class=${"tab" + (show === k ? " on" : "")}
                   onClick=${() => setShow(k)}>${label}</button>`)}
       </div>
       ${all.data.groups.map((g) => {
@@ -99,9 +99,10 @@ function SkillPage({ elementId, profileId, rev, onSet, onOpenJob }) {
 function UnlockCard({ u, onOpenJob, onClose }) {
   const c = u.changes, g = c.goal;
   const more = c.ready_jobs_after - c.ready_jobs_before;
+  const box = useDialog(onClose);
   return html`
     <div class="scrim" onClick=${onClose}></div>
-    <div class="sheet unlock" role="dialog" aria-modal="true" aria-label="What changed">
+    <div class="sheet unlock" role="dialog" aria-modal="true" tabindex="-1" ref=${box} aria-label="What changed">
       <div class="grab"></div>
       <div class="sheet-body">
         <div class="burst">${Icon.check}</div>

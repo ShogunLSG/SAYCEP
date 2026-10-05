@@ -66,7 +66,7 @@ function ComparePage({ profileId, socs, onOpen }) {
                 <h4 class="sect">Must-haves they share</h4>
                 <p class="note">Learning these moves you closer to all of them at once.</p>
                 <ul class="sk">${data.shared_must_haves.map((m) => html`
-                  <li key=${m.element_id} class=${m.held ? "have" : ""}><span class="mk">${m.held ? Icon.check : null}</span><span>${m.name}</span></li>`)}</ul>`}
+                  <li key=${m.element_id} class=${m.held ? "have" : ""}><span class="mk" role="img" aria-label=${m.held ? "You have this" : "Not yet"}>${m.held ? Icon.check : null}</span><span>${m.name}</span></li>`)}</ul>`}
               <${Prov} dataset=${data.dataset} />`;
           })()}
         <//>

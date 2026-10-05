@@ -37,6 +37,17 @@ function App() {
   const [sheet, setSheet] = useState(null);     // { soc_code, canAim } -- the journey's job panel
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const openers = useRef([]);                   // the element that opened each pushed page
+  const lastView = useRef(view);
+
+  // A new journey step, or arriving in the app, moves focus to the new
+  // heading so a screen reader announces the change (not on first load).
+  useEffect(() => {
+    const from = lastView.current;
+    lastView.current = view;
+    if (view === "journey") focusWhenReady(".pane .title");
+    else if (view === "app" && from !== "boot") focusWhenReady(".hello", ".tabbar .tb");
+  }, [view, step]);
 
   // A profile is created from a type and a skill set. Change either and the
   // next continue creates a fresh one; the saved plan then follows the new id.
@@ -145,8 +156,18 @@ function App() {
     if (status === "held" && isUnlock(res.changes)) setUnlock({ name: k.name, status, changes: res.changes });
   }
 
-  const push = (page) => setStack((s) => [...s, page]);
-  const pop = () => setStack((s) => s.slice(0, -1));
+  // Focus follows navigation: a pushed page puts focus on its heading, and
+  // Back returns it to whatever opened the page (WCAG 2.4.3, ADR-0016).
+  const push = (page) => {
+    openers.current.push(document.activeElement);
+    setStack((s) => [...s, page]);
+    setTimeout(() => focusWhenReady(".page .sheet-title", ".top .back"), 60);
+  };
+  const pop = () => {
+    const opener = openers.current.pop();
+    setStack((s) => s.slice(0, -1));
+    setTimeout(() => (opener && opener.isConnected ? opener.focus() : focusWhenReady(".page .sheet-title, .tabpane h2, .hello")), 60);
+  };
 
   if (view === "boot") return html`<div class="app"><p class="loading">Loading…</p></div>`;
 
@@ -208,7 +229,7 @@ function App() {
                  <${PracticeCard} onOpen=${openPractice} />
                <//>`;
     }
-    const body = html`<div class="tabhost" aria-hidden=${!!page}>${tabEl}</div>${pageEl}`;
+    const body = html`<div class="tabhost" inert=${page ? "" : undefined}>${tabEl}</div>${pageEl}`;
     return html`
       <div class="app">
         <div class="top">
@@ -225,7 +246,7 @@ function App() {
           ${TABS.map((t) => html`
             <button key=${t.key} class=${"tb" + (tab === t.key && !page ? " on" : "")}
                     aria-current=${tab === t.key ? "page" : undefined}
-                    onClick=${() => { setTab(t.key); setStack([]); }}>
+                    onClick=${() => { setTab(t.key); setStack([]); openers.current = []; }}>
               ${t.icon}<span>${t.label}</span>
             </button>`)}
         </nav>

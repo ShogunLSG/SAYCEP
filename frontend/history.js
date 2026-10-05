@@ -35,7 +35,7 @@ function ProgressHistory({ profileId, rev }) {
     <section class="card">
       <h3 class="ch">Your progress${PRESENTER ? " · ADR-0012" : ""}</h3>
       ${since.length > 1 && total > 0 && html`
-        <div class="climb" aria-label="Must-haves held over time">
+        <div class="climb" aria-hidden="true">
           ${since.map((e, i) => html`
             <span key=${i} class="cb" title=${`${e.goal_have} of ${e.goal_total}`}>
               <i style=${{ height: `${Math.max(6, (e.goal_have / e.goal_total) * 100)}%` }}

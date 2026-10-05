@@ -28,11 +28,11 @@ function PracticePage({ profileId }) {
     <div class="page">
       <div class="page-body">
         <p class="kicker">Interview practice · ${qs.data.title}${PRESENTER ? " · ADR-0015" : ""}</p>
-        <div class="qdots" aria-label=${`Question ${i + 1} of ${list.length}`}>
-          ${list.map((x, k) => html`<button key=${x.id} aria-label=${`Question ${k + 1}`}
+        <div class="qdots" role="group" aria-label=${`Question ${i + 1} of ${list.length}`}>
+          ${list.map((x, k) => html`<button key=${x.id} aria-label=${`Question ${k + 1}${fb[x.id] ? ", answered" : ""}`} aria-current=${k === i ? "step" : undefined}
             class=${"qdot" + (k === i ? " on" : "") + (fb[x.id] ? " done" : "")} onClick=${() => setI(k)}>${k + 1}</button>`)}
         </div>
-        <h3 class="sheet-title qtext">${q.text}</h3>
+        <h3 class="sheet-title qtext" id="qtext">${q.text}</h3>
         ${q.skill && html`<p class="note">This question is about <b>${q.skill.name}</b>.</p>`}
         <details class="why star">
           <summary>How to answer: situation, action, result</summary>
@@ -40,7 +40,7 @@ function PracticePage({ profileId }) {
           <b>Action</b> — what <i>you</i> did, using "I".
           <b>Result</b> — how it turned out, or what you learned. Aim for about 40 to 250 words.
         </details>
-        <textarea id="answer" class="cvbox" rows="7" maxLength="5000" value=${a}
+        <textarea id="answer" class="cvbox" aria-labelledby="qtext" rows="7" maxLength="5000" value=${a}
                   placeholder="Type your answer as you would say it…"
                   onInput=${(e) => setAnswers((x) => ({ ...x, [q.id]: e.target.value }))}></textarea>
         <div class="plan-actions">
@@ -50,14 +50,14 @@ function PracticePage({ profileId }) {
             : html`<button class="btn ghost" onClick=${() => setI(0)}>Back to the first</button>`}
         </div>
         ${error && html`<div class="banner">${error}</div>`}
-        ${f && html`
+        <div aria-live="polite">${f && html`
           <div class="goalchg fbk">
             <p class="big-count"><b>${f.met}</b> of ${f.of} <span>things interviewers listen for</span></p>
             <ul class="sk">${f.items.map((it) => html`
-              <li key=${it.key} class=${it.ok ? "have" : ""}><span class="mk">${it.ok ? Icon.check : null}</span>
+              <li key=${it.key} class=${it.ok ? "have" : ""}><span class="mk" role="img" aria-label=${it.ok ? "Done" : "Not yet"}>${it.ok ? Icon.check : null}</span>
                 <span><b>${it.label.replace(/\*/g, "")}</b>${it.tip ? html`<br /><span class="tip">${it.tip}</span>` : ""}</span></li>`)}
             </ul>
-          </div>`}
+          </div>`}</div>
         <p class="prov">${qs.data.note} Questions from O*NET 29.0's skills and tasks for this job; feedback rules written by us.</p>
       </div>
     </div>`;

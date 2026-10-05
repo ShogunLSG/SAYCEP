@@ -29,6 +29,8 @@ conversation. That should be said plainly.
 
 ## 2. Accessibility pass — WCAG 2.1 AA
 
+*Done 5 October (ADR-0016): axe 169 → 0 light, 34 → 0 dark, 0 at 320 px; keyboard walk 19/19.*
+
 - Audit every screen with **axe-core** run from the browser tests. It's a
   test-time tool only, never shipped, so it's not a dependency of the app.
 - Check keyboard-only use of the whole demo path, focus handling in the

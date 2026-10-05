@@ -782,3 +782,71 @@ practice is.
 - A new requirement is implied (interview practice). Drafting it is the
   project owner's job.
 
+
+## ADR-0016 — Accessibility: WCAG 2.1 AA, checked by automated audit and a keyboard walk
+
+**Date:** 2026-10-05
+**Status:** Accepted
+**Relates to:** `plans/next-three.md` §2, NFR-02, `test-results/accessibility-2026-10-05.txt`
+
+### Context
+
+The users are young people, often on cheap phones in bright light, and some
+will rely on a screen reader or a keyboard. Accessibility had never been
+measured. An axe-core audit of all 22 screens of the demo path found 169
+failing elements in light mode and 34 in dark mode. A scripted keyboard-only
+walk failed every focus check it could run.
+
+### Decision
+
+- **Target WCAG 2.1 level AA**, the level that public-sector and education
+  sites are usually held to.
+- **Contrast.** `--muted` is darkened to #5C6772 in light mode (at least
+  4.84:1 on every surface it sits on) and lightened to #8C98A4 in dark mode.
+  A new `--on-fill` token replaces hard-coded white text on accent and green
+  fills, because white on dark mode's light accent was 2.44:1. The muted
+  grey is now a little closer to body text; size and weight carry the
+  hierarchy instead.
+- **Focus follows the user.**
+  - A new journey step, or arriving in the app, moves focus to the new
+    heading.
+  - A pushed page puts focus on its title, and Back returns focus to
+    whatever opened it.
+  - The tab underneath a page is `inert` (it was only `aria-hidden`, so Tab
+    still walked into invisible controls).
+  - The job sheet and the unlock card trap focus, close on Escape, and
+    return focus to the opener (`useDialog` in `app.js`).
+- **Honest roles.** Segmented controls (Explore's four ways, Skills filters,
+  the welcome screen's two doors, the quiz answers) were marked as tabs and
+  radio buttons, which promise arrow-key behaviour they didn't have. They're
+  now plain toggle buttons (`aria-pressed`) in a labelled group, which is
+  what they are. Tick marks have `role="img"` and a name; meters have names;
+  decorative SVGs are hidden.
+- **Labels and announcements.** The search box, the CV box and the answer box
+  (labelled by the question) have names. The search count is a status
+  region, interview feedback is announced politely, and CV and quiz results
+  take focus when they arrive.
+- **The checks are scripts, not a dependency.**
+  - `frontend/tests/a11y_audit.js` runs axe-core 4.13 through Playwright in
+    light mode, dark mode, and at 320 px wide (reflow).
+  - `frontend/tests/keyboard.js` walks the demo path using only the keyboard.
+  - Neither is loaded by the app, and there's no `package.json`. The
+    backend's dependencies are unchanged.
+
+### Result
+
+| | Before | After |
+|---|---|---|
+| axe, light mode | 169 | 0 |
+| axe, dark mode | 34 | 0 |
+| axe at 320 px, plus overflow | not run | 0 |
+| Keyboard walk | 17 of 17 checks that could run failed | 19 of 19 pass |
+
+### Consequences
+
+- **"Zero automated violations" isn't the same as "accessible".** No one has
+  tested with a real screen reader or with disabled users, and the printed
+  plan wasn't audited. The transcript says so, and so should the
+  presentation.
+- Any new screen should be added to both scripts. A colour that isn't a token
+  is how this regresses.

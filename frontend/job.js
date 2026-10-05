@@ -14,7 +14,7 @@ function JobDetail({ data, full, onOpenJob }) {
   const known = data.held_count != null;
   const Skill = (k) => html`
     <li key=${k.element_id} class=${k.held ? "have" : ""}>
-      ${known && html`<span class="mk" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>`}
+      ${known && html`<span class="mk" role="img" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>`}
       <span>${k.name}</span><${Figure}>${k.importance.toFixed(2)}<//>
     </li>`;
   return html`

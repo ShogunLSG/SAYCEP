@@ -87,7 +87,13 @@ Questions to expect, with the honest answers:
 - *"Your accuracy only beats the target by 4.7 points. Can you improve it?"* Measured on 4 October: adding O*NET Knowledge and Abilities to the job vectors moves it from 59.7% to 60.5%, which is noise, because users don't record those. It would only help if users did, and that's a new capture step. Assignment 3 suggested otherwise; measuring showed it was wrong (ADR-0013).
 - *"How good is the CV scanner?"* On 172 held-out CVs from a Kaggle benchmark, its goal score tracks human match scores at r = 0.27, against 0.16 for word matching. That's modest, and it's from tech and office CVs, not South African ones. The skill suggestions are rules we wrote, quoted back for the user to confirm, because three smarter text-matching designs did worse than plain word matching (ADR-0014).
 - *"Your proposal said interview chatbot. Where is it?"* A chatbot needs a language model, and the project rules out an LLM, so it's interview practice instead: questions from the job's real skills and tasks, and a checklist on each answer. Four of the five modules are built (ADR-0015).
+- *"Is it accessible?"* Measured on 5 October against WCAG 2.1 AA: an automated audit of all 22 screens went from 169 failures to 0 (light and dark mode, and at 320 px wide), and a keyboard-only walk of the whole demo now passes 19 of 19 checks. It hasn't been tested with a real screen reader or disabled users, and that's the honest gap (ADR-0016).
 - *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
+
+## Built on 5 October — accessibility (ADR-0016)
+
+- WCAG 2.1 AA pass. Contrast tokens fixed for both themes, focus moves to each new screen and page and back again, the sheets trap focus and close on Escape, and segmented controls have honest roles. Before and after are in `docs/test-results/accessibility-2026-10-05.txt`.
+- Rerun with `frontend/tests/a11y_audit.js` and `frontend/tests/keyboard.js`. Both are test-time scripts and not app dependencies.
 
 ## Deferred on purpose
 

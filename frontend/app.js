@@ -19,7 +19,7 @@ if (!window.React || !window.ReactDOM || !window.htm) {
   throw new Error("interface libraries missing");
 }
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 const html = htm.bind(React.createElement);
 const PRESENTER = new URLSearchParams(location.search).has("presenter");
 
@@ -86,7 +86,7 @@ function Prov({ dataset, dates, label = "ratings dated" }) {
 }
 
 const svg = (d, w = 2.2) => html`
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${w}
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${w}
        strokeLinecap="round" strokeLinejoin="round">${d}</svg>`;
 const Icon = {
   back: svg(html`<path d="M15 18l-6-6 6-6" />`),
@@ -95,6 +95,54 @@ const Icon = {
   search: svg(html`<circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />`, 2),
   undo: svg(html`<path d="M9 14L4 9l5-5" /><path d="M4 9h11a5 5 0 010 10h-3" />`, 2),
 };
+
+// ---------- accessibility helpers (WCAG 2.1 AA pass, ADR-0016) ----------
+
+/** Move focus to the first match of `sel` once it renders (content often
+ *  arrives after a fetch), so keyboard and screen-reader users land on the
+ *  new content instead of on <body>. Falls back to `fallback`. */
+function focusWhenReady(sel, fallback, tries = 25) {
+  const el = document.querySelector(sel);
+  if (el) {
+    if (!el.matches("button, a, input, textarea, select") && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+    el.focus();
+  } else if (tries > 0) {
+    setTimeout(() => focusWhenReady(sel, fallback, tries - 1), 80);
+  } else if (fallback) {
+    const f = document.querySelector(fallback);
+    if (f) f.focus();
+  }
+}
+
+const FOCUSABLE = "button:not([disabled]), a[href], input:not([disabled]), textarea, select, [tabindex]:not([tabindex='-1'])";
+
+/** Modal behaviour for a role="dialog" element: focus moves in on open,
+ *  Tab cycles inside, Escape closes, and focus returns to the opener. */
+function useDialog(onClose) {
+  const box = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const opener = document.activeElement;
+    box.current.focus();
+    const key = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); close.current(); return; }
+      if (e.key !== "Tab") return;
+      const items = [...box.current.querySelectorAll(FOCUSABLE)];
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1], at = document.activeElement;
+      if (!box.current.contains(at)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && (at === first || at === box.current)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("keydown", key);
+      if (opener && opener.isConnected) opener.focus();
+    };
+  }, []);
+  return box;
+}
 
 function Head({ kicker, fr, title, sub }) {
   return html`
@@ -159,14 +207,11 @@ const ZONE_CHIPS = ["None", "Matric", "Trade", "Degree", "Postgrad"];
 function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
   const { data, error, loading } = useFetch(
     `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
-  useEffect(() => {
-    const esc = (e) => e.key === "Escape" && onClose();
-    addEventListener("keydown", esc);
-    return () => removeEventListener("keydown", esc);
-  }, []);
+  const box = useDialog(onClose);
   return html`
     <div class="scrim" onClick=${onClose}></div>
-    <div class="sheet" role="dialog" aria-modal="true" aria-label=${data ? data.title : "Job details"}>
+    <div class="sheet" role="dialog" aria-modal="true" tabindex="-1" ref=${box}
+         aria-label=${data ? data.title : "Job details"}>
       <div class="grab"></div>
       <button class="x" aria-label="Close" onClick=${onClose}>×</button>
       <${Status} loading=${loading} error=${error}>
@@ -274,9 +319,9 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
     ${head || html`<${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
              title="Pick something to aim for"
              sub="Tap a job to see what it involves, then aim for it. You can change your mind later." />`}
-    <div class="tabs" role="tablist">
+    <div class="tabs" role="group" aria-label="Ways to find jobs">
       ${TABS.map(([k, label]) => html`
-        <button key=${k} role="tab" aria-selected=${tab === k}
+        <button key=${k} aria-pressed=${tab === k}
                 class=${"tab" + (tab === k ? " on" : "")} onClick=${() => setTab(k)}>${label}</button>`)}
     </div>
 
@@ -317,14 +362,14 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
     ${tab === "search" && html`
       <div class="filter">
         ${Icon.search}
-        <input id="occ-search" placeholder="Search 879 jobs by any name — try “hairdresser”, “mechanic” or “chef”" autocomplete="off"
+        <input id="occ-search" aria-label="Search jobs" placeholder="Search 879 jobs by any name — try “hairdresser”, “mechanic” or “chef”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
       ${term.length < 2
         ? html`<p class="note">Type at least two letters.</p>`
         : html`<${Status} loading=${search.loading} error=${search.error}>
             ${search.data && html`
-              <p class="note">${search.data.message || `${search.data.total} match${search.data.total === 1 ? "" : "es"}`}</p>
+              <p class="note" role="status">${search.data.message || `${search.data.total} match${search.data.total === 1 ? "" : "es"}`}</p>
               <div class="list">
                 ${search.data.occupations.map((o) => html`
                   <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onOpen} />`)}
@@ -445,6 +490,7 @@ function StepPathway({ profileId, onOpen }) {
 function Meter({ have, total, big }) {
   return html`
     <div class=${"meter" + (big ? " big" : "")} role="progressbar"
+         aria-label=${`${have} of ${total} skills`} aria-valuetext=${`${have} of ${total}`}
          aria-valuemin="0" aria-valuemax=${total} aria-valuenow=${have}>
       ${Array.from({ length: total }, (_, i) => html`<span key=${i} class=${i < have ? "on" : ""}></span>`)}
     </div>`;
@@ -588,7 +634,7 @@ function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, 
           <summary>Skills you have (${have.length})</summary>
           ${have.map((k) => html`
             <div key=${k.element_id} class="hv">
-              <span class="mk">${Icon.check}</span><span class="n">${k.name}</span>
+              <span class="mk" role="img" aria-label="You have this">${Icon.check}</span><span class="n">${k.name}</span>
               <button class="undo" aria-label=${`Remove ${k.name}`} disabled=${busy} onClick=${() => setStatus(k, null)}>${Icon.undo}</button>
             </div>`)}
         </details>

@@ -334,6 +334,18 @@ its top task. Feedback is a checklist: skill shown, situation → action →
 result, your own part, a specific detail, length. Nothing is stored and no
 accuracy is claimed.
 
+### 5 October: accessibility pass
+
+ADR-0016. The first measurement found 169 axe failures in light mode, nearly
+all from one grey text token at 3.0–3.6:1. A keyboard-only walk also showed
+that focus never moved: new screens left it on `<body>`, the sheets didn't
+trap it, and the tab under a pushed page was still reachable. The fixes were
+mostly in shared pieces (tokens, `useDialog`, `focusWhenReady`, `inert` on the
+tab host), so they cover every screen at once. Fake tab and radio roles became
+honest toggle buttons. The result is 0 automated failures in both themes and
+at 320 px, and 19 of 19 keyboard checks. No real screen-reader test has been
+done.
+
 ---
 
 ## 5. Where things are

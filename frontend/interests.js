@@ -39,7 +39,7 @@ function InterestQuiz({ profileId, maxZone, onOpen }) {
             </div>
             <${Prov} dataset=${res.data.dataset} />`}`}
     <//>
-    <button class="btn full" onClick=${() => setAsked(false)}>Change my answers</button>`;
+    <button class="btn full" onClick=${() => { setAsked(false); focusWhenReady(".quiz .qa"); }}>Change my answers</button>`;
 
   return html`
     <p class="note">Twelve quick questions. There are no wrong answers — go with your gut.</p>
@@ -47,15 +47,15 @@ function InterestQuiz({ profileId, maxZone, onOpen }) {
       ${quiz.data.questions.map((qq) => html`
         <div key=${qq.id} class=${"qz" + (ans[qq.id] != null ? " done" : "")}>
           <p>${qq.text}</p>
-          <div class="qz-a" role="radiogroup" aria-label=${qq.text}>
+          <div class="qz-a" role="group" aria-label=${qq.text}>
             ${quiz.data.answers.map((o) => html`
-              <button key=${o.value} role="radio" aria-checked=${ans[qq.id] === o.value}
+              <button key=${o.value} aria-pressed=${ans[qq.id] === o.value}
                       class=${"qa" + (ans[qq.id] === o.value ? " on" : "")}
                       onClick=${() => setAns((a) => ({ ...a, [qq.id]: o.value }))}>${o.label}</button>`)}
           </div>
         </div>`)}
     </div>
-    <button class="cta" disabled=${!done} onClick=${() => setAsked(true)}>
+    <button class="cta" disabled=${!done} onClick=${() => { setAsked(true); focusWhenReady(".tabpane .fit, .tabpane .empty"); }}>
       ${done ? "Show jobs that fit my interests" : `${Object.keys(ans).length} of ${quiz.data.questions.length} answered`}</button>
     <p class="fine">${quiz.data.note}</p>`;
 }

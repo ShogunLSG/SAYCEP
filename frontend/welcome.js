@@ -30,10 +30,10 @@ function Welcome({ onStart, onResume }) {
       </div>
 
       <div class="door">
-        <div class="tabs" role="tablist">
-          <button role="tab" aria-selected=${mode === "start"} class=${"tab" + (mode === "start" ? " on" : "")}
+        <div class="tabs" role="group" aria-label="How to start">
+          <button aria-pressed=${mode === "start"} class=${"tab" + (mode === "start" ? " on" : "")}
                   onClick=${() => { setMode("start"); setError(null); }}>I'm new</button>
-          <button role="tab" aria-selected=${mode === "code"} class=${"tab" + (mode === "code" ? " on" : "")}
+          <button aria-pressed=${mode === "code"} class=${"tab" + (mode === "code" ? " on" : "")}
                   onClick=${() => { setMode("code"); setError(null); }}>I have a plan code</button>
         </div>
 

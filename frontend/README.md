@@ -34,3 +34,17 @@ Plain scripts that share globals, loaded in this order by `index.html`:
 Nothing here computes a gap, a recommendation, a pathway or a readiness
 figure. Every number comes from the API, so a wrong number is a backend
 question.
+
+## Accessibility (ADR-0016)
+
+The app targets WCAG 2.1 AA. Text colours are tokens. `--muted` and
+`--on-fill` were chosen to clear 4.5:1 in both themes, so new text should use a
+token rather than a literal colour. `focusWhenReady` and `useDialog` in
+`app.js` handle focus on new content and in modal sheets.
+
+`tests/` holds two browser checks. They're test-time only and never loaded by
+the app. Install `axe-core` and `playwright` in any scratch folder, put it on
+`NODE_PATH`, start the server, then run:
+
+    node frontend/tests/a11y_audit.js          # SCHEME=dark, WIDTH=320 for the other runs
+    node frontend/tests/keyboard.js
