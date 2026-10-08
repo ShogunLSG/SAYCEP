@@ -76,7 +76,7 @@ Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3
 9. **Skills → Repairing → I can already** → the goal is complete: 2 of 2, 131 jobs.
 10. **Home → Saved jobs →** tick three → **Compare**. Then **Your progress**: 0 → 0 → 1 → 2 of 2.
 11. **Home → Check my CV → Use an example CV → Check my CV.** Skills it shows, each quoting its line. *Add* Repairing → the unlock card. Then *How it reads for Electricians*: Multimeters and Excel named, Troubleshooting not shown yet. Say: "never saved".
-12. **Home → What employers ask for → See what employers ask for.** It opens Electricians at the section: 84 US adverts, 6 in 10 open to beginners, 7 in 10 mention a trade licence; Installation, Repairing and Troubleshooting are the skills they stress. Say: real adverts, American and closed, so it shows what employers ask for, not jobs to apply for.
+12. **Home → What employers ask for → See what employers ask for.** It opens Electricians at the section: 84 US adverts listed in April 2024; of the 73 that state a level, 7 in 10 were open to beginners; 7 in 10 mention a trade licence and 3 in 10 a driver's licence; Installation, Repairing and Troubleshooting are the skills they stress. Say: real adverts, American and closed, so it shows what employers ask for, not jobs to apply for.
 13. **Home → Practise for an interview.** Question 2 (Troubleshooting): type "I fixed it." → 2 of 7 with tips; paste a full story → 7 of 7. Say: practice with guidance, not a chatbot, and nothing is saved.
 14. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
 15. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
@@ -99,7 +99,7 @@ Questions to expect, with the honest answers:
 
 ## Built on 5 October — what employers ask for (ADR-0017)
 
-- Module 4, as the data allows. Real LinkedIn adverts (US, March–April 2024), linked to O*NET by title, summarised per job: beginners' share, requirements, tools named, skills stressed, titles. It's on the job page and in a Home card for the goal.
+- Module 4, as the data allows. Real LinkedIn adverts (US, listed April 2024), linked to O*NET by title, summarised per job: beginners' share, requirements, tools named, skills stressed, titles. It's on the job page and in a Home card for the goal.
 - Checked: skills agree weakly but really with O*NET (Spearman +0.23 vs +0.09). The requirement rules were hand-checked at 11–12 of 12. See `docs/test-results/adverts-2026-10-05.txt`.
 - The advert file (517 MB) is gitignored in `backend/data/linkedin/`. The counts are cached, so rebuilds stay at about 2.5 s.
 

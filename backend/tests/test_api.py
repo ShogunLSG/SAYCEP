@@ -375,28 +375,48 @@ def main():
 
     print("\nTC-I20  What employers ask for  (module 4, ADR-0017)")
     s, ad = call("GET", f"/occupations/47-2111.00/adverts?profile_id={pid}")
-    check("TC-I20a", "Electricians: enough linked adverts, labelled US 2024 and closed, with the dataset named",
-          s == 200 and ad["loaded"] and ad["enough"] and ad["adverts"] >= 50
-          and "United States" in ad["note"] and "2024" in ad["note"] and "CC BY-SA" in ad["dataset"],
-          f"{ad.get('adverts')} adverts")
-    check("TC-I20b", "a licence or certificate is the commonest requirement; shares come as words",
-          ad["requirements"][0]["key"] == "licence" and all(" in 10" in r["words"] or r["words"] in ("a few", "almost all")
-                                                            for r in ad["requirements"]),
-          str([(r["key"], r["words"]) for r in ad["requirements"]]))
-    _, prof = call("GET", f"/profiles/{pid}")
-    held_ids = {k["element_id"] for k in prof["skills"] if k["status"] == "held"}
-    check("TC-I20c", "skills stressed include Troubleshooting and Repairing, each lifted 1.5x+, marked from the profile",
-          {"Troubleshooting", "Repairing"} <= {k["name"] for k in ad["skills"]}
-          and all(k["lift"] >= 1.5 for k in ad["skills"])
-          and all((k["status"] == "held") == (k["element_id"] in held_ids) for k in ad["skills"]),
-          str([(k["name"], k["status"]) for k in ad["skills"]]))
-    check("TC-I20d", "only counts and titles come back -- no advert text, companies or links",
-          not any(key in json.dumps(ad).lower() for key in ("description", "company_name", "job_posting_url", "http")))
-    s, few = call("GET", "/occupations/11-3051.01/adverts")
-    check("TC-I20e", "an occupation with 1-4 adverts says there are too few, with no lists",
-          s == 200 and 0 < few["adverts"] < 5 and few["enough"] is False and "requirements" not in few, str(few.get("adverts")))
-    s, none = call("GET", "/occupations/11-3051.02/adverts")
-    check("TC-I20f", "an occupation with no linked adverts returns 0, not an error", s == 200 and none["adverts"] == 0)
+    if s == 200 and not ad["loaded"]:
+        # Optional data (backend/data/linkedin is gitignored): say so, and go on
+        # to the demo-path system test rather than crash.
+        print("  SKIP  TC-I20  advert data not loaded (run python backend/load_adverts.py)")
+    else:
+        check("TC-I20a", "Electricians: enough linked adverts, labelled US with the listing month, closed, dataset named",
+              s == 200 and ad["enough"] and ad["adverts"] >= 50 and "United States" in ad["note"]
+              and ad["period"] in ad["note"] and "closed" in ad["note"] and "CC BY-SA" in ad["dataset"],
+              f"{ad.get('adverts')} adverts, {ad.get('period')}")
+        reqs = ad.get("requirements", [])
+        check("TC-I20b", "a licence or certificate is the commonest requirement; shares come as words",
+              bool(reqs) and reqs[0]["key"] == "licence"
+              and all(" in 10" in r["words"] or r["words"] in ("a few", "almost all") for r in reqs),
+              str([(r["key"], r["words"]) for r in reqs]))
+        _, prof = call("GET", f"/profiles/{pid}")
+        held_ids = {k["element_id"] for k in prof["skills"] if k["status"] == "held"}
+        skills = ad.get("skills", [])
+        check("TC-I20c", "skills stressed include Troubleshooting and Repairing, each lifted 1.5x+, marked from the profile",
+              {"Troubleshooting", "Repairing"} <= {k["name"] for k in skills}
+              and all(k["lift"] >= 1.5 for k in skills)
+              and all((k["status"] == "held") == (k["element_id"] in held_ids) for k in skills),
+              str([(k["name"], k["status"]) for k in skills]))
+        check("TC-I20d", "only counts and titles come back -- no advert text, companies or links",
+              not any(key in json.dumps(ad).lower() for key in ("description", "company_name", "job_posting_url", "http")))
+        check("TC-I20h", "beginners are counted over adverts that state a level, never more than all adverts",
+              ad["entry_level"] <= ad["levels_stated"] <= ad["adverts"],
+              f"{ad['entry_level']}/{ad['levels_stated']}/{ad['adverts']}")
+        # Which jobs have too few or no adverts is a fact of the data, so look it up.
+        import sqlite3
+        from pathlib import Path
+        dbc = sqlite3.connect(Path(__file__).resolve().parents[1] / "saycep.db")
+        few_soc = dbc.execute("SELECT soc_code FROM advert_summary WHERE adverts < 5 ORDER BY soc_code LIMIT 1").fetchone()[0]
+        none_soc = dbc.execute("SELECT soc_code FROM occupations WHERE soc_code NOT IN "
+                               "(SELECT soc_code FROM advert_summary) ORDER BY soc_code LIMIT 1").fetchone()[0]
+        dbc.close()
+        s, few = call("GET", f"/occupations/{few_soc}/adverts")
+        check("TC-I20e", "an occupation with 1-4 adverts says there are too few, with no lists",
+              s == 200 and 0 < few["adverts"] < 5 and few["enough"] is False and "requirements" not in few,
+              f"{few_soc}: {few.get('adverts')}")
+        s, none = call("GET", f"/occupations/{none_soc}/adverts")
+        check("TC-I20f", "an occupation with no linked adverts returns 0, not an error",
+              s == 200 and none["adverts"] == 0, none_soc)
     s, e = call("GET", "/occupations/99-9999.99/adverts")
     check("TC-I20g", "an unknown occupation returns 404", s == 404, str(s))
 

@@ -161,8 +161,14 @@ function App() {
   const push = (page) => {
     openers.current.push(document.activeElement);
     setStack((s) => [...s, page]);
-    // A page opened at a section (page.focus) focuses that section itself.
+    // A page opened at a section (page.focus) focuses that section itself once
+    // its data arrives. If it never does (a failed fetch), focus must still
+    // leave the button now hidden under the page (WCAG 2.4.3, ADR-0016).
     if (!page.focus) setTimeout(() => focusWhenReady(".page .sheet-title", ".top .back"), 60);
+    else setTimeout(() => {
+      const a = document.activeElement;
+      if (!a || a === document.body || a.closest("[inert]")) focusWhenReady(".page .sheet-title", ".top .back", 0);
+    }, 2500);
   };
   const pop = () => {
     const opener = openers.current.pop();

@@ -320,14 +320,15 @@ def main():
     print(f"  {len(not_relevant)} skill ratings excluded as not relevant "
           f"to their occupation.")
 
-    # "What employers ask for" (ADR-0017) is optional: without the advert
-    # file the job page says the advert data isn't loaded.
+    # "What employers ask for" (ADR-0017) is optional. Only a valid cache is
+    # used here: recomputing takes ~2.5 minutes (NFR-04) and is load_adverts.py's
+    # job. Without it the job page says the advert data isn't loaded.
     import load_adverts
-    if load_adverts.POSTINGS.exists():
-        print()
-        load_adverts.load(con)
-    else:
-        print(f"\n  No {load_adverts.POSTINGS.relative_to(ROOT.parent)}: skipping adverts.")
+    print()
+    try:
+        load_adverts.load(con, compute_if_stale=False)
+    except Exception as e:   # the O*NET database above is complete either way
+        print(f"Adverts: skipped ({e}).")
     con.close()
 
 

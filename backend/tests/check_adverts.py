@@ -81,14 +81,14 @@ print(f"  Spearman(lift, O*NET importance), same job:      median {statistics.me
 print(f"  Spearman(lift, O*NET importance), another job:   median {statistics.median(shuffled):+.3f}")
 print(f"  same job beats another job in {sum(a > b for a, b in zip(real, shuffled))} of {len(big)}")
 
-# What the screen would show: skills with lift >= 1.5 and share >= 25%.
+# What the screen shows: the thresholds are imported, so this always checks the real screen.
 shown_imp, all_imp = [], []
 for soc in big:
     n = con.execute("SELECT adverts FROM advert_summary WHERE soc_code=?", (soc,)).fetchone()[0]
     c = dict(con.execute("SELECT item, n FROM advert_counts WHERE soc_code=? AND kind='skill'", (soc,)))
     for e in skills:
         all_imp.append(imp[soc].get(e, 0))
-        if c.get(e, 0) / n >= 0.25 and (c.get(e, 0) / n) / base[e] >= 1.5:
+        if c.get(e, 0) / n >= adverts.SKILL_MIN_SHARE and (c.get(e, 0) / n) / base[e] >= adverts.SKILL_MIN_LIFT:
             shown_imp.append(imp[soc].get(e, 0))
 print(f"  skills the screen would show: {len(shown_imp)}; mean O*NET importance {statistics.mean(shown_imp):.2f}"
       f" vs {statistics.mean(all_imp):.2f} for all skills of those jobs;"
@@ -102,15 +102,15 @@ rows = [r for r in csv.DictReader(open(load_adverts.POSTINGS, encoding="utf-8"))
         if adverts.link(r["title"], lookup)]
 rng = random.Random(5)
 for key, label, rx in adverts._REQ:
-    hits = [r for r in rows if rx.search((r["description"] or "").lower())]   # rules run on lower case
+    hits = [r for r in rows if rx.search(adverts.clean(r["description"]))]   # rules run on clean text
     print(f"\n[{key}] {label}: {len(hits):,} of {len(rows):,} linked adverts")
     for r in rng.sample(hits, 12):
-        m = rx.search(r["description"].lower())
+        m = rx.search(adverts.clean(r["description"]))
         a, b = max(0, m.start() - 60), m.end() + 50
         print("   …" + re.sub(r"\s+", " ", r["description"][a:b]) + "…")
 yrs = [(r, adverts.years_asked(r["description"])) for r in rows]
 yrs = [(r, y) for r, y in yrs if y is not None]
 print(f"\n[years] {len(yrs):,} adverts state years; sample:")
 for r, y in rng.sample(yrs, 10):
-    m = adverts._YEARS.search(r["description"])
+    m = adverts._YEARS.search(adverts.clean(r["description"]))
     print(f"   {y} ← …" + re.sub(r"\s+", " ", r["description"][max(0, m.start() - 30):m.end() + 20]) + "…")

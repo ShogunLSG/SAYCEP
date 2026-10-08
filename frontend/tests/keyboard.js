@@ -84,10 +84,21 @@ const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fails++
   await tabTo(has('Get feedback'), 'Get feedback'); await p.keyboard.press('Enter'); await p.waitForSelector('.fbk');
   ok(await p.evaluate(() => !!document.querySelector('[aria-live=polite] .fbk')), 'practice: feedback appears inside a polite live region');
   // what employers ask for: Home card opens the job page at the section
-  await tabTo((x) => x.text === 'Back', 'Back', true); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
-  await tabTo(has('See what employers ask for'), 'See what employers ask for'); await p.keyboard.press('Enter');
-  await p.waitForSelector('.emp'); await p.waitForTimeout(500);
-  a = await act(); ok(a.text.startsWith('What employers ask for'), `employers: focus on the section heading ("${a.text.slice(0, 30)}")`);
+  const loaded = await p.evaluate(() => fetch('/occupations/47-2111.00/adverts').then((r) => r.json()).then((d) => d.loaded));
+  if (!loaded) console.log('SKIP employers checks: advert data not loaded');
+  else {
+    await tabTo((x) => x.text === 'Back', 'Back', true); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    await tabTo(has('See what employers ask for'), 'See what employers ask for'); await p.keyboard.press('Enter');
+    await p.waitForSelector('.emp'); await p.waitForTimeout(500);
+    a = await act(); ok(a.text.startsWith('What employers ask for'), `employers: focus on the section heading ("${a.text.slice(0, 30)}")`);
+    // ...and when the adverts request fails, focus must still leave the hidden Home button.
+    await tabTo((x) => x.text === 'Back', 'Back', true); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    await p.route('**/adverts*', (r) => r.fulfill({ status: 500, body: '{"detail":"test"}' }));
+    await tabTo(has('See what employers ask for'), 'See what employers ask for'); await p.keyboard.press('Enter');
+    await p.waitForTimeout(3200);
+    a = await act(); ok(a.tag !== 'BODY' && !a.inTabhost, `employers, request failed: focus still moves into the page ("${a.text.slice(0, 30)}")`);
+    await p.unroute('**/adverts*');
+  }
   console.log(errs.length ? 'PAGE ERRORS: ' + errs.join(' | ') : 'no page errors');
   console.log(fails ? `${fails} FAILED` : 'ALL PASSED');
   process.exitCode = fails || errs.length ? 1 : 0;

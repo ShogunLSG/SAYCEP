@@ -930,3 +930,43 @@ advert title.
 - **The advert file isn't in the repo:** it's 517 MB and gitignored. Without
   it, the section says the data isn't loaded. Hosting must fetch it, or ship
   the 717 KB cache.
+
+### Corrections, 8 October (after code review)
+
+The decision stands, but a code review found errors in what the screen said.
+They are corrected here rather than by rewriting the entry above:
+
+- **The period.** The adverts linked to O\*NET were listed **5–20 April
+  2024**, not March–April; only the dataset as a whole starts in March. The
+  screen now takes the month from the data ("listed in April 2024").
+- **Beginners.** 26% of adverts give no experience level, and they were being
+  counted as "not open to beginners". The share is now of adverts that state a
+  level (`advert_summary.level_n`, a new column), and the screen says how many
+  that was. For Electricians that's 7 in 10 of 73, not 6 in 10 of 84.
+- **Years of experience** are shown only when 5 or more adverts state them, with
+  the count ("30 adverts said … typically about 4 years"), not as "usually".
+- **Rule errors, all now unit-tested (TC-U13):**
+  - curly apostrophes ("driver’s license") were missed, which halved the
+    driver's-licence share;
+  - "1.5 years" was read as 5;
+  - driving-licence wording also counted as a trade licence;
+  - "certified B Corp" and similar boilerplate counted as a trade licence;
+  - one product name also counted the shorter names inside it.
+
+  Re-checked: driver 12/12, licence 11/12, years 10/10. The skill validity
+  figures are unchanged (+0.23 vs +0.09, 179 of 219).
+- **Titles** keep their acronyms ("IT Project Manager", not "It").
+- **The cache:**
+  - It's fingerprinted on the database rows the counts are built from, not a
+    list of O\*NET files, so a change to `load_onet.py`'s filtering is caught.
+  - It works without the 517 MB advert file, so hosting can ship the cache
+    alone.
+  - It's written atomically, and a corrupt cache is treated as missing.
+  - `load_onet.py` now only ever reuses the cache, and otherwise says to run
+    `load_adverts.py`, so NFR-04 can't be broken by the advert pass.
+- **Focus.** If the adverts request fails after "See what employers ask for",
+  focus now still moves into the page (ADR-0016). This is tested by forcing the
+  request to fail.
+- **Not changed on purpose:** the advert matcher stays separate from the CV
+  scanner's, because that one is tied to a measured benchmark (ADR-0014). See
+  `BACKLOG.md`.

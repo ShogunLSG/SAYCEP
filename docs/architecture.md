@@ -44,11 +44,12 @@ occupation_tools    (soc_code, example, category)             -- ADR-0009
 
 -- "What employers ask for" (ADR-0017), from Kaggle LinkedIn job postings.
 -- Counts only: no advert text, companies or links are stored.
-advert_summary      (soc_code PK, adverts, entry_level, years_n, years_median,
+advert_summary      (soc_code PK, adverts, level_n, entry_level, years_n, years_median,
                      listed_from, listed_to, source_dataset)
+                     -- level_n added 8 October: beginners are counted over adverts that state a level
 advert_counts       (soc_code, kind, item, n, PK(soc_code, kind, item))
                      -- kind: 'skill' | 'tool' | 'software' | 'req'
-advert_titles       (soc_code, title, n)       -- normalised advert titles
+advert_titles       (soc_code, title, n)       -- normalised advert titles, acronyms kept
 advert_baseline     (kind, item, n)            -- the same counts over all linked adverts
 
 users               (profile_id PK, profile_type, target_soc_code, created_at,

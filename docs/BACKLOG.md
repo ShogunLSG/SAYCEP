@@ -72,6 +72,14 @@ pen so nothing gets lost.
   and care). Fix: require 4+ letters for a one-word tool match, as
   `adverts.named_in` already does. Then rerun `benchmark_cv.py`, since the
   measured r may move. (Found 2026-10-05 while building ADR-0017.)
+- **Two software/tool matchers: `cvscan.named` and `adverts.named_in`.**
+  This is deliberate for now. The advert one is stricter: 4+ letter one-word
+  names, vendor dropped only for known vendors, and longest match first, so
+  "Microsoft Visual Basic for Applications" doesn't also count as "Microsoft
+  Visual Basic". The CV scanner's matcher is tied to the measured r = 0.27
+  (ADR-0014), so changing it means re-measuring. When the "Canes" fix above is
+  done and `benchmark_cv.py` rerun, move to a single matcher in `cvscan.py`
+  with these rules, and record the new r. Raised by code review, 2026-10-08.
 
 ---
 

@@ -4,7 +4,11 @@ Run: python backend/tests/test_units.py
 Evidence for Assignment 3 Q5.1 (unit testing) and the traceability matrix (Q2.2).
 """
 
+import json
+import sqlite3
 import sys
+import tempfile
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -17,6 +21,7 @@ import plain
 import cvscan
 import interview
 import adverts
+import load_adverts
 from config import ESSENTIAL_THRESHOLD
 
 PASS, FAIL = [], []
@@ -190,6 +195,62 @@ def main():
           found == {"Microsoft Excel", "Multimeters"}, str(found))
     check("TC-U12h", "shares read as words: 7 in 10, almost all, a few",
           [adverts.share_words(n, 84) for n in (62, 84, 3)] == ["7 in 10", "almost all", "a few"])
+
+    print("\nTC-U13  Advert fixes after code review  (ADR-0017, 8 October)")
+    check("TC-U13a", "a curly apostrophe counts: driver’s license, 2 years’ experience",
+          "driver" in adverts.requirements("Must have a valid driver’s license")
+          and adverts.years_asked("2 years’ experience in a warehouse") == 2)
+    yrs = [adverts.years_asked(t) for t in ("1.5 years of experience", "related field.5-8 years’ experience")]
+    check("TC-U13b", "'1.5 years' is 1.5, not 5; 'field.5-8 years' is 5, not 8", yrs == [1.5, 5], str(yrs))
+    drv = [adverts.requirements(t) for t in ("Must have a valid license to drive", "CDL license required")]
+    check("TC-U13c", "a driving licence is not also a trade licence", drv == [{"driver"}, {"driver"}], str(drv))
+    boiler = [adverts.requirements(t) for t in ("We are a certified B Corp.", "A certified minority-owned business.",
+                                                "Great Place to Work-Certified™")]
+    check("TC-U13d", "employer boilerplate is not a trade licence; 'ASE Certified preferred' is",
+          boiler == [set(), set(), set()] and "licence" in adverts.requirements("ASE Certified preferred"), str(boiler))
+    tbl = adverts.aliases({"Microsoft Visual Basic", "Microsoft Visual Basic for Applications VBA"},
+                          {"Hacksaws", "Mini hacksaws"})
+    hits = adverts.named_in(tbl, "Uses Microsoft Visual Basic for Applications VBA and mini hacksaws.")
+    check("TC-U13e", "one mention names one product: the longest match, not also the names inside it",
+          hits == {"Microsoft Visual Basic for Applications VBA", "Mini hacksaws"}, str(hits))
+    shown = [adverts.display_title("it project manager", Counter({"IT Project Manager": 5, "It project manager": 1})),
+             adverts.display_title("electrician", Counter({"ELECTRICIAN": 4, "Electrician": 2}))]
+    check("TC-U13f", "advert titles keep their acronyms (IT, not It)", shown == ["IT Project Manager", "Electrician"], str(shown))
+    check("TC-U13g", "the period comes from the dates: April 2024, or March–April 2024",
+          (adverts.period("2024-04-05", "2024-04-20"), adverts.period("2024-03-24", "2024-04-20"))
+          == ("April 2024", "March–April 2024"))
+    row = {"adverts": 20, "level_n": 10, "entry_level": 7, "years_n": 2, "years_median": 4.0}
+    out = adverts.summarise(row, [("req", "renamed_key", 15), ("req", "school", 10), ("skill", "9.Z.9", 15)],
+                            {("skill", "9.Z.9"): 1}, 100, {}, {})
+    check("TC-U13h", "beginners are a share of adverts that state a level; years need 5+ adverts; "
+          "unknown keys are skipped, not fatal",
+          out["entry_words"] == "7 in 10" and out["years"] is None
+          and [r["key"] for r in out["requirements"]] == ["school"] and out["skills"] == [], str(out))
+
+    print("\nTC-U14  The advert cache  (NFR-04, ADR-0017)")
+    mem = sqlite3.connect(":memory:")
+    for t in ("occupations (soc_code, title)", "occupation_alt_titles (soc_code, title, short_title)",
+              "occupation_technology (soc_code, example)", "occupation_tools (soc_code, example)",
+              "occupation_tasks (task)", "skills (element_id, name)"):
+        mem.execute(f"CREATE TABLE {t}")
+    mem.execute("INSERT INTO occupations VALUES ('47-2111.00', 'Electricians')")
+    real_cache = load_adverts.CACHE
+    with tempfile.TemporaryDirectory() as d:
+        load_adverts.CACHE = Path(d) / "c.json"
+        missing = Path(d) / "no-postings.csv"
+        fake = {"read": 1, "linked": 1, "summary": [["47-2111.00", 5, 5, 3, 0, None, "2024-04-05", "2024-04-20"]],
+                "counts": [], "titles": [], "baseline": [["all", "adverts", 1]],
+                "inputs": load_adverts.inputs_fingerprint(mem), "postings": "x"}
+        load_adverts.CACHE.write_text(json.dumps(fake))
+        ok_cache_only = load_adverts.load(mem, path=missing, compute_if_stale=False)
+        mem.execute("UPDATE occupations SET title = 'Electricians (changed)'")
+        stale = load_adverts.load(mem, path=missing, compute_if_stale=False)
+        load_adverts.CACHE.write_text('{"inputs": "trunc')
+        corrupt = load_adverts.load(mem, path=missing, compute_if_stale=False)
+    load_adverts.CACHE = real_cache
+    check("TC-U14a", "a valid cache loads without the 517 MB advert file", ok_cache_only is True)
+    check("TC-U14b", "a change in the O*NET rows the counts were built from makes the cache stale", stale is False)
+    check("TC-U14c", "a corrupt cache is treated as no cache, not a crash", corrupt is False)
 
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0

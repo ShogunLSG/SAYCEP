@@ -220,6 +220,11 @@ def advert_summary(con, soc_code):
     return con.execute("SELECT * FROM advert_summary WHERE soc_code = ?", (soc_code,)).fetchone()
 
 
+def advert_period(con):
+    """(first, last) listing date across every linked advert, or (None, None)."""
+    return con.execute("SELECT MIN(listed_from), MAX(listed_to) FROM advert_summary").fetchone()
+
+
 def advert_counts(con, soc_code):
     """[(kind, item, n)] for one occupation, commonest first."""
     return con.execute("SELECT kind, item, n FROM advert_counts WHERE soc_code = ?"
