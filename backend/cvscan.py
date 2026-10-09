@@ -79,15 +79,25 @@ SKILL_RULES = {
 }
 
 
+TOOL_MIN_LEN = 4          # a one-word tool name shorter than this is too often a common word
+
+
 def _words(text):
-    """Lower-case word sequence with plurals folded, for naming software/tools."""
+    """Lower-case word sequence with plurals folded, for naming software/tools.
+
+    English drops "-es" only after s, x, z, ch and sh (boxes -> box, wrenches
+    -> wrench); otherwise just the "s" (canes -> cane). Until 9 October every
+    "-es" was dropped, so the tool "Canes" became "can" and "Planes" became
+    "plan", and a CV saying "I can" or "a plan" named them (ADR-0018)."""
     out = []
     for w in re.findall(r"[a-z0-9][a-z0-9+#.]*", (text or "").lower()):
         w = w.rstrip(".")
-        if len(w) > 3 and w.endswith("es") and not w.endswith("ses"):
-            w = w[:-2]
-        elif len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
-            w = w[:-1]
+        if len(w) > 4 and w.endswith("ies"):
+            w = w[:-3] + "y"                          # batteries -> battery
+        elif len(w) > 3 and re.search(r"(ss|ch|sh|x|z)es$", w):
+            w = w[:-2]                                # glasses -> glass, boxes -> box
+        elif len(w) > 3 and w.endswith("s") and not w.endswith(("ss", "is", "us")):
+            w = w[:-1]                                # canes -> cane; not analysis, status
         out.append(w)
     return out
 
@@ -155,19 +165,31 @@ def skill_evidence(index, text):
     return found
 
 
-def named(table, text, common=None):
+def named(table, text, common=None, min_len=3):
     """Which known software/tools the text names (as O*NET writes them).
     Pass common= for software, so a one-word name that is ordinary English
-    ("Teams", "Windows") needs its vendor ("Microsoft Teams") to count."""
+    ("Teams", "Windows") needs its vendor ("Microsoft Teams") to count.
+    Callers use software_named / tools_named, which set both rules."""
     ws = _words(text)
     found = set()
     for n in (4, 3, 2, 1):
         for i in range(len(ws) - n + 1):
             hit = table.get(tuple(ws[i:i + n]))
-            if hit and not (n == 1 and (len(ws[i]) < 3 or ws[i] in AMBIGUOUS
+            if hit and not (n == 1 and (len(ws[i]) < min_len or ws[i] in AMBIGUOUS
                                         or (common and ws[i] in common))):
                 found.add(hit)
     return found
+
+
+def software_named(index, text):
+    """Software named in the text. Three letters is enough ("SQL", "Git")."""
+    return named(index.software, text, common=index.common)
+
+
+def tools_named(index, text):
+    """Tools named in the text. A one-word tool needs 4+ letters: "I saw" is
+    not the tool Saws, nor "tap" Taps (ADR-0018)."""
+    return named(index.tools, text, min_len=TOOL_MIN_LEN)
 
 
 def suggestions(index, evidence):

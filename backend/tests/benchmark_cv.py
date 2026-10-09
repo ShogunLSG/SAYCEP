@@ -128,7 +128,7 @@ def main():
         if key not in scanned:
             text = cv_text(r)
             scanned[key] = (cvscan.skill_evidence(index, text),
-                            cvscan.named(index.software, text, common=index.common), cvscan.named(index.tools, text))
+                            cvscan.software_named(index, text), cvscan.tools_named(index, text))
         soc = MAP[r[job_col].strip()][0]
         ev, sw, tl = scanned[key]
         pairs.append((key, cvscan.goal_score(index, ev, sw, tl, soc)["value"], naive(r), float(r["matched_score"])))

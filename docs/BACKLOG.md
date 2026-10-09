@@ -65,21 +65,25 @@ pen so nothing gets lost.
 - **Measure the CV scanner on trades CVs.** Its tool evidence is built but
   unmeasured, because the benchmark has no trades CVs. A Kaggle dataset of
   trades or South African CVs would fix that. (Noticed 2026-10-05.)
-- **CV scanner bug: "can" counts as the tool "Canes".** `cvscan._words` folds
-  plurals, so the O\*NET tool "Canes" becomes the one-word alias "can", and
-  `named()` only rejects words under 3 letters. Any CV saying "I can…" names
-  Canes, which inflates the goal score a little for jobs that list it (nursing
-  and care). Fix: require 4+ letters for a one-word tool match, as
-  `adverts.named_in` already does. Then rerun `benchmark_cv.py`, since the
-  measured r may move. (Found 2026-10-05 while building ADR-0017.)
+- **CV scanner: one-word tools that are everyday words in CVs.** "Trial
+  balance" names the tool Balances (30 of 344 benchmark CVs), "entry level"
+  names Levels (16), and "financial controller" names Controllers. Python's
+  Flask names Flasks, and "Internet Explorer" names Explorers. A stop-list
+  would be easy, but these words were spotted by looking at every benchmark
+  CV, including the held-out half. Choosing a list from them would quietly
+  inflate the reported r. It needs a fresh test set (for example trades CVs,
+  above) or a list chosen on the tuning half only. The "Canes" folding bug
+  that used to be listed here is fixed (ADR-0018). (Noted 2026-10-09.)
 - **Two software/tool matchers: `cvscan.named` and `adverts.named_in`.**
   This is deliberate for now. The advert one is stricter: 4+ letter one-word
   names, vendor dropped only for known vendors, and longest match first, so
   "Microsoft Visual Basic for Applications" doesn't also count as "Microsoft
   Visual Basic". The CV scanner's matcher is tied to the measured r = 0.27
-  (ADR-0014), so changing it means re-measuring. When the "Canes" fix above is
-  done and `benchmark_cv.py` rerun, move to a single matcher in `cvscan.py`
-  with these rules, and record the new r. Raised by code review, 2026-10-08.
+  (ADR-0014, re-measured in ADR-0018), so changing it means re-measuring. Both
+  now share the corrected plural-folding and the 4-letter rule for one-word
+  tools (ADR-0018). What still differs is the vendor policy and longest
+  match. Merging them is a re-measure away. Raised by code review,
+  2026-10-08.
 
 ---
 

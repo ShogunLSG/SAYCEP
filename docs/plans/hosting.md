@@ -71,7 +71,7 @@ push to main ──► GitHub Actions: run every test ──► if green: fly de
    - The app opens `users.db` and attaches the O\*NET database read-only. The
      user tables already reference only each other, so no queries change.
    - **This is a schema change:** same tables and columns, in a different
-     file. It gets ADR-0018.
+     file. It gets ADR-0019.
    - Your local saved plans get copied across once.
 2. **`backend/prepare_data.py`.**
    - It downloads O\*NET from Kaggle using `KAGGLE_API_TOKEN`, unzips it and
@@ -112,7 +112,7 @@ push to main ──► GitHub Actions: run every test ──► if green: fly de
    - The O\*NET download is cached between runs.
    - On a push to `main` with every test green, it deploys to Fly. Pushes to
      other branches only run the tests.
-8. **Docs.** ADR-0018 for the user-data split; ADR-0019 for the host; a
+8. **Docs.** ADR-0019 for the user-data split; ADR-0020 for the host; a
    `docs/deploy.md` runbook covering setup, deploy, the presentation
    checklist, restore from snapshot, and how to rotate the token.
 
@@ -143,7 +143,7 @@ they need your accounts.
 ## Load-bearing decisions in here
 
 - **Hosting on Fly.io, about $3/month on your card.** Decided 9 October.
-- **The schema change in item 1** (ADR-0018).
+- **The schema change in item 1** (ADR-0019).
 - **Committing a derived data file (item 3).** Until now, every data file has
   been gitignored.
 - **Deploying automatically from `main` (item 7).** You'd merge to deploy.

@@ -148,6 +148,13 @@ def main():
           sw == {"Microsoft Excel"}, str(sw))
     check("TC-U10d", "a one-word product name that is ordinary English needs its vendor (Teams, Windows)",
           not cvscan.named(idx.software, "I worked in teams and cleaned windows", common=idx.common))
+    folded = cvscan._words("canes planes boxes wrenches glasses batteries analysis status")
+    check("TC-U10f", "plurals fold to their real singular: canes -> cane, not can (ADR-0018)",
+          folded == ["cane", "plane", "box", "wrench", "glass", "battery", "analysis", "status"], str(folded))
+    tl = cvscan.tools_named(idx, "I can lead a plan, and I saw where to tap in.")
+    check("TC-U10g", "'I can', 'a plan', 'I saw', 'tap' name no tools (Canes, Planes, Saws, Taps)", tl == set(), str(tl))
+    check("TC-U10h", "a real mention still names the tool: 'canes and walkers'",
+          {"Canes", "Walkers"} <= cvscan.tools_named(idx, "Helped patients with canes and walkers"))
     import inspect
     src = inspect.getsource(cvscan)
     check("TC-U10e", "the scanner never writes to the database (no INSERT/UPDATE/DELETE in cvscan.py)",

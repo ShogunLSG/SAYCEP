@@ -517,8 +517,8 @@ def scan_cv(body: CvIn, con=Depends(db)):
         _require_occupation(con, soc)
 
     evidence = cvscan.skill_evidence(index, body.text)
-    software = cvscan.named(index.software, body.text, common=index.common)
-    tools = cvscan.named(index.tools, body.text)
+    software = cvscan.software_named(index, body.text)
+    tools = cvscan.tools_named(index, body.text)
     out = {
         "suggestions": [{**sg, "status": held.get(sg["element_id"])} for sg in cvscan.suggestions(index, evidence)],
         "software_named": sorted(software), "tools_named": sorted(tools),

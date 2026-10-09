@@ -970,3 +970,59 @@ They are corrected here rather than by rewriting the entry above:
 - **Not changed on purpose:** the advert matcher stays separate from the CV
   scanner's, because that one is tied to a measured benchmark (ADR-0014). See
   `BACKLOG.md`.
+
+## ADR-0018 — CV scanner: plurals folded correctly; the benchmark re-measured
+
+**Date:** 2026-10-09
+**Status:** Accepted. It corrects ADR-0014's software and tool matching;
+ADR-0014's decision and figures otherwise stand.
+**Relates to:** ADR-0014, ADR-0017, `BACKLOG.md`,
+`test-results/benchmark-cv-2026-10-09.txt`
+
+### Context
+
+While building ADR-0017, I found that the CV scanner read "I can" as the
+tool **Canes**. The cause was the plural-folding in `cvscan._words`: it
+dropped "-es" from every word, so "Canes" became "can" and "Planes" became
+"plan". Across the 344 benchmark CVs, that wrongly named Canes in 29 and
+Planes in 19. One-word tools that are three-letter words had the same
+problem: "I saw" named **Saws**, and "tap" named **Taps**.
+
+### Decision
+
+- **Fold plurals properly.** Drop "-es" only after s, x, z, ch and sh (boxes
+  → box), turn "-ies" into "-y", and otherwise drop just the "s" (canes →
+  cane). Words ending in "-is" or "-us" (analysis, status) are left alone.
+- **A one-word tool name needs four or more letters.** Software keeps three:
+  SQL, Git and AWS are real evidence on CVs.
+- **Callers can't forget the rules.** They go through
+  `cvscan.software_named` and `cvscan.tools_named`.
+- **Chosen on the tuning half only; the test half was run once.**
+
+  | Variant (tuning half) | r |
+  |---|---|
+  | shipped | 0.3111 |
+  | fixed folding | 0.3114 |
+  | **fixed folding + 4-letter tools** | **0.3114** |
+
+  Two alternatives were rejected:
+  - 4+ letters for software too: 0.2930;
+  - the everyday-word filter applied to tools: 0.2937, because it also
+    removes real tools like Routers and Forklifts.
+
+### Result
+
+- **Held-out r is 0.2655**, against 0.266 before, with a 95% interval of
+  0.196 to 0.332. The figure quoted in the presentation stays **r = 0.27**.
+  The fix removes false matches without costing accuracy.
+
+### Consequences
+
+- **"What employers ask for" shares the same folding,** so its counts were
+  recomputed.
+- **Not fixed, and logged:** one-word tools that are everyday words in CVs.
+  "Trial balance" names **Balances** and "entry level" names **Levels**. A
+  word list to stop them would have been picked by looking at every CV,
+  including the held-out half, so it needs a fresh test set first.
+- **The interim numbering in `plans/hosting.md` moves.** The user-data split
+  becomes ADR-0019, and the host choice ADR-0020.

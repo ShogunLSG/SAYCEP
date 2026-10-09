@@ -324,7 +324,9 @@ from explicit trigger words (quoted back to the user for confirmation) and
 scores a CV against a goal by the software and tools it names. That approach
 is measured at r = 0.27 against 0.16 on held-out CVs. The CV is never stored.
 The benchmark (`backend/tests/benchmark_cv.py`) scores the shipped code, so
-rerun it after changing `cvscan.py`.
+rerun it after changing `cvscan.py`. On 9 October it was rerun after fixing the plural-folding,
+which had made "I can" name the tool Canes. Held-out r went from 0.266 to
+0.2655 (ADR-0018).
 
 ### 5 October: interview practice (module 5)
 
