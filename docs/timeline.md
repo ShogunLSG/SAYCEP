@@ -2,7 +2,12 @@
 
 Solo developer. The proposal describes a Feb–Nov 2026 seven-phase plan; that stays in the written document as the project's formal schedule. What follows is the real working plan from today, which is what actually needs executing.
 
-## Fixed point
+## Fixed point — confirmed 9 October
+
+**Prototype presentation: Saturday 24 October 2026.** That's 15 days from 9
+October, worked around a full-time job. The plan for those days is at the end
+of this file. *The paragraph below is the original September estimate, kept
+for the record.*
 
 **Presentation: beginning of October 2026, with a working demo expected.** From 10 September that is roughly three weeks, worked around a full-time job.
 
@@ -108,3 +113,26 @@ The frontend is the riskiest item, and it sits on the last weekend. Mitigation:
 React from a CDN in a single HTML file served by FastAPI — no npm, no build step,
 no toolchain to debug at 11pm on 27 September. Still React, still honest in the
 proposal, and it removes a category of problem rather than solving one.
+
+---
+
+## Final run-in — 9 to 24 October *(added 9 October, when the date was confirmed)*
+
+The build is done: five modules, accessibility, 155 tests. What's left is
+mostly the project owner's assessed work, plus hosting. **The code freezes on
+the evening of Wednesday 21 October.** After that, only fixes to things that
+break the demo.
+
+| When | Claude | You |
+|---|---|---|
+| **Fri 9 – Sun 11** | Build the hosting (`plans/hosting.md`). Fix the CV scanner's "Canes" bug and re-measure, because that figure is quoted. | Rotate the Kaggle token. Make a Fly.io account. The 20-minute setup with me on Sat or Sun. Start drafting FR-11 onward. |
+| **Mon 12 – Fri 16** | Pressure-test each requirement as you send it; close any gap between what a requirement promises and what's built. | Finish the requirements for everything after FR-10. Book one first-time user for a ten-minute test. |
+| **Sat 17 – Sun 18** | Turn the user test into NFR-02 evidence. | Run the user test. Draft the slides. **Gate:** the demo script runs end to end on the live link, twice, without touching code. |
+| **Mon 19 – Wed 21** | Fixes only. **Freeze on Wed evening.** | Rehearse with the slides. |
+| **Thu 22** | Keep the site awake from now until after the presentation (one line, about $0.30). | Full dress rehearsal on the live link, timed. |
+| **Fri 23** | Check that the live site and the laptop fallback both work. | Rest. Charge the laptop. |
+| **Sat 24** | — | Open the site 15 minutes before. Present. |
+
+**If something slips, cut in this order:** hosting goes first (present from
+the laptop, which is already rehearsed), then the user test. The requirements
+and the rehearsal can't be cut.

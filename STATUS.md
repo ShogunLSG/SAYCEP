@@ -49,7 +49,7 @@
    Assignment 3 went in without them; the presentation is where they're asked.
 2. **Read Assignment 3 before submitting:** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md`. It's in my words, not yours.
 4. **User acceptance test.** NFR-02 is reported as *partial* because no first-time user has walked the journey unassisted. Ten minutes with one person, using the demo script below, would turn it into evidence. The document says plainly that it hasn't been done.
-5. **Confirm the new demo date.** Then rehearsal and slides, which are both still not started.
+5. **Presentation confirmed: Saturday 24 October.** The day-by-day run-in is at the end of `docs/timeline.md`; the code freezes on Wednesday 21 October. Slides and rehearsal are not started.
 6. **Assignment 2 diagrams are small.** If Assignment 2 isn't submitted yet, its use-case, class and sequence diagrams print with text under 6 px. Assignment 3's are fixed; the same landscape-page approach would fix Assignment 2's.
 
 ## Done on 30 September
