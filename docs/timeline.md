@@ -2,11 +2,12 @@
 
 Solo developer. The proposal describes a Feb–Nov 2026 seven-phase plan; that stays in the written document as the project's formal schedule. What follows is the real working plan from today, which is what actually needs executing.
 
-## Fixed point — confirmed 9 October
+## Fixed point — confirmed 9 October, corrected 19 October
 
-**Prototype presentation: Saturday 24 October 2026.** That's 15 days from 9
-October, worked around a full-time job. The plan for those days is at the end
-of this file. *The paragraph below is the original September estimate, kept
+**Prototype presentation: Friday 23 October 2026.** On 9 October it was
+recorded as Saturday 24 October; on 19 October it was confirmed as "this
+coming Friday", so it's a day earlier. The plan for the last days is at the
+end of this file. *The paragraph below is the original September estimate, kept
 for the record.*
 
 **Presentation: beginning of October 2026, with a working demo expected.** From 10 September that is roughly three weeks, worked around a full-time job.
@@ -116,7 +117,7 @@ proposal, and it removes a category of problem rather than solving one.
 
 ---
 
-## Final run-in — 9 to 24 October *(added 9 October, when the date was confirmed)*
+## Final run-in — 9 to 24 October *(added 9 October; superseded 19 October, see below)*
 
 The build is done: five modules, accessibility, 155 tests. What's left is
 mostly the project owner's assessed work, plus hosting. **The code freezes on
@@ -136,3 +137,23 @@ break the demo.
 **If something slips, cut in this order:** hosting goes first (present from
 the laptop, which is already rehearsed), then the user test. The requirements
 and the rehearsal can't be cut.
+
+---
+
+## Last four days — 19 to 23 October *(added 19 October, when the date moved to Friday 23)*
+
+Done since 9 October: the CV scanner fix and re-measure (ADR-0018). **Hosting
+isn't built.** With four days left, the rule above applies: hosting is cut
+first. **Present from the laptop.** The local app is the rehearsed path, and
+the Fly.io plan (`plans/hosting.md`) stays ready for after the presentation.
+If you still want the live link, Monday is the last day to start it: about a
+day of work, then about 20 minutes with you. That's risky this close to the
+freeze, and I wouldn't.
+
+| When | Claude | You |
+|---|---|---|
+| **Mon 19** | Merge-ready pull request of everything since the start of the project. | Merge it. Decide on hosting today (recommended: no). |
+| **Tue 20** | Fixes only, if the rehearsal finds anything. | Rehearse the demo script in `STATUS.md` with the slides, timed. |
+| **Wed 21** | Fixes only. **Code freezes in the evening.** | Second rehearsal. Make sure the requirements after FR-10 are written; the questions come from them. |
+| **Thu 22** | Check that a clean copy of the repo starts and runs the demo. | Full dress rehearsal on the laptop that will present. Charge it. Keep a second way to show it, such as a screen recording of the demo. |
+| **Fri 23** | — | Start the app 15 minutes before (`python -m uvicorn app:app --app-dir backend --port 8000`). Present. |
