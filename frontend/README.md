@@ -49,3 +49,4 @@ the app. Install `axe-core` and `playwright` in any scratch folder, put it on
 
     node frontend/tests/a11y_audit.js          # SCHEME=dark, WIDTH=320 for the other runs
     node frontend/tests/keyboard.js
+    node frontend/tests/demo_walk.js           # the presentation demo, all 15 steps; SHORT=1 for the 7-minute path

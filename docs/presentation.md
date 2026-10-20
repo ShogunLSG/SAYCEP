@@ -489,14 +489,27 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Employer adverts | 123,849 read · 26,472 linked · 438 jobs with 5+ · Electricians 84 | `adverts-2026-10-05.txt` |
 | Advert linking precision | 44 of 50 right (my own check) | `job-postings-step0-2026-10-05.txt` |
 | Accessibility | 169 failures to 0 · 23 screens · light, dark, 320 px | `accessibility-2026-10-05.txt` |
-| Automated tests | see §7 | the three suites |
+| Automated tests | **161**, plus the accessibility, keyboard and demo walks | §7 |
 | Dependencies | 2 (FastAPI, uvicorn); the app loads React from files in the repo | `requirements.txt` |
 
 ---
 
 ## 7. Test counts, checked 20 October
 
-TESTCOUNTS
+| Check | Result |
+|---|---|
+| Unit tests (`backend/tests/test_units.py`) | **56** passed |
+| Integration and system tests over HTTP (`test_api.py`) | **100** passed |
+| Performance and accuracy measurements (`test_performance.py`) | **5** passed |
+| **Automated tests in all** | **161** |
+| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **23** screens, in light mode, dark mode, and at 320 px wide |
+| Keyboard-only walk of the demo | **21** of 21 checks |
+| Demo walk (this page's script) | **47** checks over all 15 steps; **37** over the 7-minute path |
+
+Run any of them with `python backend/tests/test_<name>.py` (the server running
+for the API and performance ones), or the `node frontend/tests/...` scripts.
+The accessibility and keyboard scripts need `axe-core` and Playwright; see the
+header of each file.
 
 ---
 
