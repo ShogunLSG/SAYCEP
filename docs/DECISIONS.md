@@ -1026,3 +1026,82 @@ problem: "I saw" named **Saws**, and "tap" named **Taps**.
   including the held-out half, so it needs a fresh test set first.
 - **The interim numbering in `plans/hosting.md` moves.** The user-data split
   becomes ADR-0019, and the host choice ADR-0020.
+
+## ADR-0019 — The advert counts are committed, so a fresh checkout runs the whole demo
+
+**Date:** 2026-10-20
+**Status:** Accepted
+**Relates to:** ADR-0017, `plans/hosting.md` item 3, `presentation.md` §4
+
+### Context
+
+Preparing the presentation, I tried the laptop path from a clean clone. The
+O\*NET files, `saycep.db` and the 517 MB advert file are all gitignored, and the
+advert counts cache sat in that ignored folder. A fresh checkout therefore had
+no advert counts. "What employers ask for" would have said "advert data isn't
+loaded" in the middle of the demo, with no error. The same review found two
+faults in the cache fingerprint, both caught by new tests:
+- it hashed `repr(row)`, which for the app's `sqlite3.Row` objects includes a
+  memory address, so it changed on every call;
+- it hashed code bytes, so git's Windows line-ending conversion would have made
+  a correct cache look stale.
+
+### Decision
+
+- **Commit the counts:** `backend/seed/advert_counts.cache.json` (0.7 MB). It
+  holds counts and titles only, never advert text, and the screens still carry
+  the CC BY-SA attribution. The 517 MB advert file stays out of git.
+- **Fix the fingerprint:** it hashes row values, and normalises line endings.
+- **A unit test fails if the committed counts are stale** (TC-U14d), so the
+  seed can't silently drift from the code. After changing `adverts.py`,
+  `cvscan.py`, `load_adverts.py` or the O\*NET loading, run
+  `python backend/load_adverts.py --fresh` (about 2.5 minutes) and commit the seed.
+- A second test (TC-U14e) checks that CRLF and LF checkouts give the same
+  fingerprint.
+
+### Consequences
+
+- A clean clone needs only the O\*NET files and `python backend/load_onet.py`.
+- This is the shipped-counts item of the hosting plan, done early because the
+  presentation runs from a laptop.
+- It's the first derived data file in git. The O\*NET files and the database
+  remain derived and ignored.
+
+## ADR-0020 — TR-01 is reported two ways: as defined, and with the target removed
+
+**Date:** 2026-10-20
+**Status:** Accepted
+**Relates to:** FR-06, ADR-0013, `test-results/performance-2026-10-20.txt`
+
+### Context
+
+Assignment 3 reports 59.7% (n = 124) against a random baseline of 25.8%. Reviewing
+how the test works for the presentation, I found two things:
+- the engine's top five is chosen from all 879 jobs, so **the target job itself
+  can appear in it**, and then counts as a same-family hit. It does in 25 of
+  124 cases (20%);
+- the random baseline excludes the target.
+
+The asymmetry in the baseline is small (about half a point). The size of the
+self-hit effect is not.
+
+### Decision
+
+- **PT-01 stays as defined**, because that's what Assignments 2 and 3 report and
+  it's a legitimate reading: a profile that matches a job should find it.
+- **PT-01b is added: every one of the 713 jobs that have must-have skills (not a
+  sample), the target removed, the next five used, an exact random baseline,
+  and a bootstrap interval.**
+- Result: **58.5% against 25.9% by chance, 95% interval 54.6–62.1.** It clears
+  the 55% threshold, but the interval's lower end is just under it.
+- **When asked, say the stricter figure.** Nothing submitted is withdrawn: 59.7%
+  is correct for what it measured.
+
+### Consequences
+
+- The margin over the threshold is thinner than "59.7%" suggests. That's what
+  `STATUS.md` and the presentation Q&A now say.
+- ADR-0013's comparison (59.7% against 60.5%) is unaffected: both sides used
+  the same measure.
+- If you want TR-01's wording to mean the strict version, that's your
+  requirement to redefine. I haven't changed it.

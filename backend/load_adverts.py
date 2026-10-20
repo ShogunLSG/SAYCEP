@@ -29,10 +29,14 @@ import cvscan
 ROOT = Path(__file__).resolve().parent
 POSTINGS = ROOT / "data" / "linkedin" / "postings.csv"
 # The counts take about 2.5 minutes to compute from 517 MB of adverts, and
-# change only when an input does. They're cached beside the data with a
-# fingerprint of every input: the database rows the computation reads (so a
-# change to load_onet.py's filtering counts too), the code, and the advert file.
-CACHE = POSTINGS.with_name("advert_counts.cache.json")
+# change only when an input does. They're cached with a fingerprint of every
+# input: the database rows the computation reads (so a change to load_onet.py's
+# filtering counts too), the code, and the advert file. The cache is COMMITTED
+# (backend/seed/, 0.7 MB, counts only, no advert text): a fresh checkout has
+# neither the 517 MB advert file nor the time to compute, and without it the
+# job pages would say the advert data isn't loaded (ADR-0019). A unit test
+# fails if the committed counts no longer match the code.
+CACHE = ROOT / "seed" / "advert_counts.cache.json"
 CODE = [ROOT / n for n in ("adverts.py", "cvscan.py", "load_adverts.py")]
 INPUT_QUERIES = [
     "SELECT soc_code, title FROM occupations ORDER BY 1",
@@ -110,9 +114,11 @@ def inputs_fingerprint(con):
     h = hashlib.sha256()
     for q in INPUT_QUERIES:
         for row in con.execute(q):
-            h.update(repr(row).encode())
+            h.update(repr(tuple(row)).encode())   # values, not the row object (sqlite3.Row's repr is an address)
     for p in CODE:
-        h.update(p.read_bytes())
+        # Line endings are normalised: git on Windows checks files out with CRLF,
+        # and that must not make a correct cache look stale.
+        h.update(p.read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()
 
 

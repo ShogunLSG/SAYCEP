@@ -1,6 +1,8 @@
 # Status
 
-**As of 30 September 2026 (night): SAYCEP is a full app.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs — Home, Explore, Skills, Me — with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history and a printable plan. 98 automated tests pass (23 unit, 71 integration and system, 4 performance). Assignment 3 was submitted describing the earlier build; the demo now shows more, which is normal and worth saying.
+**As of 20 October 2026: the prototype is built and its demo path is machine-checked, for presentation on Saturday 24 October. The human rehearsal is still to do.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs (Home, Explore, Skills, Me) with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history, a printable plan, and the proposal's other three modules in reduced, stated forms: a CV check, interview practice, and what employers ask for. All of it is checked by automated tests (counts in `docs/presentation.md` §7), a WCAG 2.1 AA audit and a script that runs the demo. **Hosting is not built; the plan is to present from the laptop.**
+
+**For the presentation, start at `docs/presentation.md`:** running order, the demo path, the laptop setup, the failure plan, and the questions to expect.
 
 ## Decided
 
@@ -63,34 +65,10 @@
 
 ## The demo script
 
-Verified end to end on 30 September (night), screenshots in `docs/screenshots/v3/`. About six minutes.
-
-1. **Welcome.** Type a first name (Thabo) → *Start my plan*. Say: no email, no password — a plan code instead.
-2. **I left school**, then tick: Operation and Control · Operations Monitoring · Equipment Maintenance · Active Listening · Critical Thinking · Monitoring
-3. *For you* shows operator roles with scores, and **why** each one: "Because you have: Operation and Control, Equipment Maintenance…" (FR-06). *Search* "electric", tap **Electricians** — the panel shows what the job is and *A day in this job*. **Aim for this job**.
-4. The gap: "You already have **6 of the 34** skills… **2 must-haves**" — Troubleshooting and Repairing.
-5. The route: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians. Each step says why it's there ("Closest to you now. Good match with your skills"). **Save as my plan**.
-6. **Home.** Troubleshooting → *Start learning* (nothing changes — learning isn't having), then *I can do this now* → **the unlock card**: 1 of 2, Power-Line Installers now ready, 106 jobs with every must-have (up 4).
-7. **Explore → Search** "conduit installer" — Electricians, *also called Conduit Installer*. Open it: tools of the trade, software, jobs like this. *Save this job*. Save Power-Line Installers and Boilermakers too.
-8. **Explore → Interests.** Answer the twelve; show jobs that fit. Say it's a simplified version of O*NET's profiler.
-9. **Skills → Repairing → I can already** → the goal is complete: 2 of 2, 131 jobs.
-10. **Home → Saved jobs →** tick three → **Compare**. Then **Your progress**: 0 → 0 → 1 → 2 of 2.
-11. **Home → Check my CV → Use an example CV → Check my CV.** Skills it shows, each quoting its line. *Add* Repairing → the unlock card. Then *How it reads for Electricians*: Multimeters and Excel named, Troubleshooting not shown yet. Say: "never saved".
-12. **Home → What employers ask for → See what employers ask for.** It opens Electricians at the section: 84 US adverts listed in April 2024; of the 73 that state a level, 7 in 10 were open to beginners; 7 in 10 mention a trade licence and 3 in 10 a driver's licence; Installation, Repairing and Troubleshooting are the skills they stress. Say: real adverts, American and closed, so it shows what employers ask for, not jobs to apply for.
-13. **Home → Practise for an interview.** Question 2 (Troubleshooting): type "I fixed it." → 2 of 7 with tips; paste a full story → 7 of 7. Say: practice with guidance, not a chatbot, and nothing is saved.
-14. **Me →** *Print my plan* (one page). Note the plan code, *Sign out*, then *I have a plan code* → the plan comes back.
-15. For the marker: add `?presenter` — every SOC code, Job Zone and rating is back.
-
-Questions to expect, with the honest answers:
-- *"Why no real login?"* Nothing personal is held beyond an optional first name, so a password would protect nothing a code doesn't. The code is a bearer credential and the screen says so (ADR-0008).
-- *"How do you know they can really do it now?"* We don't — progress is self-reported, like the original skill capture (ADR-0005).
-- *"Is the quiz validated?"* No. It's twelve statements of ours against O*NET's real interest profiles, labelled as simplified (ADR-0011).
-- *"Your accuracy only beats the target by 4.7 points. Can you improve it?"* Measured on 4 October: adding O*NET Knowledge and Abilities to the job vectors moves it from 59.7% to 60.5%, which is noise, because users don't record those. It would only help if users did, and that's a new capture step. Assignment 3 suggested otherwise; measuring showed it was wrong (ADR-0013).
-- *"How good is the CV scanner?"* On 172 held-out CVs from a Kaggle benchmark, its goal score tracks human match scores at r = 0.27, against 0.16 for word matching (re-measured 9 October after a matching fix, ADR-0018). That's modest, and it's from tech and office CVs, not South African ones. The skill suggestions are rules we wrote, quoted back for the user to confirm, because three smarter text-matching designs did worse than plain word matching (ADR-0014).
-- *"Your proposal said interview chatbot. Where is it?"* A chatbot needs a language model, and the project rules out an LLM, so it's interview practice instead: questions from the job's real skills and tasks, and a checklist on each answer. All five modules are now built, three in a reduced form (ADR-0014, ADR-0015, ADR-0017).
-- *"Why aren't these South African jobs?"* There are none on Kaggle that are real. The two "South African" sets failed verification: one is mostly Indian and German company scrapes, the other is generated from four templates. So the app shows what 84 real (American, 2024) electrician adverts asked for and says so, rather than inventing local openings. Links are by job title, 44 of 50 checked right (ADR-0017).
-- *"Is it accessible?"* Measured on 5 October against WCAG 2.1 AA: an automated audit of all 22 screens went from 169 failures to 0 (light and dark mode, and at 320 px wide), and a keyboard-only walk of the whole demo now passes 19 of 19 checks. It hasn't been tested with a real screen reader or disabled users, and that's the honest gap (ADR-0016).
-- *"Why don't recommendations include Electrician?"* The six skills ticked are operator skills; the target was reached by search, which is what search is for.
+Moved on 20 October to **`docs/presentation.md`** (§3 is the demo path, §5 the
+questions to expect), so there's one copy that can't drift. It's checked by
+`frontend/tests/demo_walk.js`: `SHORT=1` for the 7-minute path, no flag for all
+15 steps. Screenshots of each step are in `docs/screenshots/v4/`.
 
 ## Built on 5 October — accessibility (ADR-0016)
 
@@ -102,6 +80,13 @@ Questions to expect, with the honest answers:
 - Module 4, as the data allows. Real LinkedIn adverts (US, listed April 2024), linked to O*NET by title, summarised per job: beginners' share, requirements, tools named, skills stressed, titles. It's on the job page and in a Home card for the goal.
 - Checked: skills agree weakly but really with O*NET (Spearman +0.23 vs +0.09). The requirement rules were hand-checked at 11–12 of 12. See `docs/test-results/adverts-2026-10-05.txt`.
 - The advert file (517 MB) is gitignored in `backend/data/linkedin/`. The counts are cached, so rebuilds stay at about 2.5 s.
+
+## Built on 20 October — presentation preparation
+
+- **The demo path is verified by machine** (`frontend/tests/demo_walk.js`), and `docs/presentation.md` has the script, slide outline, laptop setup, failure plan and a question bank.
+- **A clean checkout now runs the whole demo** (ADR-0019). The advert counts are committed under `backend/seed/`, so the laptop needs only the O*NET files and `python backend/load_onet.py`. Before this, "What employers ask for" would have said "not loaded" on a fresh checkout.
+- **TR-01 is now reported two ways** (ADR-0020). The submitted 59.7% lets the target job count in its own top five. With it removed, over all 713 jobs with must-haves: **58.5% (interval 54.6–62.1) against 25.9% by chance.** It still clears 55%, with less margin than it looked. PT-01b measures it.
+- **Unemployment figures:** StatsSA published Q2 2026 on 11 August (62.8% for ages 15–24, 41.8% for 25–34, 33.6% overall). Assignment 2 used Q1.
 
 ## Deferred on purpose
 

@@ -255,6 +255,25 @@ def main():
         load_adverts.CACHE.write_text('{"inputs": "trunc')
         corrupt = load_adverts.load(mem, path=missing, compute_if_stale=False)
     load_adverts.CACHE = real_cache
+    committed = json.loads((Path(load_adverts.ROOT) / "seed" / "advert_counts.cache.json").read_text())
+    check("TC-U14d", "the committed advert counts match the current code and O*NET rows "
+          "(if not: python backend/load_adverts.py --fresh, then commit backend/seed/)",
+          committed.get("inputs") == load_adverts.inputs_fingerprint(con), "stale seed")
+    real_code = load_adverts.CODE
+    with tempfile.TemporaryDirectory() as d:
+        lf, crlf = Path(d) / "lf", Path(d) / "crlf"
+        lf.mkdir(); crlf.mkdir()
+        for p in real_code:
+            data = p.read_bytes().replace(b"\r\n", b"\n")
+            (lf / p.name).write_bytes(data)
+            (crlf / p.name).write_bytes(data.replace(b"\n", b"\r\n"))
+        load_adverts.CODE = [lf / p.name for p in real_code]
+        fp_lf = load_adverts.inputs_fingerprint(con)
+        load_adverts.CODE = [crlf / p.name for p in real_code]
+        fp_crlf = load_adverts.inputs_fingerprint(con)
+        load_adverts.CODE = real_code
+    check("TC-U14e", "the fingerprint ignores line endings (a Windows checkout must not look stale)",
+          fp_lf == fp_crlf)
     check("TC-U14a", "a valid cache loads without the 517 MB advert file", ok_cache_only is True)
     check("TC-U14b", "a change in the O*NET rows the counts were built from makes the cache stale", stale is False)
     check("TC-U14c", "a corrupt cache is treated as no cache, not a crash", corrupt is False)
