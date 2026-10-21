@@ -2,6 +2,8 @@
 ' Assignment 3 Q4.2 - entity-relationship diagram of saycep.db, read from
 ' sqlite_master on 30 September 2026. Solid lines are foreign keys declared
 ' in SQL; dashed lines are references enforced by the API, not the database.
+' Version 1.1 (30 September): occupation_tasks (ADR-0007); user_skills
+' gains status and updated_at (ADR-0005).
 title saycep.db - Entity-Relationship Diagram
 hide circle
 skinparam linetype ortho
@@ -52,7 +54,17 @@ entity "job_zone_reference\n5 rows" as jz {
   svp_range : TEXT
 }
 
-entity "users\nprofiles, ephemeral" as u {
+entity "occupation_tasks\n17,931 rows" as ot {
+  * soc_code : TEXT <<PK, FK>>
+  * task_id : INTEGER <<PK>>
+  --
+  * task : TEXT
+  task_type : TEXT
+  importance : REAL
+  source_date : TEXT
+}
+
+entity "users\nprofiles, saved plan" as u {
   * profile_id : TEXT <<PK>>
   --
   * profile_type : TEXT <<CHECK>>
@@ -63,9 +75,13 @@ entity "users\nprofiles, ephemeral" as u {
 entity "user_skills" as us {
   * profile_id : TEXT <<PK, FK>>
   * element_id : TEXT <<PK>>
+  --
+  * status : TEXT <<CHECK held | learning>>
+  * updated_at : TEXT
 }
 
 occ ||--o{ os
+occ ||--o{ ot
 sk ||--o{ os
 occ ||--o{ ro
 u ||--o{ us

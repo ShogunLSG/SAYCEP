@@ -8,6 +8,7 @@ Profile tables are created here rather than by the loader, because the loader
 rebuilds reference data and knows nothing about users.
 """
 
+import secrets
 import sqlite3
 import uuid
 
@@ -18,15 +19,51 @@ CREATE TABLE IF NOT EXISTS users (
     profile_id      TEXT PRIMARY KEY,
     profile_type    TEXT NOT NULL CHECK (profile_type IN ('student', 'school_leaver')),
     target_soc_code TEXT,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    display_name    TEXT,
+    plan_code       TEXT
 );
+-- plan_code reopens a plan on any device (ADR-0008). Its uniqueness is a
+-- separate index, created in ensure_profile_tables after any upgrade, so an
+-- older database can gain the column in place.
 
+-- status: 'held' is a skill the user can do now, and the only kind the gap,
+-- pathway and recommendations count. 'learning' is one they are working on --
+-- it shows on the dashboard and never closes a gap. ADR-0005.
 CREATE TABLE IF NOT EXISTS user_skills (
     profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
     element_id  TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'held' CHECK (status IN ('held', 'learning')),
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (profile_id, element_id)
 );
+
+-- Jobs a user has saved to come back to or compare (slice 3, ADR-0010).
+CREATE TABLE IF NOT EXISTS saved_occupations (
+    profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
+    soc_code    TEXT NOT NULL,
+    saved_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (profile_id, soc_code)
+);
+
+-- What happened to a plan, and when (slice 5, ADR-0012). kind is 'started',
+-- 'skill' or 'goal'. goal_have/goal_total snapshot readiness for the goal at
+-- that moment, so the history never has to be recomputed from a replay.
+CREATE TABLE IF NOT EXISTS progress_events (
+    profile_id  TEXT NOT NULL REFERENCES users(profile_id) ON DELETE CASCADE,
+    at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    kind        TEXT NOT NULL CHECK (kind IN ('started', 'skill', 'goal')),
+    element_id  TEXT,
+    status      TEXT,
+    soc_code    TEXT,
+    skill_count INTEGER,
+    goal_have   INTEGER,
+    goal_total  INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_events_profile ON progress_events(profile_id);
 """
+
+SKILL_STATUSES = ("held", "learning")
 
 
 def connect():
@@ -38,6 +75,19 @@ def connect():
 
 def ensure_profile_tables(con):
     con.executescript(PROFILE_SCHEMA)
+    # A database built before ADR-0005 has user_skills without status. The
+    # loader rebuilds from scratch so this rarely matters, but a server started
+    # on an old file must not fail on its first profile call.
+    user_cols = {r[1] for r in con.execute("PRAGMA table_info(users)")}
+    for col in ("display_name", "plan_code"):
+        if col not in user_cols:
+            con.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
+    con.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_plan_code ON users(plan_code)")
+    cols = {r[1] for r in con.execute("PRAGMA table_info(user_skills)")}
+    if "status" not in cols:
+        con.execute("ALTER TABLE user_skills ADD COLUMN status TEXT NOT NULL DEFAULT 'held'"
+                    " CHECK (status IN ('held', 'learning'))")
+        con.execute("ALTER TABLE user_skills ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''")
     con.commit()
 
 
@@ -51,29 +101,48 @@ def reference_data_present(con):
 
 # ---------- catalogue ----------
 
+_ALT_MATCH = ("EXISTS (SELECT 1 FROM occupation_alt_titles a"
+              " WHERE a.soc_code = o.soc_code AND LOWER(a.title) LIKE ?)")
+
+
 def list_occupations(con, zone=None, query=None, limit=100):
-    sql = ["SELECT soc_code, title, job_zone, source_dataset FROM occupations WHERE 1=1"]
-    args = []
+    """Title search also matches O*NET's alternate titles (ADR-0009), so
+    "conduit installer" finds Electricians. Official-title matches come first;
+    an alternate-title match says which name it matched as also_called."""
+    if not query:
+        sql, args = ["SELECT soc_code, title, job_zone, source_dataset, NULL AS also_called"
+                     "  FROM occupations o WHERE 1=1"], []
+        if zone is not None:
+            sql.append("AND job_zone = ?")
+            args.append(zone)
+        sql.append("ORDER BY title LIMIT ?")
+        args.append(limit)
+        return con.execute(" ".join(sql), args).fetchall()
+    like = f"%{query.lower()}%"
+    sql = ["SELECT o.soc_code, o.title, o.job_zone, o.source_dataset,"
+           "  CASE WHEN LOWER(o.title) LIKE ? THEN NULL ELSE"
+           "   (SELECT a.title FROM occupation_alt_titles a WHERE a.soc_code = o.soc_code"
+           "     AND LOWER(a.title) LIKE ? ORDER BY LENGTH(a.title) LIMIT 1) END AS also_called"
+           "  FROM occupations o WHERE (LOWER(o.title) LIKE ? OR " + _ALT_MATCH + ")"]
+    args = [like, like, like, like]
     if zone is not None:
-        sql.append("AND job_zone = ?")
+        sql.append("AND o.job_zone = ?")
         args.append(zone)
-    if query:
-        sql.append("AND LOWER(title) LIKE ?")
-        args.append(f"%{query.lower()}%")
-    sql.append("ORDER BY title LIMIT ?")
-    args.append(limit)
+    sql.append("ORDER BY LOWER(o.title) LIKE ? DESC, o.title LIMIT ?")
+    args += [like, limit]
     return con.execute(" ".join(sql), args).fetchall()
 
 
 def count_occupations(con, zone=None, query=None):
-    sql = ["SELECT COUNT(*) FROM occupations WHERE 1=1"]
+    sql = ["SELECT COUNT(*) FROM occupations o WHERE 1=1"]
     args = []
     if zone is not None:
-        sql.append("AND job_zone = ?")
+        sql.append("AND o.job_zone = ?")
         args.append(zone)
     if query:
-        sql.append("AND LOWER(title) LIKE ?")
-        args.append(f"%{query.lower()}%")
+        like = f"%{query.lower()}%"
+        sql.append("AND (LOWER(o.title) LIKE ? OR " + _ALT_MATCH + ")")
+        args += [like, like]
     return con.execute(" ".join(sql), args).fetchone()[0]
 
 
@@ -101,10 +170,127 @@ def job_zones(con):
 
 def required_skills(con, soc_code):
     return con.execute(
-        "SELECT s.element_id, s.name, os.importance, os.importance_scale_max,"
-        "       os.source_date"
+        "SELECT s.element_id, s.name, s.description, os.importance,"
+        "       os.importance_scale_max, os.source_date"
         "  FROM occupation_skills os JOIN skills s ON s.element_id = os.element_id"
         " WHERE os.soc_code = ? ORDER BY os.importance DESC", (soc_code,)).fetchall()
+
+
+def occupation_tasks(con, soc_code, limit=8):
+    """Most important first; core tasks before supplemental; unrated last."""
+    rows = con.execute(
+        "SELECT task, task_type, importance, source_date FROM occupation_tasks"
+        " WHERE soc_code = ?"
+        " ORDER BY importance IS NULL, task_type = 'Core' DESC, importance DESC, task_id"
+        " LIMIT ?", (soc_code, limit)).fetchall()
+    total = con.execute("SELECT COUNT(*) FROM occupation_tasks WHERE soc_code = ?",
+                        (soc_code,)).fetchone()[0]
+    return rows, total
+
+
+def occupation_technology(con, soc_code, limit=10):
+    """Software examples, O*NET's hot technologies first."""
+    return con.execute(
+        "SELECT example, category, hot, in_demand FROM occupation_technology"
+        " WHERE soc_code = ? GROUP BY example"
+        " ORDER BY MAX(hot) DESC, MAX(in_demand) DESC, example LIMIT ?",
+        (soc_code, limit)).fetchall()
+
+
+def occupation_tool_groups(con, soc_code, groups=8, per_group=3):
+    """Tools grouped by O*NET commodity category, largest groups first.
+    O*NET does not rank tools, so group size is the only honest order."""
+    rows = con.execute(
+        "SELECT category, COUNT(*) AS n, GROUP_CONCAT(example, '|') AS examples"
+        "  FROM occupation_tools WHERE soc_code = ?"
+        " GROUP BY category ORDER BY n DESC, category LIMIT ?",
+        (soc_code, groups)).fetchall()
+    total = con.execute("SELECT COUNT(*) FROM occupation_tools WHERE soc_code = ?",
+                        (soc_code,)).fetchone()[0]
+    return [{"category": r["category"], "count": r["n"],
+             "examples": sorted(r["examples"].split("|"))[:per_group]} for r in rows], total
+
+
+def adverts_loaded(con):
+    """Whether load_adverts.py has run (the advert data is optional)."""
+    return con.execute("SELECT 1 FROM sqlite_master WHERE name = 'advert_summary'").fetchone() is not None
+
+
+def advert_summary(con, soc_code):
+    return con.execute("SELECT * FROM advert_summary WHERE soc_code = ?", (soc_code,)).fetchone()
+
+
+def advert_period(con):
+    """(first, last) listing date across every linked advert, or (None, None)."""
+    return con.execute("SELECT MIN(listed_from), MAX(listed_to) FROM advert_summary").fetchone()
+
+
+def advert_counts(con, soc_code):
+    """[(kind, item, n)] for one occupation, commonest first."""
+    return con.execute("SELECT kind, item, n FROM advert_counts WHERE soc_code = ?"
+                       " ORDER BY n DESC, item", (soc_code,)).fetchall()
+
+
+def advert_titles(con, soc_code, limit=5):
+    return con.execute("SELECT title, n FROM advert_titles WHERE soc_code = ?"
+                       " ORDER BY n DESC, title LIMIT ?", (soc_code, limit)).fetchall()
+
+
+def advert_baseline(con):
+    """({(kind, item): n}, total linked adverts)."""
+    rows = con.execute("SELECT kind, item, n FROM advert_baseline").fetchall()
+    base = {(k, i): n for k, i, n in rows}
+    return base, base.get(("all", "adverts"), 0)
+
+
+def get_skill(con, element_id):
+    return con.execute("SELECT element_id, name, description, source_dataset FROM skills"
+                       " WHERE element_id = ?", (element_id,)).fetchone()
+
+
+def jobs_for_skill(con, element_id, limit=12):
+    """Where this skill matters most, by O*NET importance."""
+    return con.execute(
+        "SELECT o.soc_code, o.title, o.job_zone, os.importance, os.source_date FROM occupation_skills os"
+        "  JOIN occupations o ON o.soc_code = os.soc_code"
+        " WHERE os.element_id = ? ORDER BY os.importance DESC, o.title LIMIT ?",
+        (element_id, limit)).fetchall()
+
+
+def count_jobs_needing(con, element_id, threshold):
+    return con.execute("SELECT COUNT(*) FROM occupation_skills WHERE element_id = ?"
+                       " AND importance >= ?", (element_id, threshold)).fetchone()[0]
+
+
+def readiness_basis_map(con, threshold, top_n):
+    """soc -> the skills that decide 'ready' for that job: its essential skills,
+    or its top_n most important where it has none. Same rule as
+    pathway.step_readiness, for every job at once."""
+    rows = con.execute("SELECT soc_code, element_id, importance FROM occupation_skills"
+                       " ORDER BY soc_code, importance DESC").fetchall()
+    by_soc = {}
+    for r in rows:
+        by_soc.setdefault(r[0], []).append((r[1], r[2]))
+    return {soc: ({e for e, imp in skills if imp >= threshold}
+                  or {e for e, _ in skills[:top_n]})
+            for soc, skills in by_soc.items()}
+
+
+def interest_profiles(con, max_job_zone=None):
+    """soc -> {area: score} for every job, with title and zone."""
+    sql = ("SELECT o.soc_code, o.title, o.job_zone, i.area, i.score, i.source_date"
+           "  FROM occupation_interests i"
+           "  JOIN occupations o ON o.soc_code = i.soc_code")
+    args = []
+    if max_job_zone:
+        sql += " WHERE o.job_zone <= ?"
+        args.append(max_job_zone)
+    out = {}
+    for r in con.execute(sql, args):
+        job = out.setdefault(r["soc_code"], {"title": r["title"], "job_zone": r["job_zone"],
+                                             "scores": {}, "source_date": r["source_date"]})
+        job["scores"][r["area"]] = r["score"]
+    return out
 
 
 def related_occupations(con, soc_code, primary_only=True):
@@ -120,10 +306,32 @@ def related_occupations(con, soc_code, primary_only=True):
 
 # ---------- profiles ----------
 
-def create_profile(con, profile_type, skill_ids, target_soc_code=None):
+# No 0/O, 1/I/L: a code read aloud or copied off a screen must survive it.
+PLAN_CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
+
+
+def new_plan_code(con):
+    while True:
+        code = "".join(secrets.choice(PLAN_CODE_ALPHABET) for _ in range(6))
+        if not con.execute("SELECT 1 FROM users WHERE plan_code = ?", (code,)).fetchone():
+            return code
+
+
+def normalise_plan_code(text):
+    """'k7m-2qx', 'K7M 2QX' and 'K7M2QX' are the same code."""
+    return "".join(ch for ch in (text or "").upper() if ch.isalnum())
+
+
+def profile_by_plan_code(con, code):
+    return con.execute("SELECT * FROM users WHERE plan_code = ?",
+                       (normalise_plan_code(code),)).fetchone()
+
+
+def create_profile(con, profile_type, skill_ids, target_soc_code=None, display_name=None):
     profile_id = uuid.uuid4().hex[:12]
-    con.execute("INSERT INTO users (profile_id, profile_type, target_soc_code)"
-                " VALUES (?,?,?)", (profile_id, profile_type, target_soc_code))
+    con.execute("INSERT INTO users (profile_id, profile_type, target_soc_code,"
+                " display_name, plan_code) VALUES (?,?,?,?,?)",
+                (profile_id, profile_type, target_soc_code, display_name, new_plan_code(con)))
     con.executemany("INSERT INTO user_skills (profile_id, element_id) VALUES (?,?)",
                     [(profile_id, s) for s in set(skill_ids)])
     con.commit()
@@ -136,8 +344,74 @@ def get_profile(con, profile_id):
 
 
 def profile_skill_ids(con, profile_id):
+    """Skills the user holds now. 'learning' is deliberately excluded: every
+    gap, pathway and recommendation is measured against this list."""
     return [r[0] for r in con.execute(
-        "SELECT element_id FROM user_skills WHERE profile_id = ?", (profile_id,))]
+        "SELECT element_id FROM user_skills WHERE profile_id = ? AND status = 'held'",
+        (profile_id,))]
+
+
+def profile_skills(con, profile_id):
+    return con.execute(
+        "SELECT us.element_id, s.name, s.description, us.status, us.updated_at"
+        "  FROM user_skills us JOIN skills s ON s.element_id = us.element_id"
+        " WHERE us.profile_id = ? ORDER BY s.name", (profile_id,)).fetchall()
+
+
+def set_skill_status(con, profile_id, element_id, status):
+    con.execute(
+        "INSERT INTO user_skills (profile_id, element_id, status) VALUES (?,?,?)"
+        " ON CONFLICT (profile_id, element_id)"
+        " DO UPDATE SET status = excluded.status, updated_at = datetime('now')",
+        (profile_id, element_id, status))
+    con.commit()
+
+
+def remove_skill(con, profile_id, element_id):
+    con.execute("DELETE FROM user_skills WHERE profile_id = ? AND element_id = ?",
+                (profile_id, element_id))
+    con.commit()
+
+
+def saved_socs(con, profile_id):
+    return [r[0] for r in con.execute(
+        "SELECT soc_code FROM saved_occupations WHERE profile_id = ? ORDER BY saved_at, rowid",
+        (profile_id,))]
+
+
+def save_occupation(con, profile_id, soc_code):
+    con.execute("INSERT OR IGNORE INTO saved_occupations (profile_id, soc_code) VALUES (?,?)",
+                (profile_id, soc_code))
+    con.commit()
+
+
+def unsave_occupation(con, profile_id, soc_code):
+    con.execute("DELETE FROM saved_occupations WHERE profile_id = ? AND soc_code = ?",
+                (profile_id, soc_code))
+    con.commit()
+
+
+def log_event(con, profile_id, kind, element_id=None, status=None, soc_code=None,
+              skill_count=None, goal_have=None, goal_total=None):
+    con.execute("INSERT INTO progress_events (profile_id, kind, element_id, status, soc_code,"
+                " skill_count, goal_have, goal_total) VALUES (?,?,?,?,?,?,?,?)",
+                (profile_id, kind, element_id, status, soc_code, skill_count, goal_have, goal_total))
+    con.commit()
+
+
+def events(con, profile_id, limit=50):
+    return con.execute(
+        "SELECT e.at, e.kind, e.element_id, s.name AS skill, e.status, e.soc_code,"
+        "       o.title AS job, e.skill_count, e.goal_have, e.goal_total"
+        "  FROM progress_events e"
+        "  LEFT JOIN skills s ON s.element_id = e.element_id"
+        "  LEFT JOIN occupations o ON o.soc_code = e.soc_code"
+        " WHERE e.profile_id = ? ORDER BY e.rowid DESC LIMIT ?", (profile_id, limit)).fetchall()
+
+
+def set_display_name(con, profile_id, name):
+    con.execute("UPDATE users SET display_name = ? WHERE profile_id = ?", (name, profile_id))
+    con.commit()
 
 
 def set_target(con, profile_id, soc_code):

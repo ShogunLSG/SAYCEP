@@ -34,6 +34,59 @@ pen so nothing gets lost.
   days — and only after FR-01 to FR-10 actually work end to end.
   (Noticed 2026-09-26.)
 
+- **Freeze the dashboard route at save time?** The route re-sequences whenever a
+  skill is marked held (FR-08 orders by closeness to the current profile).
+  The dashboard says so on screen. Freezing it would need a stored route (a
+  schema change), so it's deferred unless user testing shows the reshuffle
+  confuses people. (Noticed 2026-09-30.)
+
+- **"How people got into this job"** from `Education, Training, and
+  Experience.txt`. It was left out of the job page on purpose. It covers 858 of
+  879 jobs, and its categories are US qualifications (Associate's degree,
+  GED). Showing US percentages to a South African school-leaver invites a
+  question we can't answer. Revisit only with a defensible mapping.
+  (Noticed 2026-09-30.)
+- **Plan-code rate limiting.** A plan code is a bearer credential, and nothing
+  stops someone guessing codes. That's fine on a laptop, but it's needed before
+  any public deployment (ADR-0008). (Noticed 2026-09-30.)
+
+- **Capture knowledge and abilities from users, if TR-01 must go higher.**
+  Measured on 4 October (ADR-0013): richer job vectors alone take TR-01 from
+  59.7% to 60.5%, which is noise. With user input the upper bound is 90.3%,
+  but that's inflated by how PT-01 builds its profiles. Doing it needs a new
+  capture screen, a new FR, and a way to ask about 85 items without breaking
+  NFR-02. Possibly a short quiz like the interest one. (Noticed 2026-10-04.)
+
+- **Software Developers and Data Scientists can't be goals.** O\*NET 29.0 has
+  no skill ratings for these newer codes, so they're among the 137 excluded
+  jobs. A school-leaver interested in software is pointed at Computer
+  Programmers or Web Developers instead. Revisit when O\*NET rates them.
+  (Noticed 2026-10-05.)
+- **Measure the CV scanner on trades CVs.** Its tool evidence is built but
+  unmeasured, because the benchmark has no trades CVs. A Kaggle dataset of
+  trades or South African CVs would fix that. (Noticed 2026-10-05.)
+- **CV scanner: one-word tools that are everyday words in CVs.** "Trial
+  balance" names the tool Balances (30 of 344 benchmark CVs), "entry level"
+  names Levels (16), and "financial controller" names Controllers. Python's
+  Flask names Flasks, and "Internet Explorer" names Explorers. A stop-list
+  would be easy, but these words were spotted by looking at every benchmark
+  CV, including the held-out half. Choosing a list from them would quietly
+  inflate the reported r. It needs a fresh test set (for example trades CVs,
+  above) or a list chosen on the tuning half only. The "Canes" folding bug
+  that used to be listed here is fixed (ADR-0018). (Noted 2026-10-09.)
+- **Two software/tool matchers: `cvscan.named` and `adverts.named_in`.**
+  This is deliberate for now. The advert one is stricter: 4+ letter one-word
+  names, vendor dropped only for known vendors, and longest match first, so
+  "Microsoft Visual Basic for Applications" doesn't also count as "Microsoft
+  Visual Basic". The CV scanner's matcher is tied to the measured r = 0.27
+  (ADR-0014, re-measured in ADR-0018), so changing it means re-measuring. Both
+  now share the corrected plural-folding and the 4-letter rule for one-word
+  tools (ADR-0018). What still differs is the vendor policy and longest
+  match. Merging them is a re-measure away. Raised by code review,
+  2026-10-08.
+
+---
+
 ## Cleared 2026-09-10
 
 The four items carried here from August all concerned the ESSA/Adzuna job-data

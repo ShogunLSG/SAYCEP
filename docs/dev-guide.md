@@ -97,6 +97,13 @@ where the gap is labelled, and it lets the screen show *"Troubleshooting —
 essential (4.0 out of 5)"*. The rating on screen answers "how do you decide
 essential?" before it is asked.
 
+**The screen leads with words; the figures move to presenter mode.** *(Changed
+30 September — see section 4.)* A school leaver reads "Critical for this job",
+not "4.00 / 5". The API returns both: every figure still travels in the
+response, with a plain label beside it. The labels come from `backend/plain.py`
+so the frontend never decides what a number means. `?presenter` shows the
+figures again for the marker.
+
 **Standard library only.** Pandas would do the load in fewer lines, but the whole
 job is reading five tab-delimited files and inserting rows. Adding a dependency
 for that is against the project's own rule, and a demo that runs on a bare Python
@@ -221,6 +228,140 @@ than an anonymous synthetic CSV. Be ready to say exactly that.
 - **Skill capture got easy.** O*NET's skills taxonomy is 35 entries, so a capture
   screen can list all of them. The search-and-match problem the resume-based plan
   would have had does not exist.
+
+### 30 September: words before figures
+
+Walking the journey as a user showed that it spoke to the marker rather than the
+user: `3.62 / 5`, `47-2111.00 · Job Zone 3`, a `64%` ring, `1.25 → 3.50`. None of
+it meant anything to the school-leaver profile. The plan is in
+`plans/ux-and-dashboard.md`. Task 1 of that plan:
+
+- **Importance** becomes one of four labels. The "Very important" line is set
+  at the essential threshold (3.5), so a must-have can never be described as
+  merely "Important" (checked by TC-U06a/b).
+- **Match** becomes Strong / Good / Some overlap. The cut-points (0.55, 0.40)
+  were measured: over 300 random 3–12 skill profiles, the top recommendation's
+  score has a median of 0.44 and a 90th percentile of 0.56.
+- **Job Zone** becomes a preparation sentence. O*NET's education notes are
+  American. "Matric" for "high school diploma" is our translation, and the
+  original O*NET text is still in the response.
+- **Skills** are grouped under seven plain headings, derived from O*NET's own
+  element-ID hierarchy. Tapping one explains it using O*NET's description.
+- **The "how is essential decided" note** now says the ratings come from
+  O*NET's job analysts. That was verified: every row in `Skills.txt` has
+  `Domain Source = Analyst`. Workers themselves did not rate these skills, and
+  the screen must not suggest they did.
+
+**Task 2, "What is this job?"** Tapping any job opens a panel instead of
+setting the target outright. The panel shows O*NET's description (loaded since
+September, never shown until now), the preparation needed, and every skill,
+ticked if the profile holds it. `GET /occupations/{soc}` takes an optional
+`profile_id` for the ticks. Without one, `held` is `null` rather than `false`,
+so that a catalogue read never claims the user lacks a skill. The target is set
+from the panel's "Aim for this job" button. That adds one tap to the demo path,
+and it's the tap that makes exploring possible.
+
+**Tasks 3–4, "My plan" and progress.** Screen 5's button is now "Save as my
+plan". It stores the profile id in `localStorage` (ADR-0006) and opens the
+dashboard, which shows:
+
+- **The goal and readiness.** Readiness is *counted*: "1 of 2 must-have
+  skills". 166 of the 879 occupations have no skill at or above 3.5, so for
+  those it counts the five most important skills instead (`ready_basis`).
+- **The route, with each step ticked when ready.** `pathway.step_readiness`
+  adds `ready` and `ready_missing` to every step.
+- **Skills to work on.** Each one moves through *Start learning* to *I can do
+  this now*. Only the second closes a gap (ADR-0005, TC-I07).
+- **"Update my skills" and "Change my goal".** These reopen screens 2 and 3
+  against the *same* profile. When skills are edited from a saved plan, the
+  change is applied in place (PUT/DELETE per skill), so "working on it" marks
+  survive. Editing before a plan is saved still creates a fresh profile, as
+  before.
+
+**Task 5, "A day in this job".** The panel lists what people in the job actually
+do, with the most important task first, from O*NET's task statements (ADR-0007).
+It's display-only.
+
+These cut-points are presentation choices, not findings from the data. The
+classification itself, essential against desirable at 3.5, is unchanged, so
+FR-07's behaviour is too.
+
+### 30 September (night): from a journey to an app
+
+The plan is in `plans/full-app.md`. The decisions are in ADR-0008 to ADR-0012.
+In short:
+
+- **The front door** is a welcome screen, and sign-in is a plan code, not an
+  account (ADR-0008). A real login was asked for and weighed. It would have
+  contradicted the privacy argument in the submitted Assignment 3 and added a
+  password system to defend.
+- **The journey became onboarding.** After *Save as my plan* the app is four
+  tabs. Pages (a job, a skill, a comparison) are pushed over a tab that stays
+  mounted, so *Back* returns to the same search and scroll position. That was
+  a bug the browser walkthrough found.
+- **Job pages** add tools, software and related jobs, and search matches
+  45,963 alternate titles (ADR-0009).
+- **The unlock moment** is computed, not claimed. `PUT
+  /profiles/{id}/skills/{element_id}` returns readiness before and after for
+  the goal, for its related jobs, and for the whole catalogue.
+- **One readiness rule everywhere**: `pathway.step_readiness`, meaning the
+  essential skills, or the top five where a job has none. The compare page
+  briefly broke this rule ("4 of 5" alongside "nothing to learn") before it
+  was fixed (ADR-0010).
+- **The interest quiz** correlates twelve of our statements with O\*NET's
+  RIASEC profiles (ADR-0011).
+- **Progress history** stores a readiness snapshot on each event rather than
+  replaying events later (ADR-0012).
+- The frontend split into plain scripts that share globals. See
+  `frontend/README.md`.
+
+### 5 October: the CV scanner (module 3)
+
+See ADR-0014, which is the important one to read. In short, the obvious design
+of TF-IDF from CV text to O\*NET's 35 skills was built three ways, measured,
+and lost to plain word overlap each time. The shipped scanner suggests skills
+from explicit trigger words (quoted back to the user for confirmation) and
+scores a CV against a goal by the software and tools it names. That approach
+is measured at r = 0.27 against 0.16 on held-out CVs. The CV is never stored.
+The benchmark (`backend/tests/benchmark_cv.py`) scores the shipped code, so
+rerun it after changing `cvscan.py`. On 9 October it was rerun after fixing the plural-folding,
+which had made "I can" name the tool Canes. Held-out r went from 0.266 to
+0.2655 (ADR-0018).
+
+### 5 October: interview practice (module 5)
+
+ADR-0015. The proposal's "chatbot" became practice with rule-based feedback,
+because no LLM is allowed. Questions come from the goal's must-have skills and
+its top task. Feedback is a checklist: skill shown, situation → action →
+result, your own part, a specific detail, length. Nothing is stored and no
+accuracy is claimed.
+
+### 5 October: accessibility pass
+
+ADR-0016. The first measurement found 169 axe failures in light mode, nearly
+all from one grey text token at 3.0–3.6:1. A keyboard-only walk also showed
+that focus never moved: new screens left it on `<body>`, the sheets didn't
+trap it, and the tab under a pushed page was still reachable. The fixes were
+mostly in shared pieces (tokens, `useDialog`, `focusWhenReady`, `inert` on the
+tab host), so they cover every screen at once. Fake tab and radio roles became
+honest toggle buttons. The result is 0 automated failures in both themes and
+at 320 px, and 19 of 19 keyboard checks. No real screen-reader test has been
+done.
+
+### 5 October: what employers ask for (module 4)
+
+ADR-0017. Step 0 found no real South African adverts on Kaggle; the one
+labelled as such was generated from four templates. So module 4 summarises
+real American adverts from 2024 instead of offering openings. The link to
+O\*NET is the advert title, kept strict (one candidate, generic titles
+dropped). The tempting shortcut was to reuse the CV scanner's matching
+unchanged. Measuring it on adverts found boilerplate ("customers", "teams")
+everywhere, and a plural-folding bug that read "can" as the tool Canes. So
+skills are shown only where they're over-represented against all adverts,
+with a measured, weak agreement with O\*NET. Tools use a stricter matcher.
+The advert pass is slow, so it's cached and fingerprinted on its inputs.
+Get the data with the Kaggle API (`arshkon/linkedin-job-postings`), unzip it
+into `backend/data/linkedin/`, and run `python backend/load_onet.py`.
 
 ---
 

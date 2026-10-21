@@ -4,9 +4,9 @@
 
 :root{
   --ground:#EEF1F5; --card:#FFFFFF; --sunk:#F1F4F8;
-  --ink:#161D25; --ink-2:#4A555F; --muted:#7E8994;
+  --ink:#161D25; --ink-2:#4A555F; --muted:#5C6772; /* ≥4.5:1 on every light surface (WCAG AA) */
   --line:#E1E6EC; --line-2:#EEF1F5;
-  --accent:#1D4E6F; --accent-ink:#153C56; --accent-soft:#E3EDF3; --accent-dim:#B9CBD8;
+  --on-fill:#FFFFFF; /* text and ticks on accent/ok fills */ --accent:#1D4E6F; --accent-ink:#153C56; --accent-soft:#E3EDF3; --accent-dim:#B9CBD8;
   --essential:#A6520A; --essential-soft:#F6E9DC;
   --ok:#2F6B4F; --ok-soft:#E2EFE8;
   --danger:#9B2C2C; --danger-soft:#FBEAEA;
@@ -15,9 +15,9 @@
 @media (prefers-color-scheme: dark){
   :root{
     --ground:#0D1216; --card:#171E26; --sunk:#121820;
-    --ink:#E7ECF1; --ink-2:#AFBAC5; --muted:#7E8A96;
+    --ink:#E7ECF1; --ink-2:#AFBAC5; --muted:#8C98A4;
     --line:#28323C; --line-2:#1E2731;
-    --accent:#6FADD2; --accent-ink:#A9D2EA; --accent-soft:#17303F; --accent-dim:#2C4658;
+    --on-fill:#0D1216; --accent:#6FADD2; --accent-ink:#A9D2EA; --accent-soft:#17303F; --accent-dim:#2C4658;
     --essential:#E0913F; --essential-soft:#3A2814;
     --ok:#6FBF95; --ok-soft:#152A20;
     --danger:#F08A8A; --danger-soft:#3A1818;
@@ -37,6 +37,8 @@ button{font-family:inherit; font-size:inherit; color:inherit}
 input{font-family:inherit}
 .mono{font-family:"IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric:tabular-nums}
 :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* headings and dialogs take focus from script so screen readers announce them; they are not controls */
+[tabindex="-1"]:focus{outline:none}
 #root{width:100%; display:flex; justify-content:center}
 
 /* ---------- frame ---------- */
@@ -83,7 +85,7 @@ input{font-family:inherit}
 .picked b{color:var(--ink); font-weight:600}
 .cta{
   width:100%; border:0; border-radius:13px; padding:14px; cursor:pointer;
-  background:var(--accent); color:#fff; font-weight:600; font-size:15px;
+  background:var(--accent); color:var(--on-fill); font-weight:600; font-size:15px;
   display:flex; align-items:center; justify-content:center; gap:7px;
 }
 .cta svg{width:16px; height:16px}
@@ -117,7 +119,7 @@ input{font-family:inherit}
 .choice.on .ico{background:var(--accent)}
 .tick{
   margin-left:auto; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line);
-  flex:none; display:grid; place-items:center; color:#fff;
+  flex:none; display:grid; place-items:center; color:var(--on-fill);
 }
 .tick svg{width:12px; height:12px; opacity:0}
 .on .tick{background:var(--accent); border-color:var(--accent)}
@@ -136,7 +138,7 @@ input{font-family:inherit}
   border:1.5px solid var(--line); border-radius:999px; padding:8px 13px; cursor:pointer;
   font-size:13px; color:var(--ink-2); background:var(--card); transition:background .12s, border-color .12s;
 }
-.chip.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500}
+.chip.on{background:var(--accent); border-color:var(--accent); color:var(--on-fill); font-weight:500}
 .count{font-size:12.5px; color:var(--muted); margin-top:14px}
 .count b{color:var(--ink)}
 
@@ -212,14 +214,14 @@ input{font-family:inherit}
   width:22px; height:22px; border-radius:50%; flex:none; border:1.5px solid var(--accent);
   background:var(--card); color:var(--accent); font:600 11px/19px "IBM Plex Mono", monospace; text-align:center;
 }
-.step.target-step .dot{background:var(--accent); color:#fff}
+.step.target-step .dot{background:var(--accent); color:var(--on-fill)}
 .rline{flex:1; width:1.5px; background:var(--line); margin:4px 0; min-height:18px}
 .sbody{padding-bottom:18px; min-width:0}
 .step:last-child .sbody{padding-bottom:0}
 .sh{display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; margin-bottom:7px}
 .sh h4{font-size:14px; font-weight:600}
 .zn{font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); font-weight:600}
-.pill{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; background:var(--accent); color:#fff; border-radius:4px; padding:2px 6px}
+.pill{font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; background:var(--accent); color:var(--on-fill); border-radius:4px; padding:2px 6px}
 .fs{display:flex; align-items:center; gap:7px; font-size:12.5px; margin-bottom:4px}
 .fs .n{flex:1; min-width:0}
 .bdg{font-size:9px; letter-spacing:.05em; text-transform:uppercase; font-weight:600; border-radius:3px; padding:1px 5px; flex:none}
@@ -227,3 +229,329 @@ input{font-family:inherit}
 .bdg.deeper{background:var(--accent-soft); color:var(--accent-ink)}
 .fs .v{font-size:11px; color:var(--muted); flex:none}
 .basis{font-size:12px; color:var(--muted); background:var(--sunk); border-radius:9px; padding:10px 12px; margin-top:18px}
+
+/* ---------- plain-language pass ---------- */
+/* Figures a marker checks against; only rendered with ?presenter. */
+.fig{display:inline; font-size:10.5px; color:var(--muted); margin-left:4px}
+.occ .meta .match{font-weight:600; color:var(--accent-ink)}
+.group{margin-bottom:14px}
+.gh{font:600 11px/1.3 "IBM Plex Sans", sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 7px}
+.hint{
+  position:sticky; bottom:-24px; margin:14px -20px -24px; padding:11px 20px 14px;
+  background:var(--sunk); border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-2); line-height:1.45;
+}
+.hint b{color:var(--ink)}
+.zone{font-size:12px; padding:8px 2px}
+.headline{font-size:14px; line-height:1.5; margin:10px 0 0; color:var(--ink-2)}
+.headline b{color:var(--ink)}
+.headline b.e{color:var(--essential)}
+.headline b.h{color:var(--ok)}
+.sect{font-size:13.5px; margin:18px 0 10px}
+.sect span{font-weight:400; color:var(--muted); font-family:"IBM Plex Sans", sans-serif; font-size:12.5px}
+.sect.e{color:var(--essential)}
+.row .lvl{font-size:11.5px; color:var(--ink-2); white-space:nowrap}
+.row.ess .lvl{color:var(--essential); font-weight:600}
+.row .desc{grid-column:1/-1; font-size:12px; color:var(--muted); line-height:1.4}
+.why{font-size:12.5px; color:var(--ink-2); background:var(--sunk); border-radius:9px; padding:10px 12px; margin-top:16px}
+.why summary{cursor:pointer; font-weight:600; color:var(--accent-ink); margin-bottom:4px}
+.step .zn{margin:-3px 0 7px; text-transform:none; letter-spacing:0; font-size:11.5px; font-weight:500}
+
+/* ---------- role sheet ---------- */
+.app{position:relative}
+.scrim{position:absolute; inset:0; background:rgba(13,18,22,.45); z-index:10; animation:fade .2s ease}
+.sheet{
+  position:absolute; left:0; right:0; bottom:0; max-height:88%; z-index:11;
+  background:var(--card); border-radius:22px 22px 0 0; box-shadow:0 -12px 40px rgba(0,0,0,.25);
+  display:flex; flex-direction:column; animation:up .3s cubic-bezier(.32,.72,0,1);
+}
+@keyframes up{from{transform:translateY(40px); opacity:0}}
+@keyframes fade{from{opacity:0}}
+@media (prefers-reduced-motion: reduce){ .sheet,.scrim{animation:none} }
+.grab{width:38px; height:4px; border-radius:2px; background:var(--line); margin:9px auto 0; flex:none}
+.x{
+  position:absolute; top:12px; right:14px; width:30px; height:30px; border-radius:50%; border:0;
+  background:var(--sunk); color:var(--ink-2); font-size:19px; line-height:1; cursor:pointer;
+}
+.sheet-body{overflow-y:auto; padding:6px 20px 18px}
+.sheet .loading{padding:40px 0}
+.sheet-title{font-size:20px; margin:0 36px 8px 0}
+.about{font-size:13.5px; color:var(--ink-2); margin:0 0 14px}
+.prep{background:var(--sunk); border-left:2px solid var(--accent); border-radius:9px; padding:10px 12px; font-size:12.5px; color:var(--ink-2)}
+.prep b{display:block; color:var(--ink); font-size:13px; margin-bottom:2px}
+.fit{font-size:13.5px; margin:14px 0 0}
+.sk{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+.sk li{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-2)}
+.sk li.have{color:var(--ink)}
+.sk .mk{width:17px; height:17px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:grid; place-items:center; color:var(--on-fill)}
+.sk li.have .mk{background:var(--ok); border-color:var(--ok)}
+.sk .mk svg{width:10px; height:10px}
+.sheet-foot{padding:12px 20px 18px; border-top:1px solid var(--line-2); flex:none}
+.tl{border:0; background:none; padding:0; font:inherit; color:inherit; text-align:left; cursor:pointer; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px}
+.tl:hover{text-decoration-color:var(--accent)}
+
+/* ---------- my plan ---------- */
+.pane.plan{padding-top:4px; animation:in-right .32s cubic-bezier(.32,.72,0,1)}
+@media (prefers-reduced-motion: reduce){ .pane.plan{animation:none} }
+.toplink{border:0; background:var(--accent-soft); color:var(--accent-ink); font-weight:600; font-size:12.5px; border-radius:999px; padding:5px 11px; cursor:pointer}
+.lbl{display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:3px}
+.goal{border-radius:16px; padding:16px; margin-bottom:14px; background:linear-gradient(160deg, var(--accent-soft), var(--sunk))}
+.goal h2{font-size:21px; line-height:1.2; margin-bottom:3px}
+.goal .meta{font-size:12px; color:var(--ink-2)}
+.ready{margin-top:14px}
+.big-count{margin:0 0 7px; font-size:14px; color:var(--ink-2)}
+.big-count b{font:700 30px/1 "Archivo", sans-serif; color:var(--ink); margin-right:2px}
+.big-count span{color:var(--ink)}
+.meter{display:flex; gap:4px}
+.meter span{flex:1; height:8px; border-radius:4px; background:var(--card); border:1px solid var(--line); transition:background .45s ease, border-color .45s ease}
+.meter span.on{background:var(--ok); border-color:var(--ok)}
+.meter.big span{height:10px}
+.ready-line{font-size:13px; color:var(--ink-2); margin:9px 0 0}
+.ready-line b{color:var(--ink)}
+.ready-line b.h{color:var(--ok)}
+.overall{display:flex; align-items:center; gap:10px; margin-top:11px; font-size:12px; color:var(--muted)}
+.overall span:first-child{flex:none}
+.thin{flex:1; height:4px; border-radius:2px; background:var(--line); overflow:hidden}
+.thin i{display:block; height:100%; background:var(--accent); transition:width .45s ease}
+.card{border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:14px}
+.ch{font-size:15px; margin-bottom:10px}
+.mini-route{display:flex; flex-direction:column; gap:2px; margin-bottom:10px}
+.mr{display:flex; align-items:center; gap:10px; border:0; background:none; padding:5px 4px; border-radius:8px; cursor:pointer; text-align:left; font-size:13px; color:var(--ink-2)}
+.mr:hover{background:var(--sunk)}
+.mdot{width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:grid; place-items:center; font:600 11px "IBM Plex Mono", monospace; color:var(--muted)}
+.mdot svg{width:11px; height:11px}
+.mr.done .mdot{background:var(--ok); border-color:var(--ok); color:var(--on-fill)}
+.mr.next{color:var(--ink); font-weight:600}
+.mr.next .mdot{border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.mr.goal .mt::after{content:"  · goal"; color:var(--muted); font-weight:400}
+.nextbox{background:var(--sunk); border-radius:11px; padding:10px 12px; font-size:13px}
+.nextbox b{font-size:14px}
+.nextbox p{margin:3px 0 0; color:var(--ink-2); font-size:12.5px}
+.ps{border-top:1px solid var(--line-2); padding:10px 0}
+.ps-t b{display:block; font-size:13.5px}
+.ps-t span{display:block; font-size:12px; color:var(--muted); line-height:1.4}
+.ps.ess .ps-t b{color:var(--essential)}
+.ps.learning{background:var(--accent-soft); margin:0 -14px; padding:10px 14px; border-top-color:transparent}
+.ps-a{display:flex; gap:7px; margin-top:8px; flex-wrap:wrap}
+.btn{
+  border:1.5px solid var(--accent); background:var(--card); color:var(--accent-ink); border-radius:999px;
+  padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+}
+.btn svg{width:12px; height:12px}
+.btn.ok{background:var(--ok); border-color:var(--ok); color:var(--on-fill)}
+.btn.ghost{border-color:var(--line); color:var(--ink-2)}
+.btn:disabled{opacity:.55; cursor:wait}
+.have{margin-top:12px; font-size:13px}
+.have summary{cursor:pointer; font-weight:600; color:var(--ok)}
+.hv{display:flex; align-items:center; gap:8px; padding:5px 0}
+.hv .mk{width:17px; height:17px; border-radius:50%; background:var(--ok); color:var(--on-fill); display:grid; place-items:center; flex:none}
+.hv .mk svg{width:10px; height:10px}
+.hv .n{flex:1}
+.undo{border:0; background:none; color:var(--muted); cursor:pointer; padding:4px; display:grid; place-items:center}
+.undo svg{width:14px; height:14px}
+.plan-actions{display:flex; gap:8px; margin-top:4px}
+.plan-actions .btn{flex:1; justify-content:center; padding:10px}
+.toast{
+  position:sticky; bottom:8px; margin:14px auto 0; width:fit-content; max-width:100%;
+  background:var(--ink); color:var(--card); font-size:13px; border-radius:999px; padding:9px 16px;
+  animation:up .25s ease; box-shadow:var(--shadow);
+}
+.plan-title{font:700 17px/1 "Archivo", sans-serif; color:var(--ink)}
+.route-note{margin:9px 0 0}
+.day{margin:0 0 4px; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--ink-2); line-height:1.45}
+.day li::marker{color:var(--accent)}
+.sheet .prep{margin-top:14px}
+.occ .meta .score{font-size:10.5px; color:var(--accent-ink); background:var(--accent-soft); border-radius:4px; padding:0 4px; margin-left:4px}
+
+/* ---------- welcome : the front door (ADR-0008) ---------- */
+.welcome{padding:0; overflow-y:auto}
+.hero{padding:36px 24px 26px; background:linear-gradient(160deg, var(--accent), var(--accent-ink)); color:var(--on-fill)}
+.hero .brand.big{color:var(--on-fill); opacity:.85; font-size:14px}
+.hero h1{font-size:28px; line-height:1.15; margin:14px 0 10px; color:var(--on-fill)}
+.hero p{margin:0; font-size:14.5px; opacity:.9; max-width:34ch}
+.door{padding:20px 20px 8px}
+.field{display:block; margin:6px 0 14px}
+.field span{display:block; font-size:13px; font-weight:600; margin-bottom:6px}
+.field i{font-weight:400; color:var(--muted); font-style:normal}
+.field input{
+  width:100%; border:1.5px solid var(--line); border-radius:11px; padding:12px 13px;
+  font-size:15px; background:var(--sunk); color:var(--ink);
+}
+.field input:focus{border-color:var(--accent); outline:none}
+.codein{letter-spacing:.2em; font-size:20px !important; text-align:center; text-transform:uppercase}
+.fine{font-size:12px; color:var(--muted); margin:10px 0 0; text-align:center}
+.welcome .prov{margin:18px 20px 20px}
+
+/* ---------- app shell: tabs and pushed pages ---------- */
+.tabbar{display:flex; border-top:1px solid var(--line); background:var(--card); flex:none; padding:4px 6px calc(4px + env(safe-area-inset-bottom))}
+.tb{flex:1; border:0; background:none; display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:7px 2px 6px; font-size:11px; font-weight:600; color:var(--muted); cursor:pointer; border-radius:10px}
+.tb svg{width:21px; height:21px}
+.tb.on{color:var(--accent)}
+.tb.on svg{stroke-width:2.4}
+.tabpane{padding-top:4px}
+.sub.tight{margin:2px 0 14px}
+.page{position:absolute; inset:0; display:flex; flex-direction:column; animation:in-right .28s cubic-bezier(.32,.72,0,1)}
+@media (prefers-reduced-motion: reduce){ .page{animation:none} }
+.page-body{flex:1; overflow-y:auto; padding:6px 20px 20px}
+.page-foot{flex:none; padding:12px 20px 14px; border-top:1px solid var(--line-2); display:flex; flex-direction:column; gap:8px}
+.page .loading{padding:40px 0}
+
+/* ---------- job page extras (ADR-0009) ---------- */
+.aka{display:block; font-size:11.5px; color:var(--accent-ink); font-style:italic}
+.chev{color:var(--muted); font-size:20px; line-height:1; flex:none}
+.tools{display:flex; flex-direction:column; gap:7px}
+.tool{background:var(--sunk); border-radius:9px; padding:8px 11px; font-size:12.5px}
+.tool b{display:block; font-size:13px}
+.tool span{color:var(--ink-2)}
+.chips.soft{gap:6px}
+.chip.static{cursor:default; font-size:12px; padding:6px 11px}
+.chip.hot{border-color:var(--accent-dim); background:var(--accent-soft); color:var(--accent-ink)}
+.chip.hot i{font-style:normal; font-size:10px; opacity:.75; margin-left:3px}
+.more.inline{padding:0; font-size:12.5px}
+
+/* ---------- home additions ---------- */
+.hello{font-size:22px; margin:2px 0 12px}
+.codecard{border:1.5px dashed var(--accent-dim); border-radius:14px; padding:13px 14px; margin:16px 0 6px; text-align:center}
+.codecard .code{display:block; font-size:26px; letter-spacing:.14em; color:var(--accent-ink); margin:4px 0 6px}
+.codecard p{margin:0; font-size:12px; color:var(--muted)}
+.plan-links{display:flex; gap:4px}
+.plan-links .link{margin-top:4px}
+
+/* ---------- skills (slice 2) ---------- */
+.skillrow{gap:10px}
+.sdot{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:grid; place-items:center; color:var(--on-fill)}
+.sdot svg{width:11px; height:11px}
+.sdot.held{background:var(--ok); border-color:var(--ok)}
+.sdot.learning{border-color:var(--accent); background:var(--accent-soft); box-shadow:inset 0 0 0 4px var(--card)}
+.sdot.big{width:26px; height:26px}
+.skillstate{display:flex; align-items:center; gap:10px; background:var(--sunk); border-radius:11px; padding:10px 12px; margin:6px 0 2px}
+.skillstate b{font-size:14px}
+.tabpane .tabs .tab{font-size:12px; padding:8px 2px}
+.unlock .burst{width:54px; height:54px; border-radius:50%; background:var(--ok); color:var(--on-fill); display:grid; place-items:center; margin:8px auto 10px; animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+.unlock .burst svg{width:26px; height:26px}
+@keyframes pop{from{transform:scale(.4); opacity:0}}
+@media (prefers-reduced-motion: reduce){ .unlock .burst{animation:none} }
+.center{text-align:center}
+.goalchg{background:var(--sunk); border-radius:13px; padding:12px 14px; margin:8px 0 4px}
+.goalchg .meter span{background:var(--card)}
+.goalchg .meter span.on{background:var(--ok)}
+
+/* ---------- saved jobs and compare (slice 3) ---------- */
+.btn.full{width:100%; justify-content:center; padding:10px}
+.svd{display:flex; align-items:center; gap:10px; border-top:1px solid var(--line-2); padding:9px 0}
+.svd:first-of-type{border-top:0}
+.pick{width:24px; height:24px; border-radius:7px; border:1.5px solid var(--line); background:var(--card); color:var(--on-fill); display:grid; place-items:center; flex:none; cursor:pointer; padding:0}
+.pick svg{width:12px; height:12px; opacity:0}
+.pick.on{background:var(--accent); border-color:var(--accent)}
+.pick.on svg{opacity:1}
+.svd-t{flex:1; min-width:0; text-align:left; border:0; background:none; padding:0; cursor:pointer; display:flex; flex-direction:column; gap:4px}
+.svd-t b{font-size:13.5px}
+.svd-t .meta{font-size:11.5px; color:var(--muted)}
+.svd + .btn{margin-top:8px}
+.cmp{display:grid; gap:8px; margin:10px 0 6px}
+.cmp.cols2{grid-template-columns:1fr 1fr}
+.cmp.cols3{grid-template-columns:1fr 1fr 1fr}
+.cmpcol{border:1px solid var(--line); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:10px; min-width:0}
+.cmpcol.lead{border-color:var(--ok); box-shadow:0 0 0 1px var(--ok) inset}
+.cmp-title{font:700 13.5px/1.25 "Archivo", sans-serif}
+.cmp-row{font-size:12px; color:var(--ink-2); display:flex; flex-direction:column; gap:4px}
+.cmp-row .lbl{margin:0; font-size:10px}
+.cmp-big{font:700 20px/1 "Archivo", sans-serif; color:var(--ink)}
+.cmp-big small{font:500 12px "IBM Plex Sans", sans-serif; color:var(--muted)}
+.need{display:inline-block; background:var(--essential-soft); color:var(--essential); border-radius:6px; padding:2px 7px; font-size:11.5px; font-weight:600; width:fit-content}
+.okt{color:var(--ok); font-weight:600}
+.tabhost{position:absolute; inset:0}
+.page{background:var(--card); z-index:2}
+
+/* ---------- interest quiz (slice 4) ---------- */
+.tabs .tab{font-size:12.5px}
+.quiz{display:flex; flex-direction:column; gap:10px; margin-bottom:14px}
+.qz{border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+.qz.done{border-color:var(--accent-dim); background:var(--accent-soft)}
+.qz p{margin:0 0 8px; font-size:13.5px; font-weight:500}
+.qz-a{display:flex; gap:6px}
+.qa{flex:1; border:1.5px solid var(--line); background:var(--card); border-radius:999px; padding:6px 4px; font-size:12px; cursor:pointer; color:var(--ink-2)}
+.qa.on{background:var(--accent); border-color:var(--accent); color:var(--on-fill); font-weight:600}
+.tabpane .cta{margin-top:4px}
+
+/* ---------- progress history (slice 5) ---------- */
+.climb{display:flex; align-items:flex-end; gap:5px; height:56px; padding:6px 2px; background:var(--sunk); border-radius:10px; margin-bottom:6px}
+.cb{flex:1; height:100%; display:flex; align-items:flex-end}
+.cb i{display:block; width:100%; background:var(--accent-dim); border-radius:4px 4px 0 0; transition:height .45s ease}
+.cb i.full{background:var(--ok)}
+.tl-list{list-style:none; margin:10px 0 0; padding:0; position:relative}
+.tl-list::before{content:""; position:absolute; left:6px; top:8px; bottom:8px; width:1.5px; background:var(--line)}
+.tle{display:flex; gap:12px; padding:5px 0; position:relative}
+.tle-dot{width:13px; height:13px; border-radius:50%; background:var(--card); border:2px solid var(--accent-dim); flex:none; margin-top:3px; z-index:1}
+.tle.k-held .tle-dot{background:var(--ok); border-color:var(--ok)}
+.tle.k-goal .tle-dot{background:var(--accent); border-color:var(--accent)}
+.tle.k-learning .tle-dot{border-color:var(--accent)}
+.tle-t{font-size:13px; color:var(--ink-2)}
+.tle-t b{color:var(--ink)}
+.tle-t .meta{display:block; font-size:11px; color:var(--muted)}
+
+/* ---------- Me tab and printable plan (slice 6) ---------- */
+.kv{display:flex; justify-content:space-between; gap:12px; font-size:13px; padding:6px 0; border-top:1px solid var(--line-2)}
+.kv:first-of-type{border-top:0}
+.kv span{color:var(--muted)}
+.card .plan-actions{margin-top:10px}
+form.card .btn{margin-top:-4px}
+.printable{display:none}
+@media print{
+  @page{margin:16mm}
+  body{background:#fff; display:block; padding:0}
+  #root > *:not(.printable){display:none !important}
+  .printable{display:block; color:#111; font:11pt/1.45 "IBM Plex Sans", Arial, sans-serif}
+  .printable header{border-bottom:2px solid #1D4E6F; padding-bottom:8px; margin-bottom:12px}
+  .printable .brand{color:#1D4E6F}
+  .printable h1{font-size:20pt; margin:4px 0 2px}
+  .printable h2{font-size:14pt; margin:0 0 4px}
+  .printable h3{font-size:11.5pt; margin:12px 0 4px; color:#1D4E6F}
+  .printable p, .printable li{margin:2px 0}
+  .printable ul, .printable ol{margin:0; padding-left:18px}
+  .printable .cols{display:grid; grid-template-columns:3fr 2fr; gap:18px}
+  .printable section{break-inside:avoid; margin-bottom:6px}
+  .printable footer{margin-top:14px; padding-top:6px; border-top:1px solid #ccc; font-size:8.5pt; color:#555}
+}
+.prov.tight{margin-top:0; padding-top:0; border-top:0}
+.cmp-row.dated{font-size:10.5px; color:var(--muted)}
+.why-rec{display:block; font-size:11.5px; color:var(--ink-2); margin-top:2px; line-height:1.35}
+.why-rec b{font-weight:600; color:var(--ok)}
+.why-step{font-size:11.5px; color:var(--ink-2); margin:-3px 0 7px}
+.why-step b{color:var(--ok)}
+
+/* ---------- CV check (ADR-0014) ---------- */
+.cvbox{width:100%; border:1.5px solid var(--line); border-radius:11px; padding:10px 12px; font:13px/1.45 "IBM Plex Sans", sans-serif;
+  background:var(--sunk); color:var(--ink); resize:vertical; margin:4px 0 10px}
+.cvbox:focus{border-color:var(--accent); outline:none}
+.quote{display:block; font-size:12px; color:var(--ink-2); font-style:italic}
+.cvs .ps-a{margin-top:6px}
+.cvline{font-size:13px; margin:6px 0; color:var(--ink-2)}
+.cvline b{color:var(--ink)}
+.miss{color:var(--essential); font-weight:700}
+.okt svg{width:12px; height:12px; vertical-align:-1px}
+.cvbtn{margin:-6px 0 14px}
+
+/* ---------- interview practice (ADR-0015) ---------- */
+.qdots{display:flex; gap:6px; margin:4px 0 10px}
+.qdot{width:30px; height:30px; border-radius:50%; border:1.5px solid var(--line); background:var(--card); color:var(--ink-2); font-weight:600; cursor:pointer}
+.qdot.done{border-color:var(--ok); color:var(--ok)}
+.qdot.on{background:var(--accent); border-color:var(--accent); color:var(--on-fill)}
+.qtext{font-size:18px; line-height:1.3}
+.star{margin:4px 0 10px}
+.star b{color:var(--ink)}
+.fbk{margin-top:12px}
+.fbk .tip{font-size:12px; color:var(--ink-2)}
+.fbk li{align-items:flex-start}
+.fbk .mk{margin-top:2px}
+
+/* ---------- what employers ask for (ADR-0017) ---------- */
+.emp .sub-h{font-size:12.5px; font-weight:600; color:var(--ink-2); margin:14px 0 6px}
+.emp-facts{display:flex; flex-direction:column; gap:4px; background:var(--sunk); border-radius:10px; padding:10px 12px; margin:6px 0 4px}
+.emp-facts p{margin:0; font-size:13.5px}
+.emp-list{list-style:none; margin:0; padding:0}
+.emp-list li{display:flex; gap:10px; align-items:baseline; padding:6px 0; border-top:1px solid var(--line-2); font-size:13.5px}
+.emp-list li:first-child{border-top:0}
+.emp-list .share{flex:none; width:68px; font-weight:600; color:var(--accent); font-size:12.5px}
+.tag.held{background:var(--ok-soft); color:var(--ok)}
+.tag.learning{background:var(--accent-soft); color:var(--accent)}

@@ -1,0 +1,14 @@
+# What `fly deploy` uploads. The O*NET files (backend/data/onet) and the advert
+# counts (backend/seed) MUST go; everything else heavy or irrelevant stays out.
+.git
+.claude
+**/__pycache__
+**/*.pyc
+**/*.db
+node_modules
+docs
+backend/tests
+backend/data/linkedin
+backend/data/resume
+frontend/tests
+*.md

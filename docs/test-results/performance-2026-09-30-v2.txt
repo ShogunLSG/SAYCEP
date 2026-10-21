@@ -1,0 +1,14 @@
+
+PT-01  TR-01 accuracy against a random baseline of the SAME metric
+  PASS  PT-01  at least one of top 5 in family: 59.7% vs random 25.8% (2.3x), n=124 (target >= 55%)  -- mean family share 30.6% vs random 5.9% (5.2x)
+
+PT-02  TR-02 latency: rank all 879 occupations, top 5
+  PASS  PT-02  p95 4.7 ms, median 3.6 ms, n=49 (target <= 100 ms)  -- max 8.3 ms
+
+PT-03  NFR-01 response time over HTTP, every demo-path endpoint
+  PASS  PT-03  60 requests: p95 45 ms, max 71 ms (target: 95% under 2000 ms)  -- median 6 ms
+
+PT-04  NFR-04 full rebuild of saycep.db from the O*NET files
+  PASS  PT-04  rebuild took 1.74 s (target <= 60 s)  -- Built saycep.db from O*NET 29.0 (August 2024 release)
+
+4 passed, 0 failed, 4 total

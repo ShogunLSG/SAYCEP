@@ -28,6 +28,17 @@ EXPECTED = {
     "Skills.txt": 61530,
     "Job Zones.txt": 923,
     "Related Occupations.txt": 18460,
+    # Added 30 September for "A day in this job" (ADR-0007). Counted from the
+    # Kaggle copy, whose other four files match the data dictionary exactly.
+    "Task Statements.txt": 18796,
+    "Task Ratings.txt": 158751,
+    # Added 30 September for job pages and search (ADR-0009). Counted from the
+    # Kaggle copy.
+    "Alternate Titles.txt": 55120,
+    "Technology Skills.txt": 32470,
+    "Tools Used.txt": 41650,
+    # Added 30 September for the interest quiz (ADR-0011).
+    "Interests.txt": 8307,
 }
 
 SCHEMA = """
@@ -36,6 +47,11 @@ DROP TABLE IF EXISTS skills;
 DROP TABLE IF EXISTS occupation_skills;
 DROP TABLE IF EXISTS related_occupations;
 DROP TABLE IF EXISTS job_zone_reference;
+DROP TABLE IF EXISTS occupation_tasks;
+DROP TABLE IF EXISTS occupation_alt_titles;
+DROP TABLE IF EXISTS occupation_technology;
+DROP TABLE IF EXISTS occupation_tools;
+DROP TABLE IF EXISTS occupation_interests;
 
 CREATE TABLE occupations (
     soc_code        TEXT PRIMARY KEY,
@@ -82,7 +98,58 @@ CREATE TABLE job_zone_reference (
     svp_range   TEXT
 );
 
+-- What someone in the job actually does, in O*NET's own plain sentences.
+-- importance is the task's IM rating (1-5); null where O*NET gives none --
+-- analyst-written tasks, or a rating marked Recommend Suppress. 298 of the
+-- 17,931 loaded tasks, measured 30 September. They sort last.
+CREATE TABLE occupation_tasks (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    task_id         INTEGER NOT NULL,
+    task            TEXT NOT NULL,
+    task_type       TEXT,
+    importance      REAL,
+    source_date     TEXT,
+    PRIMARY KEY (soc_code, task_id)
+);
+
+-- Other names a job goes by, so search finds "Conduit Installer" (ADR-0009).
+CREATE TABLE occupation_alt_titles (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    title           TEXT NOT NULL,
+    short_title     TEXT
+);
+
+-- Software used in the job; hot = O*NET's "Hot Technology" flag.
+CREATE TABLE occupation_technology (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    example         TEXT NOT NULL,
+    category        TEXT NOT NULL,
+    hot             INTEGER NOT NULL,
+    in_demand       INTEGER NOT NULL
+);
+
+-- Physical tools used in the job, grouped by O*NET commodity category.
+CREATE TABLE occupation_tools (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    example         TEXT NOT NULL,
+    category        TEXT NOT NULL
+);
+
+-- O*NET's RIASEC interest profile: six scores per job on its 1-7 OI scale
+-- (ADR-0011). area is the initial: R, I, A, S, E or C.
+CREATE TABLE occupation_interests (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    area            TEXT NOT NULL CHECK (area IN ('R','I','A','S','E','C')),
+    score           REAL NOT NULL,
+    source_date     TEXT,
+    PRIMARY KEY (soc_code, area)
+);
+
 CREATE INDEX idx_occ_skills_soc ON occupation_skills(soc_code);
+CREATE INDEX idx_alt_titles_soc ON occupation_alt_titles(soc_code);
+CREATE INDEX idx_tech_soc ON occupation_technology(soc_code);
+CREATE INDEX idx_tools_soc ON occupation_tools(soc_code);
+CREATE INDEX idx_occ_tasks_soc ON occupation_tasks(soc_code);
 CREATE INDEX idx_occ_skills_imp ON occupation_skills(importance DESC);
 CREATE INDEX idx_occupations_zone ON occupations(job_zone);
 """
@@ -111,6 +178,12 @@ def main():
     related = read("Related Occupations.txt")
     zone_ref = read("Job Zone Reference.txt")
     content_model = read("Content Model Reference.txt")
+    tasks = read("Task Statements.txt")
+    task_ratings = read("Task Ratings.txt")
+    alt_titles = read("Alternate Titles.txt")
+    technology = read("Technology Skills.txt")
+    tools = read("Tools Used.txt")
+    interests = read("Interests.txt")
 
     zone_by_soc = {r["O*NET-SOC Code"]: int(r["Job Zone"]) for r in job_zones}
 
@@ -190,6 +263,42 @@ def main():
             for r in zone_ref
         ],
     )
+    task_importance = {
+        (r["O*NET-SOC Code"], r["Task ID"]): float(r["Data Value"])
+        for r in task_ratings
+        if r["Scale ID"] == "IM" and r["Recommend Suppress"] != "Y"
+    }
+    con.executemany(
+        "INSERT INTO occupation_tasks VALUES (?,?,?,?,?,?)",
+        [
+            (r["O*NET-SOC Code"], int(r["Task ID"]), r["Task"],
+             None if r["Task Type"] == "n/a" else r["Task Type"],
+             task_importance.get((r["O*NET-SOC Code"], r["Task ID"])), r["Date"])
+            for r in tasks if r["O*NET-SOC Code"] in usable
+        ],
+    )
+    con.executemany(
+        "INSERT INTO occupation_alt_titles VALUES (?,?,?)",
+        [(r["O*NET-SOC Code"], r["Alternate Title"],
+          None if r["Short Title"] == "n/a" else r["Short Title"])
+         for r in alt_titles if r["O*NET-SOC Code"] in usable],
+    )
+    con.executemany(
+        "INSERT INTO occupation_technology VALUES (?,?,?,?,?)",
+        [(r["O*NET-SOC Code"], r["Example"], r["Commodity Title"],
+          int(r["Hot Technology"] == "Y"), int(r["In Demand"] == "Y"))
+         for r in technology if r["O*NET-SOC Code"] in usable],
+    )
+    con.executemany(
+        "INSERT INTO occupation_tools VALUES (?,?,?)",
+        [(r["O*NET-SOC Code"], r["Example"], r["Commodity Title"])
+         for r in tools if r["O*NET-SOC Code"] in usable],
+    )
+    con.executemany(
+        "INSERT INTO occupation_interests VALUES (?,?,?,?)",
+        [(r["O*NET-SOC Code"], r["Element Name"][0], float(r["Data Value"]), r["Date"])
+         for r in interests if r["Scale ID"] == "OI" and r["O*NET-SOC Code"] in usable],
+    )
     # The profile tables are empty but must exist. The loader deletes the whole
     # file and the API only creates them at startup, so without this,
     # rebuilding the data under a running server breaks every profile call
@@ -199,7 +308,9 @@ def main():
 
     print(f"Built {DB.name} from {SOURCE}\n")
     for table in ("occupations", "skills", "occupation_skills",
-                  "related_occupations", "job_zone_reference"):
+                  "related_occupations", "job_zone_reference", "occupation_tasks",
+                  "occupation_alt_titles", "occupation_technology", "occupation_tools",
+                  "occupation_interests"):
         n = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
         print(f"  {table:22} {n:>7,}")
 
@@ -208,6 +319,16 @@ def main():
           f"(no skills, job zone or related occupations).")
     print(f"  {len(not_relevant)} skill ratings excluded as not relevant "
           f"to their occupation.")
+
+    # "What employers ask for" (ADR-0017) is optional. Only a valid cache is
+    # used here: recomputing takes ~2.5 minutes (NFR-04) and is load_adverts.py's
+    # job. Without it the job page says the advert data isn't loaded.
+    import load_adverts
+    print()
+    try:
+        load_adverts.load(con, compute_if_stale=False)
+    except Exception as e:   # the O*NET database above is complete either way
+        print(f"Adverts: skipped ({e}).")
     con.close()
 
 

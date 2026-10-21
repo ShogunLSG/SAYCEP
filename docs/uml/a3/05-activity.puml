@@ -1,11 +1,19 @@
 @startuml SAYCEP_A3_Activity
 ' Assignment 3 Q3.5 - end-to-end journey with decisions, exceptions and
 ' completion states, as implemented in frontend/app.js.
-title End-to-End Journey (as implemented)
+' Version 1.1 (30 September): the occupation panel before choosing a
+' target, and the saved My plan dashboard after the pathway (ADR-0006).
+' Split in two for legibility: this is part A; part B (05b) is the dashboard.
+title End-to-End Journey, part A: the five-screen journey (as implemented)
 skinparam ActivityBackgroundColor #FEFEFE
 
 start
 :Open SAYCEP;
+if (Saved plan in this browser?) then (yes, and profile still exists)
+  :Open My plan dashboard (Figure 5b);
+  detach
+else (no)
+endif
 repeat
   :Choose starting point;
 repeat while (Choice made?) is (no - Continue disabled)
@@ -14,8 +22,7 @@ repeat
   :Tick skills held (35 O*NET skills);
 repeat while (At least one skill ticked?) is (no - Continue disabled)
 -> yes;
-:Create profile (POST /profiles);
-if (Request succeeded?) then (no)
+if (Create profile (POST /profiles) - succeeded?) then (no)
   #FBEAEA:Exception - show error banner;
   stop
 endif
@@ -32,17 +39,17 @@ else (student)
 endif
 
 repeat
-  :Pick a target via For you, Browse or Search;
-repeat while (Target picked?) is (no - Continue disabled)
+  :Open a job via For you, Browse or Search,
+  read its panel - what it involves, preparation,
+  which skills you have;
+repeat while (Aim for this job?) is (no - close panel)
 -> yes;
-:Record target (PUT /profiles/id/target);
-if (Target valid?) then (no - 404)
+if (Record target (PUT /profiles/id/target) - valid?) then (no - 404)
   #FBEAEA:Exception - show error banner;
   stop
 endif
 
-:Compute skills gap;
-if (Any skill missing?) then (no)
+if (Compute skills gap - any skill missing?) then (no)
   :Completion - you already hold every skill,
   suggest a higher preparation level;
   stop
@@ -51,13 +58,15 @@ else (yes)
   essential at 3.5 or above, else desirable;
 endif
 
-:Generate pathway, 3 steps plus target;
-:Show route with new and deeper badges and provenance;
+:Generate pathway, 3 steps plus target; show it
+with new / deeper badges and provenance;
 if (Next action?) then (try a different target)
   :Return to target selection;
   stop
-else (start again or done)
-  :Completion - journey finished;
-  stop
+else (save as my plan)
+  :Store profile id in this browser (not an account);
 endif
+
+:Continue in Figure 5b - My plan dashboard;
+stop
 @enduml

@@ -1,0 +1,43 @@
+
+TC-U01  gap.compute_gap classifies at the threshold boundary  (FR-07)
+  PASS  TC-U01a  Troubleshooting (4.00) classifies essential
+  PASS  TC-U01b  Speaking (3.38) classifies desirable
+  PASS  TC-U01c  No skill sits on both sides of the threshold
+
+TC-U02  recommend.cosine and vector construction  (FR-06, TR-03)
+  PASS  TC-U02a  35 skill dimensions loaded
+  PASS  TC-U02b  879 occupation vectors loaded
+  PASS  TC-U02c  cosine(v, v) == 1.0 for any real vector
+  PASS  TC-U02d  empty skill set returns no recommendations, not an error
+
+TC-U03  pathway._step_focus badging  (FR-08)
+  PASS  TC-U03a  a skill the profile lacks is badged 'new'
+  PASS  TC-U03b  a held skill is never badged 'new'
+
+TC-U04  loader row-count guard  (FR-10, NFR-03)
+  PASS  TC-U04a  expected counts are pinned to O*NET's published dictionary
+
+TC-U05  API refuses to start without reference data  (NFR-03)
+  PASS  TC-U05a  startup exits non-zero when saycep.db has no data
+  PASS  TC-U05b  the exit message names the fix (run load_onet.py)
+
+TC-U06  plain-language labels agree with the figures they replace  (FR-07)
+  PASS  TC-U06a  every essential importance is labelled at least 'Very important'
+  PASS  TC-U06b  no desirable importance is labelled 'Very important' or above
+  PASS  TC-U06c  all 35 skills fall into a named group, none into 'Other skills'
+  PASS  TC-U06d  every Job Zone 1-5 has a plain label
+  PASS  TC-U06e  a negative similarity still gets a match label, not an error
+
+TC-U08  every occupation has something to say about its day-to-day  (ADR-0007)
+  PASS  TC-U08a  all 879 occupations have at least one task statement
+
+TC-U07  a pre-ADR-0005 database gains the status column  (ADR-0005)
+  PASS  TC-U07a  status column added in place
+  PASS  TC-U07b  existing skills default to held, so no gap changes on upgrade
+
+TC-U09  plan codes  (ADR-0008)
+  PASS  TC-U09a  the code alphabet has no look-alike characters
+  PASS  TC-U09b  codes normalise however they are typed
+  PASS  TC-U09c  an older database gains display_name and plan_code in place
+
+23 passed, 0 failed, 23 total

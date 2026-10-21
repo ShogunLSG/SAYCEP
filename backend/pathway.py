@@ -45,6 +45,10 @@ import repository
 # A rise smaller than this is noise on a 1-5 survey scale, not a development goal.
 MIN_MEANINGFUL_RISE = 0.25
 
+# 166 of the 879 occupations have no skill at or above the essential threshold.
+# For those, "ready" means holding this many of the role's most important skills.
+READY_FALLBACK_TOP_N = 5
+
 
 def generate_pathway(con, profile_id, soc_code):
     held = set(repository.profile_skill_ids(con, profile_id))
@@ -52,7 +56,8 @@ def generate_pathway(con, profile_id, soc_code):
 
     candidates = [r for r in repository.related_occupations(con, soc_code)
                   if r["related_soc_code"] != soc_code]
-    ordered = _rank_by_closeness(con, held, candidates)
+    ordered, closeness = _rank_by_closeness(con, held, candidates + [{"related_soc_code": soc_code}])
+    ordered = [r for r in ordered if r["related_soc_code"] != soc_code]
     route = [r["related_soc_code"] for r in ordered[:PATHWAY_INTERMEDIATE_STEPS]]
 
     steps, acquired, previous = [], set(held), None
@@ -62,6 +67,8 @@ def generate_pathway(con, profile_id, soc_code):
             r for r in ordered if r["related_soc_code"] == step_soc)
 
         focus = _step_focus(con, step_soc, held, previous)
+        readiness = step_readiness(con, step_soc, held)
+        required = repository.required_skills(con, step_soc)
 
         steps.append({
             "step": position,
@@ -72,6 +79,12 @@ def generate_pathway(con, profile_id, soc_code):
             "expert_review_index": None if is_target else row["sort_index"],
             "focus": focus,
             "is_target": is_target,
+            # FR-08, why this step: how much of it the user already has, and
+            # the same similarity score the steps are ordered by.
+            "held_count": sum(r["element_id"] in held for r in required),
+            "required_count": len(required),
+            "closeness": closeness.get(step_soc),
+            **readiness,
         })
         previous = step_soc
 
@@ -93,6 +106,33 @@ def generate_pathway(con, profile_id, soc_code):
             "the user or as demanding more depth than the previous step."
         ),
     }
+
+
+def step_readiness(con, soc_code, held_ids):
+    """Has the user got what this role depends on? Drives the dashboard's
+    "your next step": the first step on the route that is not yet ready.
+
+    Ready means every essential skill is held. For an occupation with no
+    essential skills that would be trivially true, so it falls back to the
+    role's READY_FALLBACK_TOP_N most important skills instead.
+    """
+    required = repository.required_skills(con, soc_code)  # most important first
+    essential = [r for r in required if r["importance"] >= ESSENTIAL_THRESHOLD]
+    basis = essential or required[:READY_FALLBACK_TOP_N]
+    missing = [r for r in basis if r["element_id"] not in held_ids]
+    return {
+        "ready": not missing,
+        "ready_basis": "essential" if essential else f"top_{READY_FALLBACK_TOP_N}",
+        "ready_total": len(basis),
+        "ready_missing": [{"element_id": r["element_id"], "name": r["name"]} for r in missing],
+    }
+
+
+def ready_jobs(con, held_ids):
+    """Every job in the catalogue the user is ready for, by the same rule as
+    step_readiness -- used to say what a new skill unlocked."""
+    basis = repository.readiness_basis_map(con, ESSENTIAL_THRESHOLD, READY_FALLBACK_TOP_N)
+    return {soc for soc, needed in basis.items() if needed <= held_ids}
 
 
 def _importance_map(con, soc_code):
@@ -127,11 +167,12 @@ def _step_focus(con, soc_code, held_ids, previous_soc, top_n=6):
 
 
 def _rank_by_closeness(con, held_ids, candidates):
-    """Most similar to the user's current profile first."""
+    """Most similar to the user's current profile first. Returns the ordered
+    candidates and {soc: score}, so each step can say how close it is."""
     if not candidates:
-        return []
+        return [], {}
     if not held_ids:
-        return list(candidates)
+        return list(candidates), {}
 
     skill_ids, vectors = recommend.load_vectors(con)
     means = recommend.skill_means(vectors, len(skill_ids))
@@ -142,4 +183,5 @@ def _rank_by_closeness(con, held_ids, candidates):
         vec = centred.get(row["related_soc_code"])
         return recommend.cosine(profile_vec, vec) if vec else -1.0
 
-    return sorted(candidates, key=score, reverse=True)
+    scores = {row["related_soc_code"]: score(row) for row in candidates}
+    return sorted(candidates, key=lambda row: scores[row["related_soc_code"]], reverse=True), scores

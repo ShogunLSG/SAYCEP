@@ -21,6 +21,7 @@ def compute_gap(con, profile_id, soc_code):
         entry = {
             "element_id": row["element_id"],
             "name": row["name"],
+            "description": row["description"],
             "importance": round(row["importance"], 2),
             "importance_scale_max": row["importance_scale_max"],
             "classification": ("essential" if row["importance"] >= ESSENTIAL_THRESHOLD

@@ -62,6 +62,21 @@ def centre_profile(skill_ids, held_skill_ids, means):
             for i, eid in enumerate(skill_ids)]
 
 
+def reasons(skill_ids, occupation_vec, profile_vec, held_skill_ids, top_n=3):
+    """Why a job ranked where it did (FR-06), taken from the score itself.
+
+    The cosine numerator is a sum of per-skill products, centred job value x
+    centred profile value. The held skills with the largest positive products
+    are the ones that actually lifted this job -- skills the user has that the
+    job needs *more than most jobs do*. A generic skill every job needs
+    contributes nothing after centring, so it is never offered as a reason.
+    """
+    held = set(held_skill_ids)
+    parts = [(occupation_vec[i] * profile_vec[i], eid)
+             for i, eid in enumerate(skill_ids) if eid in held]
+    return [eid for c, eid in sorted(parts, reverse=True) if c > 0][:top_n]
+
+
 def cosine(a, b):
     dot = sum(x * y for x, y in zip(a, b))
     if dot == 0.0:

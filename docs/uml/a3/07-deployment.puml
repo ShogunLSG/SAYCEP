@@ -8,7 +8,7 @@ node "Presenter laptop - Windows 11, Python 3.10+" as Laptop {
     artifact "backend/*.py" as Code
     artifact "frontend/ static files" as Static
   }
-  database "saycep.db\nSQLite file, 4.8 MB" as DB
+  database "saycep.db\nSQLite file, 8.2 MB" as DB
   folder "backend/data/onet/\n41 text files, 97 MB" as Onet
 }
 

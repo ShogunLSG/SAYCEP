@@ -4,6 +4,9 @@
 ' Changes from Assignment 2: profile type is a discriminator column, not two
 ' subclasses; PathwayStep carries SkillFocus items badged new or deeper;
 ' a Pathway has exactly four steps (three intermediate plus the target).
+' Version 1.1 (30 September): UserSkill carries a progress status
+' (ADR-0005); OccupationTask added (ADR-0007); Readiness and step
+' readiness computed for the My plan dashboard.
 title SAYCEP - Class Diagram, part A: domain model (as implemented)
 skinparam classAttributeIconSize 0
 skinparam shadowing false
@@ -12,9 +15,14 @@ skinparam ranksep 40
 
 class Profile <<users table>> {
   + profileId : str
-  + profileType : str  (student | school_leaver)
+  + {field} profileType : str  (student | school_leaver)
   + targetSocCode : str [0..1]
   + createdAt : datetime
+}
+class UserSkill <<user_skills table>> {
+  + {field} status : str  (held | learning)
+  + updatedAt : datetime
+  + countsTowardGap() : bool
 }
 class Skill <<skills table>> {
   + elementId : str
@@ -42,6 +50,13 @@ class JobZone <<job_zone_reference table>> {
   + experience : str
   + training : str
 }
+class OccupationTask <<occupation_tasks table>> {
+  + taskId : int
+  + task : str
+  + taskType : str [0..1]
+  + importance : float [0..1]
+  + sourceDate : str
+}
 class RelatedOccupation <<related_occupations table>> {
   + tier : str
   + sortIndex : int
@@ -62,11 +77,21 @@ class PathwayStep <<computed>> {
   + step : int
   + isTarget : bool
   + expertReviewIndex : int [0..1]
+  + ready : bool
+  + {field} readyBasis : str  (essential | top_5)
+}
+class Readiness <<computed>> {
+  + {field} basis : str  (essential | top_5)
+  + have : int
+  + total : int
+  + ready : bool
+  + overallHave : int
+  + overallTotal : int
 }
 class SkillFocus <<computed>> {
   + importance : float
   + essential : bool
-  + badge : str  (new | deeper | none)
+  + {field} badge : str  (new | deeper | none)
   + fromImportance : float [0..1]
   + toImportance : float [0..1]
 }
@@ -74,12 +99,14 @@ class Recommendation <<computed>> {
   + score : float
 }
 
-Profile "0..*" -- "0..35" Skill : holds >
+Profile "1" *-- "0..35" UserSkill
+UserSkill "0..*" --> "1" Skill
 Profile "0..*" --> "0..1" Occupation : targets >
 Occupation "1" *-- "1..35" OccupationSkill
 OccupationSkill "0..*" --> "1" Skill
 Occupation "0..*" --> "1" JobZone : graded by >
 Occupation "1" *-- "0..20" RelatedOccupation
+Occupation "1" *-- "1..*" OccupationTask
 RelatedOccupation "0..*" --> "1" Occupation : points to >
 
 SkillsGap "0..*" --> "1" Occupation : against >
@@ -88,6 +115,13 @@ PathwayStep "1" *-- "1..6" SkillFocus
 PathwayStep "0..*" --> "1" Occupation : reaches >
 SkillFocus "0..*" --> "1" Skill
 Recommendation "0..*" --> "1" Occupation
+Readiness "0..1" --> "1" Profile : measures >
+
+note right of UserSkill
+  Only status = held counts toward the
+  gap, the pathway and recommendations.
+  "learning" is shown, never counted.
+end note
 
 note bottom of Pathway
   Four steps: three intermediate (FR-08 minimum,

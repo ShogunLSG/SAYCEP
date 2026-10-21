@@ -2,7 +2,11 @@
 
 Solo developer. The proposal describes a Feb–Nov 2026 seven-phase plan; that stays in the written document as the project's formal schedule. What follows is the real working plan from today, which is what actually needs executing.
 
-## Fixed point
+## Fixed point — confirmed 9 October (and again on 19 October)
+
+**Prototype presentation: Saturday 24 October 2026.** The plan for the last
+days is at the end of this file. *The paragraph below is the original September estimate, kept
+for the record.*
 
 **Presentation: beginning of October 2026, with a working demo expected.** From 10 September that is roughly three weeks, worked around a full-time job.
 
@@ -108,3 +112,51 @@ The frontend is the riskiest item, and it sits on the last weekend. Mitigation:
 React from a CDN in a single HTML file served by FastAPI — no npm, no build step,
 no toolchain to debug at 11pm on 27 September. Still React, still honest in the
 proposal, and it removes a category of problem rather than solving one.
+
+---
+
+## Final run-in — 9 to 24 October *(added 9 October; superseded 19 October, see below)*
+
+The build is done: five modules, accessibility, 155 tests. What's left is
+mostly the project owner's assessed work, plus hosting. **The code freezes on
+the evening of Wednesday 21 October.** After that, only fixes to things that
+break the demo.
+
+| When | Claude | You |
+|---|---|---|
+| **Fri 9 – Sun 11** | Build the hosting (`plans/hosting.md`). Fix the CV scanner's "Canes" bug and re-measure, because that figure is quoted. | Rotate the Kaggle token. Make a Fly.io account. The 20-minute setup with me on Sat or Sun. Start drafting FR-11 onward. |
+| **Mon 12 – Fri 16** | Pressure-test each requirement as you send it; close any gap between what a requirement promises and what's built. | Finish the requirements for everything after FR-10. Book one first-time user for a ten-minute test. |
+| **Sat 17 – Sun 18** | Turn the user test into NFR-02 evidence. | Run the user test. Draft the slides. **Gate:** the demo script runs end to end on the live link, twice, without touching code. |
+| **Mon 19 – Wed 21** | Fixes only. **Freeze on Wed evening.** | Rehearse with the slides. |
+| **Thu 22** | Keep the site awake from now until after the presentation (one line, about $0.30). | Full dress rehearsal on the live link, timed. |
+| **Fri 23** | Check that the live site and the laptop fallback both work. | Rest. Charge the laptop. |
+| **Sat 24** | — | Open the site 15 minutes before. Present. |
+
+**If something slips, cut in this order:** hosting goes first (present from
+the laptop, which is already rehearsed), then the user test. The requirements
+and the rehearsal can't be cut.
+
+---
+
+## Last days — 19 to 24 October *(added 19 October)*
+
+Done since 9 October: the CV scanner fix and re-measure (ADR-0018). **Hosting
+isn't built.** By the rule above, hosting is the first thing to cut. **Present
+from the laptop.** The local app is the rehearsed path, and the Fly.io plan
+(`plans/hosting.md`) stays ready for after the presentation. If you still want
+the live link, Monday is the last day to start it: about a day of work, then
+about 20 minutes with you, landing right before the Wednesday freeze. I
+wouldn't.
+
+| When | Claude | You |
+|---|---|---|
+| **Mon 19** | Merge-ready pull request of everything since the start of the project. | Merge it. Decide on hosting today (recommended: no). |
+| **Tue 20** | Fixes only, if the rehearsal finds anything. | Rehearse the demo script in `STATUS.md` with the slides, timed. |
+| **Wed 21** | Fixes only. **Code freezes in the evening.** | Second rehearsal. Make sure the requirements after FR-10 are written; the questions come from them. |
+| **Thu 22** | Check that a clean copy of the repo starts and runs the demo. | Full dress rehearsal on the laptop that will present. |
+| **Fri 23** | — | Rest. Charge the laptop. Keep a second way to show it, such as a screen recording of the demo. |
+| **Sat 24** | — | Start the app 15 minutes before (`python -m uvicorn app:app --app-dir backend --port 8000`). Present. |
+
+**21 October:** a live link was asked for as a safety net, so a minimal Fly.io
+deploy was built (`deploy.md`, ADR-0021). It changes no application code, so
+the freeze stands. The laptop stays the main path.

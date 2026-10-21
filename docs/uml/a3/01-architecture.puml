@@ -1,5 +1,7 @@
 @startuml SAYCEP_A3_Architecture
 ' Assignment 3 Q3.1 - high-level system architecture, as implemented.
+' Version 1.1 (30 September): 11 endpoints; Plain Labels module; the
+' saved plan is a profile id in the browser's localStorage (ADR-0006).
 title SAYCEP - System Architecture (as implemented, 30 September 2026)
 skinparam componentStyle rectangle
 skinparam shadowing false
@@ -9,11 +11,13 @@ actor "School-Leaver" as Leaver
 actor "Data Administrator" as Admin
 
 rectangle "Client - web browser" {
-  component "Web UI\nReact 18 + htm, vendored\nfrontend/" as UI
+  component "Web UI\nReact 18 + htm, vendored\nfrontend/\njourney + My plan dashboard" as UI
+  storage "localStorage\nsaved plan id only" as LS
 }
 
 rectangle "SAYCEP service - one FastAPI process on uvicorn" {
-  component "SAYCEP API\nbackend/app.py\n8 REST endpoints" as API
+  component "SAYCEP API\nbackend/app.py\n11 REST endpoints" as API
+  component "Plain Labels\nplain.py" as PL
   component "Gap Analyser\ngap.py" as GA
   component "Pathway Service\npathway.py" as PS
   component "Recommendation Engine\nrecommend.py\n<<emerging technology>>" as RE #D6E8F5
@@ -34,6 +38,8 @@ API --> PS
 API --> RE
 PS --> RE : rank steps
 API --> Repo
+API --> PL : words beside every figure
+UI --> LS : remember plan
 GA --> Repo
 PS --> Repo
 RE --> DB : read importance vectors

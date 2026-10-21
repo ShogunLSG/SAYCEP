@@ -1,0 +1,4 @@
+# A Windows checkout must not turn these into CRLF: Docker's RUN lines and shell
+# scripts break on carriage returns.
+Dockerfile text eol=lf
+*.sh text eol=lf

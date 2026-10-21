@@ -1,0 +1,10 @@
+9544 pairs = 344 CVs x 28 adverts; 20 O*NET occupations
+
+[tuning half] 4794 pairs, 172 CVs
+  naive word overlap   r = 0.153   rho = 0.171
+  CV scanner (shipped) r = 0.311   rho = 0.365   ranking each CV's adverts rho = 0.385
+
+[TEST half] 4750 pairs, 172 CVs
+  naive word overlap   r = 0.163   rho = 0.186
+  CV scanner (shipped) r = 0.266   rho = 0.278   ranking each CV's adverts rho = 0.349
+  95% interval, scanner r: 0.195 to 0.333; scanner minus naive: +0.023 to +0.178

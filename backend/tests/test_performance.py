@@ -7,6 +7,7 @@ document. Needs the API running for PT-03.
 Run: python backend/tests/test_performance.py
 
   PT-01  TR-01  recommendation accuracy (occupational-family agreement)
+  PT-01b TR-01  the same with the target removed, over every occupation (stricter)
   PT-02  TR-02  recommendation inference latency
   PT-03  NFR-01 end-to-end API response time, over HTTP
   PT-04  NFR-04 full database rebuild time
@@ -74,6 +75,31 @@ def main():
           acc >= 55,
           f"mean family share {statistics.mean(share)*100:.1f}% vs random {statistics.mean(r_share)*100:.1f}% "
           f"({statistics.mean(share)/statistics.mean(r_share):.1f}x)")
+
+    # PT-01b: the stricter reading, over every occupation, not a sample of 150.
+    # PT-01 lets the target occupation appear in its own top five (it does in
+    # 20% of cases), which a marker can fairly call flattering. Here the target is
+    # removed and the next five are used. The random baseline is exact: the
+    # chance that five draws from the other 878 include a family member.
+    import math
+    every = {}
+    for soc, e, imp in con.execute("SELECT soc_code, element_id, importance FROM occupation_skills WHERE importance >= 3.5"):
+        every.setdefault(soc, []).append(e)
+    family = {}
+    for soc in socs:
+        family[soc[:2]] = family.get(soc[:2], 0) + 1
+    hits, chance = [], []
+    for soc, held in every.items():
+        ranked = recommend.rank(recommend.centre_profile(skill_ids, held, means), centred, 0)
+        hits.append(any(x[:2] == soc[:2] for x, _ in [r for r in ranked if r[0] != soc][:5]))
+        k, n_other = family[soc[:2]] - 1, len(socs) - 1
+        chance.append(1 - math.comb(n_other - k, 5) / math.comb(n_other, 5))
+    acc_b, base_b = statistics.mean(hits) * 100, statistics.mean(chance) * 100
+    boot = random.Random(3)
+    means_b = sorted(statistics.mean(boot.choices(hits, k=len(hits))) * 100 for _ in range(1000))
+    check("PT-01b", f"target removed, all {len(every)} occupations with must-haves: {acc_b:.1f}% vs random {base_b:.1f}% "
+          f"({acc_b / base_b:.1f}x) (target >= 55%)", acc_b >= 55,
+          f"95% interval {means_b[25]:.1f} to {means_b[974]:.1f}; the target may not count as a recommendation of itself")
 
     print("\nPT-02  TR-02 latency: rank all 879 occupations, top 5")
     lat = []

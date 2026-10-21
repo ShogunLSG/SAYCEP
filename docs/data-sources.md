@@ -37,6 +37,11 @@ from the Kaggle copy.
 | `Skills.txt` | 61,530 | Importance (IM) and Level (LV) ratings per skill per occupation, with confidence intervals |
 | `Job Zones.txt` | 923 | Preparation level 1–5 — the degree vs non-degree distinction |
 | `Related Occupations.txt` | 18,460 | 10 primary + 10 supplemental related occupations, ordered by expert review |
+| `Task Statements.txt` | 18,796 | What people in the job actually do, in plain sentences. Loaded 30 September (ADR-0007) |
+| `Task Ratings.txt` | 158,751 | Importance (IM) of each task, used only to put the most important tasks first |
+| `Alternate Titles.txt` | 55,120 | Other names for each job, so search finds them (ADR-0009) |
+| `Technology Skills.txt` | 32,470 | Software used in each job, with O*NET's "hot technology" flag |
+| `Tools Used.txt` | 41,650 | Physical tools used in each job, grouped by category |
 | `Interests.txt` | — | RIASEC inventory, for school-leaver intake |
 
 Two flags in `Skills.txt` must be respected on load: `Recommend Suppress` marks
@@ -139,6 +144,29 @@ Worth more than its "CV scorer" slot suggests. It carries a real `skills`
 vocabulary at volume alongside `degree_names` — the qualification→skills link the
 enrolled-student profile needs.
 
+**Verified 5 October 2026 (downloaded and measured, step 0 of `plans/cv-scorer.md`):**
+
+- **9,544 rows are 341 distinct CVs crossed with 28 job adverts.** The effective
+  sample is 341 CVs, not 9,544.
+- **There is a ground truth:** `matched_score` (0.00–0.97, mean 0.66) for each
+  CV–advert pair. The data card doesn't say how it was produced (it's from a
+  hackathon, Bitfest 2025), but it behaves sensibly. CVs with machine-learning
+  skills average 0.82 for *ML Engineer* and 0.40 for *Civil Engineer*. The
+  advert explains 28% of its variance and the CV 22%; the rest depends on the
+  pairing, which is what a matcher must capture. Naive word overlap reaches
+  only r = 0.16 against it.
+- **Defect:** the CV's `responsibilities` column is identical to the advert's
+  `responsibilities.1` in all 9,544 rows. The CVs' own experience text is
+  missing.
+- **Domain:** tech and office work in South Asia (Python, machine learning,
+  SQL, Excel; adverts for civil, AI and HR roles). It doesn't resemble a South
+  African school-leaver or trades CV.
+- **Vocabulary link to O\*NET:** 50.3% of CV skill mentions match an O\*NET
+  *Technology Skills* example (Python, SQL, Excel), which links them to
+  occupations rather than directly to the 35 skills. 48.4% match nothing
+  ("machine learning", "leadership", "budgets"), and under 2% name an O\*NET
+  skill or knowledge area directly.
+
 ### 4. Resume and Job Description
 
 `resume_dataset_1200.csv`, 507 kB, 14 columns, ~1,200 rows (967 unique names).
@@ -174,6 +202,33 @@ a clean example of why the verification step exists.
 
 Requirements that promise something the data can't deliver are the ones that fall
 apart under questioning. Two of these would have done exactly that.
+
+## Job adverts for "What employers ask for" (5 October 2026, ADR-0017)
+
+Searched again for module 4. Full results are in
+`test-results/job-postings-step0-2026-10-05.txt` and
+`test-results/adverts-2026-10-05.txt`.
+
+- **`samanthalucywu/2023-2025-mba-jobs-data-south-africa`, rejected as
+  synthetic.**
+  - It's 786 MB, MIT-licensed and published July 2026.
+  - 3,817 sampled rows have only 40 titles, 10 summaries and 4 description
+    templates.
+  - The company names are invented, and every row claims Adzuna as its
+    source.
+  - It covers MBA roles only.
+  - It's the second Kaggle "South Africa jobs" set to fail verification.
+- **`arshkon/linkedin-job-postings`, used.**
+  - CC BY-SA 4.0, 123,849 real LinkedIn adverts, US only, listed 24 March –
+    20 April 2024.
+  - It's linked to O\*NET by **title only**: one candidate occupation, with
+    generic titles dropped. That links 21.4% of adverts, and 438 of 879
+    occupations have 5 or more adverts. 44 of 50 links were clearly right on
+    a hand check.
+  - Only counts are stored, never advert text.
+  - **ShareAlike:** anything derived from it that's redistributed carries the
+    same licence. For coursework that means attribution, which the screen
+    gives.
 
 ## Background statistics (proposal section 2.1 only)
 

@@ -1,0 +1,198 @@
+SAYCEP — accessibility pass (WCAG 2.1 AA), 5 October 2026. ADR-0016.
+
+Tools (test-time only, never shipped): axe-core 4.13.0 run through Playwright
+on Chromium, rule set wcag2a + wcag2aa + wcag21a + wcag21aa; plus a scripted
+keyboard-only walk. Scripts: frontend/tests/a11y_audit.js, frontend/tests/keyboard.js.
+22 screens: welcome, the five journey steps, the job sheet, Home, the unlock
+card, Explore (for you, search), a job page, the interest quiz and its results,
+Skills, a skill page, compare, the CV check and its result, interview practice
+and its feedback, and Me.
+
+"Before" = commit 008a5cb. "After" = this commit.
+
+----------------------------------------------------------------------------
+BEFORE — axe, light mode, 460 px (failing elements per screen)
+  welcome                  3  color-contrast×3
+  journey 1 start          1  color-contrast×1
+  journey 2 skills         5  color-contrast×5
+  journey 3 for you        7  color-contrast×7
+  journey 3 job sheet      8  aria-prohibited-attr×8
+  journey 4 gap           10  color-contrast×10
+  journey 5 route          5  color-contrast×5
+  home                     6  aria-progressbar-name×1, color-contrast×5
+  unlock card              4  aria-progressbar-name×2, color-contrast×2
+  explore for you         10  color-contrast×10
+  explore search           8  color-contrast×8
+  job page                12  aria-prohibited-attr×8, color-contrast×4
+  interest quiz            4  color-contrast×4
+  quiz results            11  color-contrast×11
+  skills tab               9  color-contrast×9
+  skill page              15  color-contrast×15
+  compare                 19  aria-progressbar-name×2, color-contrast×17
+  cv check                 4  color-contrast×4
+  cv result                7  color-contrast×7
+  practice                 5  color-contrast×5
+  practice feedback        4  color-contrast×4
+  me                      12  color-contrast×12
+  TOTAL                  169
+
+What they were:
+  color-contrast (148)      --muted text #7E8994 at 3.0–3.6:1; AA needs 4.5:1.
+  aria-prohibited-attr (16) tick marks with aria-label but no role.
+  aria-progressbar-name (5) the skill meters had no accessible name.
+
+BEFORE — axe, dark mode, 460 px
+  welcome                  1  color-contrast×1
+  journey 1 start          1  color-contrast×1
+  journey 2 skills         6  color-contrast×6
+  journey 3 for you        0  
+  journey 3 job sheet      9  aria-prohibited-attr×8, color-contrast×1
+  journey 4 gap            1  color-contrast×1
+  journey 5 route          1  color-contrast×1
+  home                     1  aria-progressbar-name×1
+  unlock card              3  aria-progressbar-name×2, color-contrast×1
+  explore for you          0  
+  explore search           1  color-contrast×1
+  job page                 8  aria-prohibited-attr×8
+  interest quiz            0  
+  quiz results             0  
+  skills tab               0  
+  skill page               0  
+  compare                  2  aria-progressbar-name×2
+  cv check                 0  
+  cv result                0  
+  practice                 0  
+  practice feedback        0  
+  me                       0  
+  TOTAL                   34
+  (white text on the light dark-mode accent, 2.44:1)
+
+BEFORE — keyboard walk (stopped at the first check it could not run:
+the interview answer box had no label to check)
+FAIL journey step 1: focus on heading "Step 1 of 5SAYCEPYour starting pointWhere are you starting f"
+FAIL step 2: focus on heading "Step 2 of 5SAYCEPYour skillsWhat can you already do?Tap anyt"
+FAIL step 3: focus on heading "Step 3 of 5SAYCEPYour optionsPick something to aim forTap a "
+FAIL search result count is in a status region
+FAIL job sheet: focus moved into the dialog
+FAIL job sheet: 40 Tabs never leave the dialog (focus trap)
+FAIL job sheet: Shift+Tab also stays inside
+FAIL Escape closes the sheet and focus returns to "Facilities Managersalso called"
+FAIL step 4: focus on heading "Step 4 of 5SAYCEPThe gapWhat's missing?Facilities ManagersVo"
+FAIL step 5: focus on heading "Save as my plan"
+FAIL home: focus on greeting "HomeSAYCEPHi ThaboYour goalFacilities ManagersVocational tra"
+FAIL unlock card: focus moved into the dialog
+FAIL unlock card: Escape closes it
+FAIL job page: focus on heading "Motorboat OperatorsBecause you have: Equipment Maintenance, "
+FAIL job page: 60 Tabs never reach the tab hidden underneath (inert)
+FAIL Back returns focus to the row that opened the page ("ExploreSAYCEPFind jobs by how ")
+FAIL practice: focus on the question
+
+----------------------------------------------------------------------------
+AFTER — all three axe runs and the keyboard walk, as printed
+=== light mode, 460 px
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors
+exit 0
+=== dark mode, 460 px
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors
+exit 0
+=== light mode, 320 px
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors
+exit 0
+=== keyboard
+PASS journey step 1: focus on heading "Where are you starting from?"
+PASS step 2: focus on heading "What can you already do?"
+PASS step 3: focus on heading "Pick something to aim for"
+PASS search result count is in a status region
+PASS job sheet: focus moved into the dialog
+PASS job sheet: 40 Tabs never leave the dialog (focus trap)
+PASS job sheet: Shift+Tab also stays inside
+PASS Escape closes the sheet and focus returns to "ElectriciansVocational trainin"
+PASS step 4: focus on heading "What's missing?"
+PASS step 5: focus on heading "How do you get there?"
+PASS home: focus on greeting "Hi Thabo"
+PASS unlock card: focus moved into the dialog
+PASS unlock card: Escape closes it
+PASS job page: focus on heading "Chemical Equipment Operators and Tenders"
+PASS job page: 60 Tabs never reach the tab hidden underneath (inert)
+PASS Back returns focus to the row that opened the page ("Chemical Equipment Operators a")
+PASS practice: focus on the question
+PASS practice: the answer box is labelled by the question
+PASS practice: feedback appears inside a polite live region
+no page errors
+ALL PASSED
+exit 0
+
+----------------------------------------------------------------------------
+NOT COVERED by these checks (stated, not claimed):
+  * No test with a real screen reader (NVDA/TalkBack) or real users with
+    disabilities. Automated rules catch only part of WCAG; the keyboard
+    walk covers focus and roles, not how the announcements sound.
+  * 200% browser zoom was not tested separately; the 320 px run is the
+    stand-in (WCAG 1.4.10 reflow is defined at a 320 px-wide viewport).
+  * The printed plan (Me → Print) was not audited.

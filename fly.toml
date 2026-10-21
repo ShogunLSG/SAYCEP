@@ -1,0 +1,24 @@
+# SAYCEP on Fly.io. Runbook: docs/deploy.md. Decision: ADR-0021.
+# If the name below is taken, pick another and use it in every fly command.
+app = "saycep-demo"
+primary_region = "jnb"          # Johannesburg
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"    # always on: a visitor never waits for a start-up
+  auto_start_machines = true
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/skills"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"              # the app peaks near 93 MB; this leaves room for the platform

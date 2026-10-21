@@ -36,9 +36,26 @@ occupation_skills   (soc_code, element_id, importance, importance_scale_max,
                      source_date, PK(soc_code, element_id))
 related_occupations (soc_code, related_soc_code, tier, sort_index)
 job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
+occupation_tasks    (soc_code, task_id, task, task_type, importance, source_date,
+                     PK(soc_code, task_id))   -- added 30 September, ADR-0007
+occupation_alt_titles (soc_code, title, short_title)          -- ADR-0009
+occupation_technology (soc_code, example, category, hot, in_demand) -- ADR-0009
+occupation_tools    (soc_code, example, category)             -- ADR-0009
 
-users               (id, profile_type, target_soc_code)   -- with the API
-user_skills         (user_id, element_id)                 -- with the API
+-- "What employers ask for" (ADR-0017), from Kaggle LinkedIn job postings.
+-- Counts only: no advert text, companies or links are stored.
+advert_summary      (soc_code PK, adverts, level_n, entry_level, years_n, years_median,
+                     listed_from, listed_to, source_dataset)
+                     -- level_n added 8 October: beginners are counted over adverts that state a level
+advert_counts       (soc_code, kind, item, n, PK(soc_code, kind, item))
+                     -- kind: 'skill' | 'tool' | 'software' | 'req'
+advert_titles       (soc_code, title, n)       -- normalised advert titles, acronyms kept
+advert_baseline     (kind, item, n)            -- the same counts over all linked adverts
+
+users               (profile_id PK, profile_type, target_soc_code, created_at,
+                     display_name, plan_code UNIQUE)   -- ADR-0008
+user_skills         (profile_id, element_id, status, updated_at,
+                     PK(profile_id, element_id))  -- status: 'held' | 'learning'
 ```
 
 What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
@@ -48,6 +65,10 @@ What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
 - **`skills.category` dropped.** No source data supplies one.
 - **`user_skills.level` dropped.** Capture is "do you have this skill", which is
   all the gap needs.
+- **`user_skills.status` added (30 September, ADR-0005).** It's either `held`
+  or `learning`, for the "My plan" dashboard's progress tracking. Only `held`
+  counts toward a gap, pathway or recommendation. It is still not a proficiency
+  level. It just separates "I can do this" from "I'm working on it".
 - **`job_zone` added to occupations**, and `related_occupations` / 
   `job_zone_reference` added outright. Neither existed in the sketch because
   neither dataset behind it had the data. O*NET does, and they are what make FR-1's
@@ -55,7 +76,7 @@ What changed from the sketch, and why — the reasoning is in `dev-guide.md`:
 - **`importance` stores O*NET's raw 1–5 rating** rather than an essential/desirable
   boolean, so the threshold stays a query-time decision.
 
-A gap is `occupation_skills` for the target minus `user_skills`. A pathway walks
+A gap is `occupation_skills` for the target minus the `held` rows of `user_skills`. A pathway walks
 `related_occupations` in its expert-review order. One structure, two modules —
 that is the whole reason this pair is cheap to build together.
 
@@ -63,7 +84,7 @@ The `source_dataset` / `source_date` columns exist so the system can show where
 every record came from. That directly answers the data-provenance concern behind
 the Kaggle rule (see FR-4 in `functional-requirements.md`). Note that `source_date`
 sits on `occupation_skills` rather than `skills`: O*NET dates the *rating*, and
-those dates genuinely span 2019 to 2024.
+those dates genuinely span 2010 to 2024 (checked 4 October; an earlier version of this line said 2019, which was wrong).
 
 ## Core modules
 
@@ -71,12 +92,12 @@ those dates genuinely span 2019 to 2024.
 1. **Career Pathway Builder** (central) — the declared hub; ties profile, skills and target into an ordered path.
 2. **Skills gap analyser** — compares captured skills against the target occupation's required set.
 
-### Designed, not built
-3. **CV builder / scorer** — stretch goal if the core lands early; demos well but CV parsing is a time sink.
-4. **Opportunity matching engine** — no longer blocked, but dead as designed: the SA job postings dataset was verified and is not South African (see `data-sources.md`). Specify it; there is no Kaggle data behind it.
-5. **Interview prep chatbot** — cheap to build with an LLM but shallow under questioning; low priority.
+### Built once the core landed (5 October)
+3. **CV scanner** (ADR-0014). It's rule-based skill suggestions plus a goal score measured on a Kaggle CV benchmark. The CV is never stored.
+4. **What employers ask for** (ADR-0017). This stands in for *opportunity matching*: the only real advert data on Kaggle is American and expired (March–April 2024), so the module summarises what employers asked for, not jobs to apply to.
+5. **Interview practice** (ADR-0015). Rule-based feedback, not a chatbot, because there's no LLM in the build.
 
-Specify all five fully in the proposal. Build two properly. Say clearly in the presentation which is which — claiming more than is built is the fastest way to lose the room.
+*As first planned (September):* build two, specify three. Modules 3–5 were added after the core was finished, each in a reduced form that's stated plainly. Say clearly in the presentation what each one is and isn't. Claiming more than is built is the fastest way to lose the room.
 
 ## Decisions still open
 

@@ -1,0 +1,122 @@
+O*NET title keys 41392
+postings 123849
+experience [('Mid-Senior level', 41489), ('Entry level', 36708), ('(blank)', 29409), ('Associate', 9826), ('Director', 3746), ('Internship', 1449), ('Executive', 1222)]
+listed 2024-03-24 → 2024-04-20  median 2024-04-18
+location tails [('United States', 12683), ('CA', 11484), ('TX', 10271), ('NY', 6044), ('FL', 5907), ('NC', 4927), ('IL', 4480), ('PA', 4133)]
+title linked to O*NET: 51794 (41.8%); ambiguous 23740; to an occupation with skill ratings 51794
+entry-level/internship: all 38157  linked 16264
+linked by job zone [(1, 942), (2, 8553), (3, 12123), (4, 25669), (5, 4507)]
+distinct occupations reached 739 top [('Registered Nurses', 2556), ('Sales Managers', 1461), ('General and Operations Managers', 1318), ('Accountants and Auditors', 1290), ('Construction Managers', 1272), ('Advertising and Promotions Managers', 1185), ('Producers and Directors', 999), ('Retail Salespersons', 992), ('Executive Secretaries and Executive Administrative Assistants', 867), ('Marketing Managers', 746), ('Licensed Practical and Licensed Vocational Nurses', 703), ('Online Merchants', 648)]
+top unlinked titles [('manager', 1078), ('software engineer', 793), ('', 531), ('assistant store manager', 483), ('physical therapist', 338), ('associate', 300), ('assistant manager', 288), ('travel nurse rn', 199), ('vice president', 186), ('sales executive', 181), ('supervisor', 181), ('data scientist', 162), ('associate director', 142), ('travel', 140), ('associate attorney', 139), ('team member', 131), ('vp', 130), ('sales development representative', 120), ('sales', 118), ('board certified behavior analyst', 117), ('operations assistant manager', 116), ('intern', 114), ('devops engineer', 106), ('business development representative', 105), ('human resources generalist', 105)]
+
+--- what feeds the suspicious ones
+Producers and Directors <= [('director', 824), ('production supervisor', 116), ('producer', 17), ('program assistant', 12), ('news producer', 5), ('media manager', 5)]
+Online Merchants <= [('sales associate', 530), ('merchandiser', 95), ('personal shopper', 15), ('transaction coordinator', 3), ('e commerce manager', 3), ('e commerce sales associate', 1)]
+Advertising and Promotions Managers <= [('account executive', 457), ('account manager', 374), ('marketing manager', 108), ('marketing coordinator', 72), ('account specialist', 42), ('marketing director', 31)]
+Construction Managers <= [('project manager', 837), ('construction project manager', 113), ('construction manager', 75), ('project coordinator', 68), ('superintendent', 66), ('construction superintendent', 66)]
+
+--- random 40 linked: advert title => candidate occupations
+  Escrow Assistant                                        => Secretaries and Administrative Assistants, Except Legal, Medical, and Executive
+  LICENSED PRACTICAL NURSE - THE OAKS                     => Licensed Practical and Licensed Vocational Nurses
+  Attorney (Complex Business Litigation / Civil Litigatio => Lawyers
+  Senior Accountant                                       => Accountants and Auditors
+  Laboratory Specialist                                   => Medical and Clinical Laboratory Technologists | Cytogenetic Technologists
+  Accounting Manager                                      => Financial Managers | First-Line Supervisors of Office and Administrative Support Workers
+  Patient Safety Attendant                                => Orderlies
+  Store Manager - Spencer's                               => General and Operations Managers | First-Line Supervisors of Retail Sales Workers
+  Corporate Attorney                                      => Lawyers
+  Purchasing Assistant                                    => Procurement Clerks
+  Director, Information Technology                        => Producers and Directors
+  Teller                                                  => Cashiers | Tellers
+  Senior Accountant                                       => Accountants and Auditors
+  CERTIFIED NURSING ASSISTANT (CNA) - MARY GRAN           => Surgical Assistants | Nursing Assistants
+  Environmental Services Aide (EVS Aide) - OMC, Jeff Hwy  => Janitors and Cleaners, Except Maids and Housekeeping Cleaners | Maids and Housekeeping Cleaners
+  Staff Nurse - Inpatient Psychiatry - Morningside - Full => Registered Nurses | Acute Care Nurses | Critical Care Nurses
+  Project Coordinator                                     => Construction Managers | Architectural and Engineering Managers
+  Business Analyst                                        => Management Analysts | Operations Research Analysts | Business Intelligence Analysts
+  Office Assistant - Hospice                              => File Clerks | Receptionists and Information Clerks | Executive Secretaries and Executive Administrative Assist
+  Registered Nurse - RN - LTAC                            => Registered Nurses
+  Senior Claims Representative, Property Desk Adjuster (U => Claims Adjusters, Examiners, and Investigators | Insurance Claims and Policy Processing Clerks
+  Senior HVAC Tech                                        => Heating, Air Conditioning, and Refrigeration Mechanics and Installers
+  Receptionist                                            => Receptionists and Information Clerks
+  Accounting Specialist I                                 => Bookkeeping, Accounting, and Auditing Clerks
+  Licensed Practical Nurse (LPN) - Senior Living Visits   => Licensed Practical and Licensed Vocational Nurses
+  Infrastructure Engineer                                 => Telecommunications Engineering Specialists | Computer Systems Engineers/Architects
+  Loan Specialist                                         => Loan Officers | Real Estate Brokers
+  Customer Service Consultant - Hybrid (Phoenix)          => Customer Service Representatives
+  Business Development Manager (Industrial) - Toronto, On => Marketing Managers | Sales Managers | Wind Energy Development Managers
+  Retail Sales Associate Part Time                        => Retail Salespersons
+  Industrial Maintenance Technician                       => Industrial Engineering Technologists and Technicians | Maintenance and Repair Workers, General
+  Lead Reliability Engineer                               => Logistics Engineers | Validation Engineers | Mechanical Engineers | Industrial Engineering Technologists and T
+  Sr Developer                                            => Database Architects | Photographic Process Workers and Processing Machine Operators
+  Senior Civil Engineer                                   => Civil Engineers | Environmental Engineers
+  Store Manager                                           => General and Operations Managers | First-Line Supervisors of Retail Sales Workers
+  Security Officer - Logistics                            => Bailiffs | Correctional Officers and Jailers | Gambling Surveillance Officers and Gambling Investigators | Sec
+  Security Engineer (SPLUNK) | Remote US                  => Health and Safety Engineers, Except Mining Safety Engineers and Inspectors | Security and Fire Alarm Systems I
+  Metal Finisher - 3rd Shift                              => Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic | Gr
+  Senior Accountant – Financial Data Governance           => Accountants and Auditors
+  Sales Specialist                                        => Parts Salespersons | Retail Salespersons | Advertising Sales Agents | Insurance Sales Agents | Sales Represent
+
+--- strict: one candidate occupation only, generic titles dropped
+strict links 26472 (21.4%)
+occupations with >=5 adverts 438 of 879;  >=20: 219
+strict by zone [(1, 278), (2, 3967), (3, 6831), (4, 12843), (5, 2553)]
+occupations with >=5 adverts, by zone {1: '8/31', 2: '105/285', 3: '116/209', 4: '145/204', 5: '64/150'}
+strict entry-level/internship 7542
+  Electricians                                  zone 3: 84 adverts
+  Maintenance and Repair Workers, General       zone 3: 20 adverts
+  Cooks, Restaurant                             zone 2: 11 adverts
+  Customer Service Representatives              zone 2: 89 adverts
+  Heavy and Tractor-Trailer Truck Drivers       zone 2: 91 adverts
+
+--- random 50 strict links
+  Summer Camp Counselor                                   => Recreation Workers
+  General Counsel                                         => Lawyers
+  Retail Sales Associate                                  => Retail Salespersons
+  Human Resources Coordinator                             => Human Resources Managers
+  Registered Nurse, 7p-7a Shift                           => Registered Nurses
+  Audit Associate | 2025                                  => Accountants and Auditors
+  Registered Nurse - RN - Cath Lab                        => Registered Nurses
+  Package Handler (Warehouse like)                        => Laborers and Freight, Stock, and Material Movers, Hand
+  Business Development Associate                          => Market Research Analysts and Marketing Specialists
+  Chef                                                    => Chefs and Head Cooks
+  Desktop Support Technician - 224870                     => Computer User Support Specialists
+  Call Center Supervisor - Hotel Reservations             => First-Line Supervisors of Office and Administrative Support Workers
+  Solution Architect - Remote                             => Software Quality Assurance Analysts and Testers
+  Licensed Practical Nurse - Multispecialty               => Licensed Practical and Licensed Vocational Nurses
+  Phlebotomist                                            => Phlebotomists
+  Propulsion Engineer III                                 => Aerospace Engineers
+  Registered Nurse - RN - Correctional Facility           => Registered Nurses
+  Shuttle Driver - Aurora, CO                             => Loading and Moving Machine Operators, Underground Mining
+  Maintainer, Operations & Maintenance, Prospect Park Zoo => Maintenance Workers, Machinery
+  LICENSED PRACTICAL NURSE LEVEL 1                        => Licensed Practical and Licensed Vocational Nurses
+  Registered Nurse - RN - PCU                             => Registered Nurses
+  Physical Therapist Assistant - SNF                      => Physical Therapist Assistants
+  Psychology Technician - Department of Health Psychology => Psychiatric Technicians
+  Senior Accountant                                       => Accountants and Auditors
+  Staff Accountant, Hybrid (80K-85K+Bonus)                => Accountants and Auditors
+  Electrical Engineer – Unlock Your Potential with Career => Electrical Engineers
+  Project Surveyor                                        => Surveyors
+  Warehouse Associate                                     => Laborers and Freight, Stock, and Material Movers, Hand
+  INFORMATION TECHNOLOGY SPECIALIST I                     => Network and Computer Systems Administrators
+  Medical Assistant - Phlebotomists                       => Medical Assistants
+  Registered Nurse, Home Health Full Time                 => Registered Nurses
+  Database Administrator                                  => Database Administrators
+  Pharmacy Technician I                                   => Pharmacy Technicians
+  Claims Specialist - Executive Claims Specialist - Compl => Claims Adjusters, Examiners, and Investigators
+  Plant Controller                                        => Treasurers and Controllers
+  Child Care Teacher - Imperial Ave N./Oakdale            => Childcare Workers
+  Occupational Therapy Assistant (COTA)                   => Occupational Therapy Assistants
+  Activities Assistant                                    => Recreation Workers
+  Technical Writer, Knowledge Management                  => Technical Writers
+  Psychotherapist                                         => Clinical and Counseling Psychologists
+  High School Math Teacher                                => Secondary School Teachers, Except Special and Career/Technical Educati
+  Fire Sprinkler Technician                               => Plumbers, Pipefitters, and Steamfitters
+  Technical Sales Representative                          => Sales Representatives, Wholesale and Manufacturing, Technical and Scie
+  Physical Therapy Aide                                   => Physical Therapist Aides
+  Maintenance Electrician                                 => Electricians
+  Executive Assistant                                     => Executive Secretaries and Executive Administrative Assistants
+  RN | $55/hr | Psych                                     => Registered Nurses
+  Retail Sales Associate                                  => Retail Salespersons
+  Product Manager - Learning Products                     => Marketing Managers
+  Procurement Manager                                     => Purchasing Managers

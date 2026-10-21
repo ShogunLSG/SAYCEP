@@ -19,7 +19,7 @@ if (!window.React || !window.ReactDOM || !window.htm) {
   throw new Error("interface libraries missing");
 }
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 const html = htm.bind(React.createElement);
 const PRESENTER = new URLSearchParams(location.search).has("presenter");
 
@@ -46,10 +46,13 @@ const api = {
   get: (path) => request("GET", path),
   post: (path, body) => request("POST", path, body),
   put: (path, body) => request("PUT", path, body),
+  del: (path) => request("DELETE", path),
 };
 
-/** Fetch whenever `path` changes; a null path fetches nothing. */
-function useFetch(path) {
+/** Fetch whenever `path` or `rev` changes; a null path fetches nothing.
+ *  The previous data stays on screen while a refetch is in flight, so a
+ *  progress tick updates in place instead of flashing "Loading…". */
+function useFetch(path, rev = 0) {
   const [state, setState] = useState({ data: null, error: null, loading: !!path });
   useEffect(() => {
     if (!path) { setState({ data: null, error: null, loading: false }); return; }
@@ -60,21 +63,86 @@ function useFetch(path) {
       (err) => live && setState({ data: null, error: err.message, loading: false }),
     );
     return () => { live = false; };
-  }, [path]);
+  }, [path, rev]);
   return state;
 }
 
+// The saved plan is a profile id in this browser -- not an account. If the
+// browser forgets it (private window, cleared data) the journey starts fresh.
+const SAVED = "saycep.plan";
+const saved = {
+  get: () => { try { return localStorage.getItem(SAVED); } catch (_) { return null; } },
+  set: (id) => { try { localStorage.setItem(SAVED, id); } catch (_) { /* plan lasts this visit */ } },
+  clear: () => { try { localStorage.removeItem(SAVED); } catch (_) { /* nothing to clear */ } },
+};
+
 // ---------- small pieces ----------
 
+/** FR-09: the source line every screen ends with -- dataset and the O*NET
+ *  collection dates of the records on that screen, as the API reports them. */
+function Prov({ dataset, dates, label = "ratings dated" }) {
+  return html`<p class="prov">${dataset || "O*NET 29.0 (August 2024 release)"}${dates && dates.length
+    ? ` · ${label} ${dates.join(", ")}` : ""}${PRESENTER ? " · FR-09" : ""}</p>`;
+}
+
 const svg = (d, w = 2.2) => html`
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${w}
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${w}
        strokeLinecap="round" strokeLinejoin="round">${d}</svg>`;
 const Icon = {
   back: svg(html`<path d="M15 18l-6-6 6-6" />`),
   arrow: svg(html`<path d="M5 12h14M13 6l6 6-6 6" />`, 2.4),
   check: svg(html`<path d="M5 13l4 4L19 7" />`, 3.2),
   search: svg(html`<circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />`, 2),
+  undo: svg(html`<path d="M9 14L4 9l5-5" /><path d="M4 9h11a5 5 0 010 10h-3" />`, 2),
 };
+
+// ---------- accessibility helpers (WCAG 2.1 AA pass, ADR-0016) ----------
+
+/** Move focus to the first match of `sel` once it renders (content often
+ *  arrives after a fetch), so keyboard and screen-reader users land on the
+ *  new content instead of on <body>. Falls back to `fallback`. */
+function focusWhenReady(sel, fallback, tries = 25) {
+  const el = document.querySelector(sel);
+  if (el) {
+    if (!el.matches("button, a, input, textarea, select") && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+    el.focus();
+  } else if (tries > 0) {
+    setTimeout(() => focusWhenReady(sel, fallback, tries - 1), 80);
+  } else if (fallback) {
+    const f = document.querySelector(fallback);
+    if (f) f.focus();
+  }
+}
+
+const FOCUSABLE = "button:not([disabled]), a[href], input:not([disabled]), textarea, select, [tabindex]:not([tabindex='-1'])";
+
+/** Modal behaviour for a role="dialog" element: focus moves in on open,
+ *  Tab cycles inside, Escape closes, and focus returns to the opener. */
+function useDialog(onClose) {
+  const box = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const opener = document.activeElement;
+    box.current.focus();
+    const key = (e) => {
+      if (e.key === "Escape") { e.preventDefault(); close.current(); return; }
+      if (e.key !== "Tab") return;
+      const items = [...box.current.querySelectorAll(FOCUSABLE)];
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1], at = document.activeElement;
+      if (!box.current.contains(at)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && (at === first || at === box.current)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("keydown", key);
+      if (opener && opener.isConnected) opener.focus();
+    };
+  }, []);
+  return box;
+}
 
 function Head({ kicker, fr, title, sub }) {
   return html`
@@ -89,33 +157,73 @@ function Status({ loading, error, children }) {
   return children;
 }
 
-function Ring({ score }) {
+function Ring({ score, label }) {
   const r = 14, c = 2 * Math.PI * r;
   const s = Math.max(0, Math.min(1, score)); // mean-centred cosine can dip below 0
   return html`
-    <span class="ring" title="Skill similarity">
+    <span class="ring" title=${label || "Skill match"}>
       <svg width="36" height="36">
         <circle class="bg" cx="18" cy="18" r=${r} />
         <circle class="fg" cx="18" cy="18" r=${r}
                 strokeDasharray=${c} strokeDashoffset=${c * (1 - s)} />
       </svg>
-      <span>${Math.round(s * 100)}%</span>
+      ${PRESENTER && html`<span>${Math.round(s * 100)}%</span>`}
     </span>`;
 }
 
-function OccRow({ occ, picked, onPick, score }) {
+/** The figures a marker checks against, shown only with ?presenter. */
+function Figure({ children }) {
+  return PRESENTER ? html`<span class="fig mono">${children}</span>` : null;
+}
+
+function OccRow({ occ, picked, onPick, score, match }) {
   return html`
     <button class=${"occ" + (picked ? " on" : "")} aria-pressed=${picked}
             onClick=${() => onPick(occ)}>
-      ${score != null && html`<${Ring} score=${score} />`}
+      ${score != null && html`<${Ring} score=${score} label=${match} />`}
       <span class="t">${occ.title}
-        <span class="meta mono">${occ.soc_code} · Job Zone ${occ.job_zone}</span>
+        ${occ.also_called && html`<span class="aka">also called ${occ.also_called}</span>`}
+        ${occ.because && occ.because.length > 0 && html`<span class="why-rec" title="Skills you have that this job needs more than most jobs do">Because you have:${" "}<b>${occ.because.join(", ")}</b></span>`}
+        <span class="meta">
+          ${match && html`<b class="match">${match}</b>
+            <span class="score mono" title="Similarity score (FR-06)">${score.toFixed(2)}</span>${" · "}`}${occ.preparation ? occ.preparation.label : ""}
+          <${Figure}>${occ.soc_code} · Zone ${occ.job_zone}<//>
+        </span>
       </span>
       <span class="tick">${Icon.check}</span>
     </button>`;
 }
 
 const zoneName = (name) => (name || "").replace(/^Job Zone \w+:\s*/, "");
+
+// Button labels for O*NET's five Job Zones, shortest form of backend/plain.py's
+// wording. The full sentence for the chosen zone comes back from the API.
+const ZONE_CHIPS = ["None", "Matric", "Trade", "Degree", "Postgrad"];
+
+// ---------- the role sheet : "what is this job?" ----------
+// The journey's quick look at a job. The same content fills the full job page
+// in the app (JobDetail, in job.js).
+
+function RoleSheet({ soc, profileId, isTarget, onAim, onClose }) {
+  const { data, error, loading } = useFetch(
+    `/occupations/${soc}${profileId ? `?profile_id=${profileId}` : ""}`);
+  const box = useDialog(onClose);
+  return html`
+    <div class="scrim" onClick=${onClose}></div>
+    <div class="sheet" role="dialog" aria-modal="true" tabindex="-1" ref=${box}
+         aria-label=${data ? data.title : "Job details"}>
+      <div class="grab"></div>
+      <button class="x" aria-label="Close" onClick=${onClose}>×</button>
+      <${Status} loading=${loading} error=${error}>
+        ${data && html`
+          <div class="sheet-body"><${JobDetail} data=${data} /></div>
+          ${onAim && html`<div class="sheet-foot">
+            <button class="cta" disabled=${isTarget} onClick=${() => { onAim(data); onClose(); }}>
+              ${isTarget ? "This is your goal" : "Aim for this job"}</button>
+          </div>`}`}
+      <//>
+    </div>`;
+}
 
 // ---------- step 1 : who ----------
 
@@ -150,30 +258,47 @@ function StepStart({ type, onPick }) {
 function StepSkills({ held, onToggle }) {
   const { data, error, loading } = useFetch("/skills");
   const [q, setQ] = useState("");
-  const shown = data ? data.skills.filter((s) => s.name.toLowerCase().includes(q.toLowerCase())) : [];
+  const [last, setLast] = useState(null); // the skill last tapped, explained below
+  const needle = q.toLowerCase();
+  const shown = data ? data.skills.filter((s) =>
+    s.name.toLowerCase().includes(needle) || (s.description || "").toLowerCase().includes(needle)) : [];
+  const tap = (s) => { onToggle(s.element_id); setLast(s); };
   return html`
     <${Head} kicker="Your skills" fr="FR-02"
              title="What can you already do?"
-             sub="Tap anything that's genuinely true of you. Honest beats modest — this is what your gap is measured against." />
+             sub="Tap anything that's genuinely true of you — from school, work, home or helping out. Honest beats modest." />
     <${Status} loading=${loading} error=${error}>
       <div class="filter">
         ${Icon.search}
-        <input id="skill-filter" placeholder="Filter skills…" autocomplete="off"
+        <input id="skill-filter" placeholder="Search — try “fix”, “people” or “numbers”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
-      <div class="chips">
-        ${shown.map((s) => html`
-          <button key=${s.element_id} class=${"chip" + (held.has(s.element_id) ? " on" : "")}
-                  aria-pressed=${held.has(s.element_id)} aria-label=${s.name} title=${s.description}
-                  onClick=${() => onToggle(s.element_id)}>${s.name}</button>`)}
-      </div>
-      <p class="count"><b>${held.size}</b> of ${data ? data.total : 35} selected</p>
-    <//>`;
+      ${data && data.groups.map((g) => {
+        const inGroup = shown.filter((s) => s.group === g);
+        return inGroup.length > 0 && html`
+          <div key=${g} class="group">
+            <h4 class="gh">${g}</h4>
+            <div class="chips">
+              ${inGroup.map((s) => html`
+                <button key=${s.element_id} class=${"chip" + (held.has(s.element_id) ? " on" : "")}
+                        aria-pressed=${held.has(s.element_id)} aria-label=${s.name} title=${s.description}
+                        onClick=${() => tap(s)}>${s.name}</button>`)}
+            </div>
+          </div>`;
+      })}
+      ${data && shown.length === 0 && html`<p class="note">No skills match “${q}”.</p>`}
+    <//>
+    <div class="hint" aria-live="polite">
+      ${last
+        ? html`<b>${last.name}</b> — ${last.description}`
+        : "Not sure what a skill means? Tap it and we'll explain it here."}
+    </div>
+    <p class="count"><b>${held.size}</b> selected</p>`;
 }
 
 // ---------- step 3 : explore ----------
 
-function StepExplore({ profileId, type, target, onPick }) {
+function StepExplore({ profileId, type, target, onOpen, head }) {
   const leaver = type === "school_leaver";
   const [tab, setTab] = useState(leaver ? "foryou" : "search");
   const [zone, setZone] = useState(leaver ? 3 : 4);
@@ -188,61 +313,66 @@ function StepExplore({ profileId, type, target, onPick }) {
     ? `/occupations?q=${encodeURIComponent(term)}&limit=60` : null);
 
   const isPicked = (o) => target && target.soc_code === o.soc_code;
-  const TABS = [["foryou", "For you"], ["browse", "Browse"], ["search", "Search"]];
+  const TABS = [["foryou", "For you"], ["interests", "Interests"], ["browse", "Browse"], ["search", "Search"]];
 
   return html`
-    <${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
+    ${head || html`<${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
              title="Pick something to aim for"
-             sub="Tap a role to set it as your target. You can come back and change it." />
-    <div class="tabs" role="tablist">
+             sub="Tap a job to see what it involves, then aim for it. You can change your mind later." />`}
+    <div class="tabs" role="group" aria-label="Ways to find jobs">
       ${TABS.map(([k, label]) => html`
-        <button key=${k} role="tab" aria-selected=${tab === k}
+        <button key=${k} aria-pressed=${tab === k}
                 class=${"tab" + (tab === k ? " on" : "")} onClick=${() => setTab(k)}>${label}</button>`)}
     </div>
 
     ${tab === "foryou" && html`
       <p class="note">${leaver
         ? "Ranked by how closely your skills match — only roles that don't need a degree."
-        : "Ranked by how closely your skills match, across every preparation level."}</p>
+        : "Ranked by how closely your skills match, across every preparation level."}
+        ${" "}The number is the match score: 1.00 would be identical.</p>
       <${Status} loading=${recs.loading} error=${recs.error}>
         ${recs.data && html`<div class="list">
           ${recs.data.recommendations.map((r) => html`
-            <${OccRow} key=${r.soc_code} occ=${r} score=${r.score}
-                       picked=${isPicked(r)} onPick=${onPick} />`)}
+            <${OccRow} key=${r.soc_code} occ=${r} score=${r.score} match=${r.match}
+                       picked=${isPicked(r)} onPick=${onOpen} />`)}
         </div>`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
       <//>`}
 
+    ${tab === "interests" && html`<${InterestQuiz} profileId=${profileId} maxZone=${leaver ? 3 : null} onOpen=${onOpen} />`}
+
     ${tab === "browse" && html`
-      <div class="zones" role="group" aria-label="Preparation level">
-        ${[1, 2, 3, 4, 5].map((z) => html`
-          <button key=${z} class=${"zone" + (zone === z ? " on" : "")} aria-pressed=${zone === z}
-                  onClick=${() => setZone(z)}>Zone ${z}</button>`)}
+      <p class="note">How much training does it take to start?</p>
+      <div class="zones" role="group" aria-label="Preparation needed">
+        ${ZONE_CHIPS.map((label, i) => html`
+          <button key=${i} class=${"zone" + (zone === i + 1 ? " on" : "")} aria-pressed=${zone === i + 1}
+                  onClick=${() => setZone(i + 1)}>${label}</button>`)}
       </div>
       <${Status} loading=${browse.loading} error=${browse.error}>
         ${browse.data && html`
-          <p class="zdesc"><b>${zoneName(browse.data.job_zone.name)}.</b> ${browse.data.job_zone.education}
-            ${" "}${browse.data.total} occupations.</p>
+          <p class="zdesc"><b>${browse.data.job_zone.preparation.label}.</b> ${browse.data.job_zone.preparation.detail}
+            ${" "}${browse.data.total} jobs.
+            <${Figure}>${zoneName(browse.data.job_zone.name)} (O*NET Job Zone ${zone})<//></p>
           <div class="list">
             ${browse.data.occupations.map((o) => html`
-              <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onPick} />`)}
+              <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onOpen} />`)}
           </div>`}
       <//>`}
 
     ${tab === "search" && html`
       <div class="filter">
         ${Icon.search}
-        <input id="occ-search" placeholder="Search 879 occupations — try “electric”" autocomplete="off"
+        <input id="occ-search" aria-label="Search jobs" placeholder="Search 879 jobs by any name — try “hairdresser”, “mechanic” or “chef”" autocomplete="off"
                value=${q} onInput=${(e) => setQ(e.target.value)} />
       </div>
       ${term.length < 2
         ? html`<p class="note">Type at least two letters.</p>`
         : html`<${Status} loading=${search.loading} error=${search.error}>
             ${search.data && html`
-              <p class="note">${search.data.message || `${search.data.total} match${search.data.total === 1 ? "" : "es"}`}</p>
+              <p class="note" role="status">${search.data.message || `${search.data.total} match${search.data.total === 1 ? "" : "es"}`}</p>
               <div class="list">
                 ${search.data.occupations.map((o) => html`
-                  <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onPick} />`)}
+                  <${OccRow} key=${o.soc_code} occ=${o} picked=${isPicked(o)} onPick=${onOpen} />`)}
               </div>`}
           <//>`}`}
 
@@ -251,6 +381,17 @@ function StepExplore({ profileId, type, target, onPick }) {
 
 // ---------- step 4 : gap ----------
 
+function SkillRow({ m }) {
+  const ess = m.classification === "essential";
+  return html`
+    <div class=${"row" + (ess ? " ess" : "")}>
+      <span class="nm"><span>${m.name}</span></span>
+      <span class="lvl">${m.level}</span>
+      <span class="bar"><i style=${{ width: `${(m.importance / m.importance_scale_max) * 100}%` }}></i></span>
+      <span class="desc">${m.description}<${Figure}> · ${m.importance.toFixed(2)} / ${m.importance_scale_max}<//></span>
+    </div>`;
+}
+
 function StepGap({ profileId }) {
   const { data, error, loading } = useFetch(`/profiles/${profileId}/gap`);
   const [all, setAll] = useState(false);
@@ -258,37 +399,41 @@ function StepGap({ profileId }) {
     <${Head} kicker="The gap" fr="FR-07 · FR-09" title="What's missing?" />
     <${Status} loading=${loading} error=${error}>
       ${data && (() => {
-        const shown = all ? data.missing : data.missing.slice(0, 10);
+        const must = data.missing.filter((m) => m.classification === "essential");
+        const nice = data.missing.filter((m) => m.classification !== "essential");
+        const niceShown = all ? nice : nice.slice(0, 5);
         const dates = [...new Set(data.missing.map((m) => m.source_date).filter(Boolean))];
         return html`
           <div class="target">
             <h3>${data.target.title}</h3>
-            <div class="meta mono">${data.target.soc_code} · Job Zone ${data.target.job_zone} · ${zoneName(data.target.zone_name)}</div>
-            <div class="stats">
-              <div class="stat h"><b>${data.already_held_count}</b><span>You have</span></div>
-              <div class="stat e"><b>${data.missing_essential_count}</b><span>Essential</span></div>
-              <div class="stat"><b>${data.missing_desirable_count}</b><span>Desirable</span></div>
-            </div>
+            <div class="meta">${data.target.preparation.label}
+              <${Figure}> · ${data.target.soc_code} · Job Zone ${data.target.job_zone}<//></div>
+            <p class="headline">
+              You already have <b>${data.already_held_count}</b> of the ${data.required_total} skills this job uses.
+              ${must.length
+                ? html` <b class="e">${must.length} must-have${must.length === 1 ? "" : "s"}</b> still to learn.`
+                : html` <b class="h">You have every must-have.</b>`}
+            </p>
+            <${Figure}>held ${data.already_held_count} · essential ${data.missing_essential_count} · desirable ${data.missing_desirable_count}<//>
           </div>
           ${data.message
             ? html`<div class="empty"><div class="big">🎉</div>${data.message}</div>`
             : html`
-              <div class="rows">
-                ${shown.map((m) => {
-                  const ess = m.classification === "essential";
-                  return html`
-                    <div key=${m.element_id} class=${"row" + (ess ? " ess" : "")}>
-                      <span class="nm"><span>${m.name}</span>
-                        <span class=${"tag " + (ess ? "e" : "d")}>${ess ? "Essential" : "Desirable"}</span></span>
-                      <span class="val mono">${m.importance.toFixed(2)} / ${m.importance_scale_max}</span>
-                      <span class="bar"><i style=${{ width: `${(m.importance / m.importance_scale_max) * 100}%` }}></i></span>
-                    </div>`;
-                })}
-              </div>
-              ${data.missing.length > 10 && html`
-                <button class="more" onClick=${() => setAll(!all)}>
-                  ${all ? "Show fewer" : `Show all ${data.missing.length} missing skills`}</button>`}
-              <p class="rule">Essential means O*NET rates it ${data.threshold} or above for this job, on its 1–5 importance scale.</p>`}
+              ${must.length > 0 && html`
+                <h4 class="sect e">Must-haves <span>— the job depends on these</span></h4>
+                <div class="rows">${must.map((m) => html`<${SkillRow} key=${m.element_id} m=${m} />`)}</div>`}
+              ${nice.length > 0 && html`
+                <h4 class="sect">Nice to have <span>— they help, but you can start without them</span></h4>
+                <div class="rows">${niceShown.map((m) => html`<${SkillRow} key=${m.element_id} m=${m} />`)}</div>
+                ${nice.length > 5 && html`
+                  <button class="more" onClick=${() => setAll(!all)}>
+                    ${all ? "Show fewer" : `Show all ${nice.length} nice-to-haves`}</button>`}`}
+              <details class="why">
+                <summary>How do we decide what's a must-have?</summary>
+                Job analysts at O*NET rated how important each skill is for this job. The ones rated
+                highest are must-haves.
+                <${Figure}>Essential = O*NET importance ≥ ${data.threshold} on its 1–5 scale.<//>
+              </details>`}
           <p class="prov">${data.target.source_dataset}${dates.length ? ` · ratings dated ${dates.join(", ")}` : ""}</p>`;
       })()}
     <//>`;
@@ -296,13 +441,14 @@ function StepGap({ profileId }) {
 
 // ---------- step 5 : pathway ----------
 
-function StepPathway({ profileId }) {
+function StepPathway({ profileId, onOpen }) {
   const { data, error, loading } = useFetch(`/profiles/${profileId}/pathway`);
   return html`
     <${Head} kicker="Your route" fr="FR-08" title="How do you get there?" />
     <${Status} loading=${loading} error=${error}>
       ${data && html`
-        <p class="sub">${data.intermediate_steps} steps, then ${data.target.title.toLowerCase()} itself.</p>
+        <p class="sub">${data.intermediate_steps} related jobs that build toward ${data.target.title.toLowerCase()},
+          starting with the one closest to what you can already do.</p>
         <div class="steps">
           ${data.steps.map((s, i) => html`
             <div key=${s.soc_code} class=${"step" + (s.is_target ? " target-step" : "")}>
@@ -312,110 +458,196 @@ function StepPathway({ profileId }) {
               </div>
               <div class="sbody">
                 <div class="sh">
-                  <h4>${s.title}</h4><span class="zn">Zone ${s.job_zone}</span>
-                  ${s.is_target && html`<span class="pill">Target</span>`}
+                  <h4><button class="tl" onClick=${() => onOpen(s)}>${s.title}</button></h4>
+                  ${s.is_target && html`<span class="pill">Your goal</span>`}
                 </div>
+                <div class="zn">${s.preparation.label}<${Figure}> · Zone ${s.job_zone}<//></div>
+                ${s.closeness_label && html`<div class="why-step">
+                  ${i === 0 ? html`<b>Closest to you now.</b> ` : ""}${s.closeness_label} with your skills · you have ${s.held_count} of its ${s.required_count}
+                  <${Figure}> · ${s.closeness.toFixed(3)}<//></div>`}
                 ${s.focus.slice(0, 4).map((f) => html`
                   <div key=${f.element_id} class="fs">
                     <span class="n">${f.name}</span>
-                    ${f.badge && html`<span class=${"bdg " + f.badge}>${f.badge === "new" ? "New" : "Deeper"}</span>`}
-                    <span class="v mono">${f.badge === "deeper" ? `${f.from.toFixed(2)} → ${f.to.toFixed(2)}` : f.importance.toFixed(2)}</span>
+                    ${f.badge && html`<span class=${"bdg " + f.badge}>${f.badge === "new" ? "New to you" : "Use it more"}</span>`}
+                    <${Figure}>${f.badge === "deeper" ? `${f.from.toFixed(2)} → ${f.to.toFixed(2)}` : f.importance.toFixed(2)}<//>
                   </div>`)}
               </div>
             </div>`)}
         </div>
-        <p class="basis"><b>New</b> — you don't have it yet. <b>Deeper</b> — this role asks for more of it than the step before.
-          Steps come from O*NET's expert-reviewed list of roles related to your target, ordered from closest to the skills you have now.</p>
+        <p class="basis"><b>New to you</b> — a skill you haven't got yet. <b>Use it more</b> — you have it, but this job
+          needs more of it than the step before. Each step is a job O*NET's experts list as related to your goal.
+          Tap a job to see what it involves.</p>
         <p class="prov">${data.source_dataset}</p>`}
     <//>`;
 }
 
-// ---------- the journey ----------
+// ---------- my plan : the dashboard after the journey ----------
+//
+// Not a sixth step. NFR-02 caps the journey at five screens to a displayed
+// pathway, and it still is five; this is where the user lands afterwards and
+// every time they come back. ADR-0006.
 
-const CTA = ["Continue", "Find roles that fit", "See what's missing", "Show me the route", "Start again"];
+function Meter({ have, total, big }) {
+  return html`
+    <div class=${"meter" + (big ? " big" : "")} role="progressbar"
+         aria-label=${`${have} of ${total} skills`} aria-valuetext=${`${have} of ${total}`}
+         aria-valuemin="0" aria-valuemax=${total} aria-valuenow=${have}>
+      ${Array.from({ length: total }, (_, i) => html`<span key=${i} class=${i < have ? "on" : ""}></span>`)}
+    </div>`;
+}
 
-function App() {
-  const [step, setStep] = useState(0);
-  const [dir, setDir] = useState("fwd");
-  const [type, setType] = useState(null);
-  const [held, setHeld] = useState(() => new Set());
-  const [profile, setProfile] = useState(null); // { id, key }
-  const [target, setTarget] = useState(null);   // { soc_code, title, job_zone }
+function Readiness({ r }) {
+  const what = r.basis === "essential" ? "must-have skills" : `most important skills`;
+  const names = r.missing.map((m) => m.name);
+  const list = names.length <= 2 ? names.join(" and ")
+    : `${names.slice(0, 2).join(", ")} and ${names.length - 2} more`;
+  return html`
+    <div class="ready">
+      <p class="big-count"><b>${r.have}</b> of ${r.total} <span>${what}</span></p>
+      <${Meter} have=${r.have} total=${r.total} big />
+      <p class="ready-line">${r.ready
+        ? html`<b class="h">You have everything this job depends on.</b> Keep building the rest, or aim higher.`
+        : html`Learn <b>${list}</b> to have every one.`}</p>
+      <div class="overall">
+        <span>${r.overall_have} of ${r.overall_total} skills this job uses</span>
+        <span class="thin"><i style=${{ width: `${(r.overall_have / r.overall_total) * 100}%` }}></i></span>
+      </div>
+      ${r.basis !== "essential" && html`<p class="note">This job has no single must-have skill, so we count its five most important.</p>`}
+    </div>`;
+}
+
+function PlanSkill({ k, status, busy, onSet }) {
+  return html`
+    <div class=${"ps" + (status === "learning" ? " learning" : "") + (k.classification === "essential" ? " ess" : "")}>
+      <div class="ps-t">
+        <b>${k.name}</b>
+        <span>${k.description}</span>
+      </div>
+      <div class="ps-a">
+        ${status === "learning"
+          ? html`
+            <button class="btn ok" disabled=${busy} onClick=${() => onSet(k, "held")}>${Icon.check} I can do this now</button>
+            <button class="btn ghost" disabled=${busy} onClick=${() => onSet(k, null)}>Stop</button>`
+          : html`
+            <button class="btn" disabled=${busy} onClick=${() => onSet(k, "learning")}>Start learning</button>
+            <button class="btn ghost" disabled=${busy} onClick=${() => onSet(k, "held")}>I can already</button>`}
+      </div>
+    </div>`;
+}
+
+function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, onChanged, children }) {
+  const [rev, setRev] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [moreNice, setMoreNice] = useState(false);
+  const prof = useFetch(`/profiles/${profileId}`, rev);
+  const gap = useFetch(`/profiles/${profileId}/gap`, rev);
+  const route = useFetch(`/profiles/${profileId}/pathway`, rev);
 
-  // A profile is created from a type and a skill set. Change either and the
-  // next continue creates a fresh one -- profiles are ephemeral in the demo.
-  const profileKey = `${type}|${[...held].sort().join(",")}`;
+  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3200); return () => clearTimeout(t); }, [toast]);
 
-  const go = (n) => { setDir(n > step ? "fwd" : "bwd"); setError(null); setStep(n); };
-
-  function toggle(id) {
-    setHeld((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  }
-
-  function restart() {
-    setType(null); setHeld(new Set()); setProfile(null); setTarget(null); go(0);
-  }
-
-  async function advance() {
-    if (step === 4) return restart();
-    setError(null); setBusy(true);
+  async function setStatus(k, status) {
+    setBusy(true);
     try {
-      if (step === 1 && (!profile || profile.key !== profileKey)) {
-        const d = await api.post("/profiles", { profile_type: type, skills: [...held] });
-        setProfile({ id: d.profile_id, key: profileKey });
-        setTarget(null);
+      const res = status
+        ? await api.put(`/profiles/${profileId}/skills/${k.element_id}`, { status })
+        : await api.del(`/profiles/${profileId}/skills/${k.element_id}`);
+      if (status === "held" && onUnlock && isUnlock(res.changes)) onUnlock({ name: k.name, status, changes: res.changes });
+      else {
+        setToast(status === "held" ? `${k.name} added to your skills.`
+          : status === "learning" ? `Working on ${k.name}.` : `${k.name} moved back to your list.`);
+        onChanged && onChanged();
       }
-      if (step === 2) {
-        await api.put(`/profiles/${profile.id}/target`, { soc_code: target.soc_code });
-      }
-      go(step + 1);
+      setRev((n) => n + 1);
     } catch (e) {
-      setError(e.message);
+      setToast(`Couldn't save that: ${e.message}`);
     } finally {
       setBusy(false);
     }
   }
 
-  const ready = [type !== null, held.size > 0, target !== null, true, true][step];
-
-  const panes = [
-    html`<${StepStart} type=${type} onPick=${setType} />`,
-    html`<${StepSkills} held=${held} onToggle=${toggle} />`,
-    html`<${StepExplore} profileId=${profile && profile.id} type=${type} target=${target} onPick=${setTarget} />`,
-    html`<${StepGap} profileId=${profile && profile.id} />`,
-    html`<${StepPathway} profileId=${profile && profile.id} />`,
-  ];
+  const first = prof.data && gap.data && route.data;
+  if (!first) {
+    const err = prof.error || gap.error || route.error;
+    return html`<div class="pane plan">${err ? html`<div class="banner">${err}</div>` : html`<p class="loading">Loading your plan…</p>`}</div>`;
+  }
+  const p = prof.data, g = gap.data, rt = route.data, r = p.readiness;
+  const status = Object.fromEntries(p.skills.map((k) => [k.element_id, k.status]));
+  const learning = g.missing.filter((m) => status[m.element_id] === "learning");
+  const must = g.missing.filter((m) => m.classification === "essential" && !status[m.element_id]);
+  const nice = g.missing.filter((m) => m.classification !== "essential" && !status[m.element_id]);
+  const have = p.skills.filter((k) => k.status === "held");
+  // Ready for the goal itself? Then the goal is the answer, not a stepping stone.
+  const goal = rt.steps[rt.steps.length - 1];
+  const next = goal.ready ? goal : rt.steps.find((st) => !st.ready);
 
   return html`
-    <div class="app">
-      <div class="top">
-        <div class="toprow">
-          <button class="back" aria-label="Back" disabled=${step === 0 || busy} onClick=${() => go(step - 1)}>${Icon.back}</button>
-          <span class="steplabel">Step <b>${step + 1}</b> of 5</span>
-          <span class="brand">SAYCEP</span>
+    <div class="pane plan">
+      ${PRESENTER && html`<p class="kicker">My plan · dashboard · ADR-0005 · ADR-0006</p>`}
+      <h2 class="hello">${p.display_name ? `Hi ${p.display_name}` : "Your plan"}</h2>
+
+      <section class="goal">
+        <span class="lbl">Your goal</span>
+        <h2><button class="tl" onClick=${() => onOpen(p.target)}>${p.target.title}</button></h2>
+        <span class="meta">${p.target.preparation.label}<${Figure}> · ${p.target.soc_code}<//></span>
+        <${Readiness} r=${r} />
+      </section>
+
+      <section class="card">
+        <h3 class="ch">Your route</h3>
+        <div class="mini-route">
+          ${rt.steps.map((st) => html`
+            <button key=${st.soc_code} onClick=${() => onOpen(st)}
+                    class=${"mr" + (st.ready ? " done" : "") + (st === next ? " next" : "") + (st.is_target ? " goal" : "")}>
+              <span class="mdot">${st.ready ? Icon.check : st.step}</span>
+              <span class="mt">${st.title}</span>
+            </button>`)}
         </div>
-        <div class="segments" aria-hidden="true">
-          ${[0, 1, 2, 3, 4].map((i) => html`<span key=${i} class=${"seg" + (i <= step ? " on" : "")}><i></i></span>`)}
+        <div class="nextbox">
+          <span class="lbl">${next.is_target ? (next.ready ? "Ready for your goal" : "Next: your goal") : `Next: step ${next.step}`}</span>
+          <b>${next.title}</b>
+          ${next.ready
+            ? html`<p>You have every skill this job depends on. The steps before it are optional now.</p>`
+            : html`<p>To be ready: ${next.ready_missing.map((m) => m.name).join(", ")}.</p>`}
         </div>
+        <p class="note route-note">Your route updates as your skills grow — the job closest to what you can do comes first.</p>
+        <button class="more" onClick=${() => onJourney(4, p)}>See the whole route →</button>
+      </section>
+
+      ${children}
+
+      <section class="card">
+        <h3 class="ch">Skills to work on</h3>
+        ${learning.length > 0 && html`
+          <h4 class="sect">Working on now</h4>
+          ${learning.map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} status="learning" busy=${busy} onSet=${setStatus} />`)}`}
+        ${must.length > 0 && html`
+          <h4 class="sect e">Must-haves <span>— the job depends on these</span></h4>
+          ${must.map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} busy=${busy} onSet=${setStatus} />`)}`}
+        ${nice.length > 0 && html`
+          <h4 class="sect">Nice to have</h4>
+          ${(moreNice ? nice : nice.slice(0, 3)).map((k) => html`<${PlanSkill} key=${k.element_id} k=${k} busy=${busy} onSet=${setStatus} />`)}
+          ${nice.length > 3 && html`<button class="more" onClick=${() => setMoreNice(!moreNice)}>
+            ${moreNice ? "Show fewer" : `Show all ${nice.length}`}</button>`}`}
+        ${g.missing.length === 0 && html`<p class="note">Nothing left to learn for this job. Time to aim higher?</p>`}
+        <details class="have">
+          <summary>Skills you have (${have.length})</summary>
+          ${have.map((k) => html`
+            <div key=${k.element_id} class="hv">
+              <span class="mk" role="img" aria-label="You have this">${Icon.check}</span><span class="n">${k.name}</span>
+              <button class="undo" aria-label=${`Remove ${k.name}`} disabled=${busy} onClick=${() => setStatus(k, null)}>${Icon.undo}</button>
+            </div>`)}
+        </details>
+      </section>
+
+      <div class="plan-actions">
+        <button class="btn" onClick=${() => onJourney(2, p)}>Change my goal</button>
+        <button class="btn ghost" onClick=${() => onJourney(1, p)}>Update my skills</button>
       </div>
 
-      <div class="body">
-        <div key=${step} class=${"pane " + dir}>${panes[step]}</div>
-      </div>
-
-      <div class="foot">
-        ${error && html`<div class="banner">${error}</div>`}
-        ${step === 2 && html`<p class="picked">${target
-          ? html`Target: <b>${target.title}</b>`
-          : "No target picked yet"}</p>`}
-        <button class="cta" disabled=${!ready || busy} onClick=${advance}>
-          ${busy ? "Working…" : CTA[step]}${!busy && step < 4 ? Icon.arrow : null}
-        </button>
-        ${step === 4 && html`<button class="link" onClick=${() => go(2)}>Try a different target</button>`}
-      </div>
+      <p class="note center">Your plan code, printing and sign-out are on the <b>Me</b> tab.</p>
+      <p class="prov">${rt.source_dataset}</p>
+      ${toast && html`<div class="toast" role="status">${toast}</div>`}
     </div>`;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(html`<${App} />`);
