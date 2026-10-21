@@ -14,8 +14,11 @@ presentation, tell me and I'll reshape this.
 
 ## 0. Three things to know before you start
 
-**1. Present from the laptop, not a web link.** Hosting isn't built (the Fly.io
-plan is for after). The app runs on the machine you present from. §4 is the
+**1. Present from the laptop; the web link is the safety net.** The app runs on
+the machine you present from. On 21 October a minimal Fly.io deploy was added
+(`docs/deploy.md`, ADR-0021) so there's a link too. **Saved plans on the link
+reset whenever it's redeployed or restarts**, so don't rely on an old plan code
+there. §4 is the
 setup, and `frontend/tests/demo_walk.js` checks the whole demo in under a
 minute, so you'll know it works before you stand up.
 
@@ -215,6 +218,14 @@ hand and use §3 as the checklist; the numbers are all there.
   calls out. The text font comes from Google when online and falls back to a
   system font when not, so it may look slightly different but works the same.
 
+### The live link (safety net)
+
+If you've deployed it (`docs/deploy.md`), the link is `https://<your-app>.fly.dev`.
+It's always on, in Johannesburg. Check it with
+`BASE=<the link> SHORT=1 node frontend/tests/demo_walk.js` on Wednesday, Thursday
+and the morning of the 24th. **Rehearse on the laptop and use the link only if
+the laptop fails,** or to let someone try it on their own phone.
+
 ### If it breaks on the day
 
 | Problem | Do this |
@@ -222,7 +233,7 @@ hand and use §3 as the checklist; the numbers are all there.
 | Server won't start | Read the last line. "saycep.db is missing" means step 2 wasn't run: `python backend/load_onet.py`. |
 | "Address already in use" | Another copy is running. Use `--port 8001` and open that address. |
 | Page loads but data is empty | Reload. If it persists, restart the server. |
-| The whole laptop fails | Use `docs/screenshots/v4/` as a slideshow, and talk through the steps. **Record the demo on Friday** with the screen recorder (about 7 minutes) and keep the file on a USB stick and your phone. |
+| The whole laptop fails | Open the live link on any other device. If that fails too, use `docs/screenshots/v4/` as a slideshow and talk through the steps. **Record the demo on Friday** with the screen recorder (about 7 minutes) and keep the file on a USB stick and your phone. |
 
 ---
 
@@ -408,8 +419,10 @@ walk of the whole demo passes. **It hasn't been tried with a real screen reader
 or with disabled users**, and that's the honest gap (ADR-0016).
 
 **Q5.6 Is it hosted?**
-Not yet. It runs locally for the prototype. A Fly.io plan exists, about $3 a
-month with a Johannesburg region, and `docs/plans/hosting.md` has it.
+Yes, as a demo: one small always-on server in Johannesburg on Fly.io, for about
+$5 a month. It isn't a production service. Saved plans there reset when it's
+redeployed, and there's no rate limiting yet. The fuller plan (a disk for plans,
+rate limiting, automatic tests and deploys) is in `docs/plans/hosting.md`.
 
 ### 5.6 Requirements and process
 

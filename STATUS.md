@@ -1,6 +1,6 @@
 # Status
 
-**As of 20 October 2026: the prototype is built and its demo path is machine-checked, for presentation on Saturday 24 October. The human rehearsal is still to do.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs (Home, Explore, Skills, Me) with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history, a printable plan, and the proposal's other three modules in reduced, stated forms: a CV check, interview practice, and what employers ask for. All of it is checked by automated tests (counts in `docs/presentation.md` §7), a WCAG 2.1 AA audit and a script that runs the demo. **Hosting is not built; the plan is to present from the laptop.**
+**As of 20 October 2026: the prototype is built and its demo path is machine-checked, for presentation on Saturday 24 October. The human rehearsal is still to do.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs (Home, Explore, Skills, Me) with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history, a printable plan, and the proposal's other three modules in reduced, stated forms: a CV check, interview practice, and what employers ask for. All of it is checked by automated tests (counts in `docs/presentation.md` §7), a WCAG 2.1 AA audit and a script that runs the demo. **A minimal Fly.io deploy is ready (`docs/deploy.md`, ADR-0021) as a safety net: saved plans on it reset on redeploy.** The laptop is the main path.
 
 **For the presentation, start at `docs/presentation.md`:** running order, the demo path, the laptop setup, the failure plan, and the questions to expect.
 
@@ -51,7 +51,7 @@
    Assignment 3 went in without them; the presentation is where they're asked.
 2. **Read Assignment 3 before submitting:** `docs/ISJ107V_Assignment_3_SAYCEP.docx`, built from `docs/assignment-3-submission.md`. It's in my words, not yours.
 4. **User acceptance test.** NFR-02 is reported as *partial* because no first-time user has walked the journey unassisted. Ten minutes with one person, using the demo script below, would turn it into evidence. The document says plainly that it hasn't been done.
-5. **Presentation: Saturday 24 October.** The code freezes on the evening of Wednesday 21 October. Hosting isn't built, so the plan is to present from the laptop; the last days are at the end of `docs/timeline.md`.
+5. **Presentation: Saturday 24 October.** The code freezes on the evening of Wednesday 21 October. Present from the laptop, with the live link as a safety net (`docs/deploy.md`); the last days are at the end of `docs/timeline.md`.
 6. **Assignment 2 diagrams are small.** If Assignment 2 isn't submitted yet, its use-case, class and sequence diagrams print with text under 6 px. Assignment 3's are fixed; the same landscape-page approach would fix Assignment 2's.
 
 ## Done on 30 September

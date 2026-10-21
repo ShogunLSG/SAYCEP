@@ -1105,3 +1105,51 @@ self-hit effect is not.
   the same measure.
 - If you want TR-01's wording to mean the strict version, that's your
   requirement to redefine. I haven't changed it.
+
+## ADR-0021 — Hosting on Fly.io, minimal: always on, no disk, deployed from the laptop
+
+**Date:** 2026-10-21
+**Status:** Accepted. It supersedes the sequencing in `plans/hosting.md`, not its
+destination.
+**Relates to:** ADR-0019, `plans/hosting.md`, `deploy.md`
+
+### Context
+
+Hosting was cut on 19 October to protect the code freeze. On 21 October the
+project owner asked for a live link as a safety net for Saturday's
+presentation. The full plan in `plans/hosting.md` needs about a day of work
+(splitting user data into its own file, rate limiting, CI), which is too much
+to build and verify between now and the freeze.
+
+### Decision
+
+Build the smallest thing that gives a working link, and change no application
+code:
+- **A two-stage Dockerfile.** The build stage runs `load_onet.py` on the O\*NET
+  files, and the run stage holds only the app, its database and the frontend. The
+  build fails loudly if the advert counts didn't load.
+- **O\*NET comes from the folder you deploy from.** `fly deploy` uploads the
+  directory, gitignored files included, so **no Kaggle token is involved
+  anywhere**. The build context is about 100 MB, almost all of it O\*NET.
+- **`fly.toml`:** Johannesburg, one 512 MB machine, always on, health check on
+  `/skills`, HTTPS only. Deployed with `--ha=false`.
+- **No volume, so saved plans reset on every redeploy or restart.** The split
+  of user data into its own file (so plans could live on a volume) stays
+  deferred.
+- **No rate limiting and no CI.** Both stay deferred.
+- **`.gitattributes` keeps the Dockerfile on LF line endings** under a Windows
+  checkout.
+
+### Consequences
+
+- **Cost:** an estimated $4.80 a month running (derived from Fly's price table
+  and the Johannesburg rate, not a published figure), so about $1.20 for a
+  week, and the app is destroyed afterwards.
+- **Verified:** the build and run steps, performed by hand, serve all 15 demo
+  steps. **Not verified:** Docker and Fly themselves, because there's no Docker
+  engine in the environment where this was built. The first real build is the
+  project owner's deploy.
+- **Plans don't persist.** The link is a demo, not a service. Anyone who needs
+  their plan to last should use the printed plan.
+- **No schema change,** so the user-data split moves to ADR-0022 if it's ever
+  built, and `plans/hosting.md` renumbers accordingly.

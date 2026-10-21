@@ -156,3 +156,7 @@ wouldn't.
 | **Thu 22** | Check that a clean copy of the repo starts and runs the demo. | Full dress rehearsal on the laptop that will present. |
 | **Fri 23** | — | Rest. Charge the laptop. Keep a second way to show it, such as a screen recording of the demo. |
 | **Sat 24** | — | Start the app 15 minutes before (`python -m uvicorn app:app --app-dir backend --port 8000`). Present. |
+
+**21 October:** a live link was asked for as a safety net, so a minimal Fly.io
+deploy was built (`deploy.md`, ADR-0021). It changes no application code, so
+the freeze stands. The laptop stays the main path.

@@ -1,6 +1,13 @@
 # Plan: hosting SAYCEP on Fly.io
 
 *Written 8 October 2026; host chosen 9 October: **Fly.io**. Status: **plan
+
+> **21 October update (ADR-0021).** For Saturday's presentation a **minimal
+> variant** was built instead: a Dockerfile and `fly.toml`, deployed from the
+> laptop (`docs/deploy.md`). No Kaggle token, no volume, no schema change, no
+> rate limiting, no CI. Saved plans reset on every redeploy. **Everything
+> below is still the plan for after the presentation**, and its ADR numbers
+> shift by one (the user-data split becomes ADR-0022).
 only, waiting for your go-ahead to build.***
 
 ## What has to be true
