@@ -1,0 +1,74 @@
+@startuml SAYCEP_A4_UseCase
+' Assignment 4 Q3.1 - the functions included in the demonstration.
+' Updated from Assignment 3: UC-14 to UC-19 are the sign-in, saved-jobs, quiz,
+' CV check, interview practice and employer-advert functions added since.
+title SAYCEP - Use Case Diagram (functions demonstrated)
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam nodesep 12
+skinparam ranksep 28
+
+actor "Youth User" as User
+actor "Enrolled Student" as Student
+actor "School-Leaver" as Leaver
+actor "Data Administrator" as Admin
+actor "O*NET dataset\n(Kaggle)" as ONET
+actor "Job-adverts dataset\n(Kaggle)" as ADV
+
+Student --|> User
+Leaver --|> User
+
+rectangle "SAYCEP System Boundary" {
+  usecase "UC-01 Create Profile" as UC1
+  usecase "UC-02 Capture Skill Profile" as UC2
+  usecase "UC-03 Select Target Occupation" as UC3
+  usecase "UC-04 Search and Browse Occupations" as UC4
+  usecase "UC-06 Recommend Occupations" as UC6 #D6E8F5
+  usecase "UC-07 Analyse Skills Gap" as UC7
+  usecase "UC-08 Generate Career Pathway" as UC8
+  usecase "UC-12 Save and View My Plan" as UC12
+  usecase "UC-13 Track Skill Progress" as UC13
+  usecase "UC-14 Sign In with Plan Code" as UC14
+  usecase "UC-15 Save and Compare Jobs" as UC15
+  usecase "UC-16 Take Interest Quiz" as UC16
+  usecase "UC-17 Check CV" as UC17
+  usecase "UC-18 Practise Interview" as UC18
+  usecase "UC-19 See What Employers Ask For" as UC19
+  usecase "UC-10 Load Reference Data" as UC10
+}
+
+User --> UC1
+User --> UC3
+User --> UC7
+User --> UC8
+User --> UC12
+User --> UC14
+User --> UC17
+User --> UC18
+User --> UC19
+Admin --> UC10
+
+UC1 ..> UC2 : <<include>>
+UC4 ..> UC3 : <<extend>>
+UC6 ..> UC3 : <<extend>>
+UC16 ..> UC3 : <<extend>>
+UC7 ..> UC3 : <<include>>
+UC8 ..> UC7 : <<include>>
+UC12 ..> UC8 : <<include>>
+UC13 ..> UC12 : <<extend>>
+UC15 ..> UC12 : <<extend>>
+UC17 ..> UC13 : <<extend>>
+UC18 ..> UC12 : <<extend>>
+UC19 ..> UC12 : <<extend>>
+
+UC10 --> ONET
+UC10 --> ADV
+
+note right of UC6
+  Emerging technology: mean-centred cosine
+  similarity over 35-dimensional O*NET
+  skill-importance vectors.
+end note
+@enduml

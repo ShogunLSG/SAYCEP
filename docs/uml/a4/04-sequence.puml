@@ -1,0 +1,51 @@
+@startuml SAYCEP_A4_Sequence
+' Assignment 4 Q3.4 - UI, application logic, data service and the
+' emerging-technology component, for UC-06 Recommend Occupations.
+title UC-06 Recommend Occupations (emerging-technology integration)
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+
+actor "User" as User
+boundary "Web UI\n(frontend/app.js)" as UI
+control "SAYCEP API\n(app.py)" as API
+entity "Occupation Repository\n(repository.py)" as Repo
+control "Recommendation Engine\n<<emerging technology>>" as RE #D6E8F5
+database "saycep.db" as DB
+
+User -> UI : tick skills, Continue
+UI -> API : POST /profiles {profile_type, skills}
+activate API
+alt invalid input (unknown profile type or skill id)
+  API --> UI : 422 + plain reason
+  UI --> User : error banner, stays on screen
+else valid
+  API -> Repo : create_profile(type, skills)
+  Repo -> DB : INSERT users, user_skills
+  API --> UI : 201 {profile_id, plan_code}
+end
+deactivate API
+
+UI -> API : GET /recommendations?profile_id=...
+activate API
+API -> Repo : get_profile(id), profile_skill_ids(id)
+Repo -> DB : SELECT (held skills only)
+alt profile unknown
+  API --> UI : 404 No profile
+else no skills held
+  API --> UI : 200 [] + "Select at least one skill"
+else profile with skills
+  API -> RE : recommend(held, limit, max_job_zone)
+  activate RE
+  RE -> DB : SELECT importance ratings (879 x 35)
+  DB --> RE : 27,463 ratings
+  RE -> RE : centre vectors on the mean occupation;\ncosine(profile, each occupation); sort
+  RE --> API : top 5 with scores
+  deactivate RE
+  API -> RE : reasons(profile, job) for each result
+  RE --> API : the held skills that lifted each job most
+  API --> UI : 200 {recommendations: title, score, match, because}
+end
+deactivate API
+UI --> User : ranked jobs, each "Because you have ..."
+@enduml

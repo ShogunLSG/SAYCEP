@@ -1,0 +1,60 @@
+@startuml SAYCEP_A4_Activity
+' Assignment 4 Q3.2 - the demonstrated workflow, with decisions, alternative
+' paths and the emerging-technology step.
+title Demonstrated workflow: from skills to a saved pathway
+skinparam shadowing false
+skinparam ActivityBackgroundColor #FEFEFE
+
+start
+:Open SAYCEP (welcome screen);
+if (Have a plan code?) then (yes)
+  repeat
+    :Type the plan code;
+  repeat while (Six characters and a match?) is (no - button disabled, or\n"No plan matches that code") not (yes)
+  :Open the saved plan (dashboard);
+  stop
+else (no - I'm new)
+endif
+
+:Choose starting point\n(student or school-leaver);
+repeat
+  :Tick the skills you hold (of 35);
+repeat while (At least one ticked?) is (no - Continue disabled) not (yes)
+if (Create profile accepted?) then (no - validation error)
+  #FBEAEA:Show error banner;
+  stop
+endif
+
+#D6E8F5:Rank occupations by mean-centred cosine similarity;
+note right
+  Emerging-technology step.
+  Input: the 35-number skill vector.
+  Output: ranked jobs, each with
+  the skills that lifted it.
+end note
+:Open a job (recommended, browse or search);
+if (Aim for this job?) then (no)
+  :Choose another;
+  stop
+else (yes)
+endif
+
+:Record the target;
+if (Any must-have skill missing?) then (no)
+  :Report that every must-have is held;
+else (yes)
+  :Classify each missing skill\nas essential (3.5 or more) or desirable;
+endif
+:Generate the pathway: three steps plus the target;
+:Save as my plan (plan code issued);
+
+while (Keep going?) is (yes)
+  :Mark a skill "learning" or "can do it now",\nor check a CV, practise an interview,\nor read what employers ask for;
+  if (Skill marked "can do it now"?) then (yes)
+    :Recalculate readiness; show what it unlocked;
+  else (no)
+    :Nothing changes - learning does not close a gap;
+  endif
+endwhile (no)
+stop
+@enduml

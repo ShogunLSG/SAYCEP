@@ -5,10 +5,22 @@ expect. **The words are suggestions: put them in your own voice.** You're
 questioned on this work directly, so anything you say should be something you
 can defend without this page.
 
-**Assumption to confirm:** I don't know how long your slot is. This is built for
-**about 15 minutes of talk and demo, then questions**. §2 shows how to cut it
-to 10 or stretch it to 20. If your lecturer gave a length or a rubric for the
-presentation, tell me and I'll reshape this.
+**The brief sets the shape** (Assignment 4, `ISJ107V_Assignment_4_Prototype_Presentation.pdf`,
+Q5, 10 of the 50 marks):
+
+| Mark | What it asks for | Where it's covered here |
+|---|---|---|
+| **5.1** (3) | A structured **5-minute** presentation: problem, solution, architecture, emerging technology, prototype features, results, limitations | §2 |
+| **5.2** (4) | A reliable **10-minute** live demo of the main workflow and the emerging-technology integration, using prepared sample data **and a fallback plan** | §3, §4 |
+| **5.3** (1) | Clear, readable slides; professional; **on time** | §2 |
+| **5.4** (2) | Technical questions answered accurately, **explaining your own design, implementation and testing decisions** | §5, especially §5.8 |
+
+The rubric's top band (9–10) is: *focused and professional, a convincing live demo,
+and technical answers that show strong individual understanding.*
+
+**The brief also asks for a written report** (8–12 pages, one searchable PDF named
+`ISJ107V_Assignment4_StudentNumber.pdf`) and the slides, both uploaded to
+Brightspace. See **§9**, because that's a separate piece of work.
 
 ---
 
@@ -58,32 +70,39 @@ modules are AI. They're rules, deliberately.
 
 ---
 
-## 2. Running order (15 minutes)
+## 2. Running order: 5 minutes of talk, then a 10-minute demo
 
-| Time | What | Slide | Notes |
+The brief gives you **five minutes** for seven things, so each gets about 40
+seconds. That's tight: **one idea per slide, and practise it against a timer.**
+
+| Time | What | Slide | Say, in one breath |
 |---|---|---|---|
-| 0:00 | **The problem** | 1–2 | The gradient is the point: 62.8% for 15–24 against 33.6% overall. |
-| 1:30 | **The solution and the two users** | 3 | The school-leaver and the enrolled student. The central artifact is the **Pathway**. |
-| 2:30 | **Five modules, and what each really is** | 4 | Say the reduced forms up front; it earns trust. |
-| 3:30 | **How it works** | 5 | One diagram. Skills as vectors, cosine similarity, O\*NET from Kaggle, one service. |
-| 4:30 | **Live demo** | 6 | §3. About 7 minutes. |
-| 11:30 | **Evidence** | 7 | The numbers, §6. Every one reproduced by a test. |
-| 13:00 | **Limits and what's next** | 8 | Say them yourself before you're asked. |
-| 14:00 | **Questions** | 9 | |
+| 0:00 | **Problem** | 1 | 62.8% of 15–24-year-olds are unemployed, against 33.6% overall (StatsSA, Q2 2026). The worst-hit group has the least guidance. |
+| 0:40 | **Solution and users** | 2 | SAYCEP shows the skills between a young person and a named job, and an ordered route of nearby jobs to get there: the **Pathway**. Two users: the school-leaver and the enrolled student. |
+| 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
+| 2:00 | **Emerging technology** | 4 | Each job is a 35-number skill vector; your skills are another. Ranking is mean-centred cosine similarity. It's measured: **58.5% against 25.9% by chance**. |
+| 2:45 | **Prototype features** | 5 | Five modules. Two built in full (pathway, gap); three in reduced forms I'll name: CV check, interview practice, what employers ask for. |
+| 3:15 | **Results** | 6 | 161 automated tests pass. Response about 120 ms at p95. CV score r = 0.27. Accessibility: 169 failures to 0. |
+| 4:05 | **Limitations** | 7 | The data is American. Skills are self-reported. Nobody outside the project has used it yet. Next: South African data, a user test, hosting. |
+| **5:00** | **Live demo** | 8 | §3, **10 minutes**. A "DEMO" slide, so you can click away from it cleanly. |
+| 15:00 | **Questions** | 9 | |
 
-**To cut to 10 minutes:** merge slides 1–2 and 4–5, and use the 6-minute demo
-below. **To stretch to 20:** run the full 15-step demo and add the quiz and the
-compare page.
+**If you run long, cut Results to two numbers.** Don't cut Limitations: saying them
+yourself before you're asked is worth more than one more statistic.
 
 ### Slide outline (the slides are yours; this is a suggestion)
 
-1. **Title.** SAYCEP: South African Youth Career and Employment Platform. One
-   sentence under it: skills → target → gap → route.
-2. **The problem.** Three numbers in a row: 62.8% (15–24), 41.8% (25–34), 33.6%
-   (all). Source line: *StatsSA, Quarterly Labour Force Survey, Q2 2026.*
-3. **The solution.** The route screen (`docs/screenshots/v4/05-route.png`) and
-   two lines on the two users.
-4. **Five modules.** A table: module · what it is · how far it goes.
+1. **The problem.** Three numbers in a row: 62.8% (15–24), 41.8% (25–34), 33.6%
+   (all). Source line: *StatsSA, Quarterly Labour Force Survey, Q2 2026.* Put the
+   title (SAYCEP: South African Youth Career and Employment Platform) as the
+   slide header, so you need no separate title slide.
+2. **The solution.** The route screen (`docs/screenshots/v4/05-route.png`) and
+   one line on each user.
+3. **Architecture.** `docs/uml/a3/01-architecture.png`, or three boxes: *Kaggle
+   O\*NET 29.0 → one FastAPI service + SQLite → React app*.
+4. **Emerging technology.** A picture of two vectors and the words *mean-centred
+   cosine similarity*, plus the measured result.
+5. **Prototype features.** A table: module · what it is · how far it goes.
 
    | Module | What it is | Built as |
    |---|---|---|
@@ -92,40 +111,37 @@ compare page.
    | CV scanner | skills a CV shows, a measured goal score | reduced: pasted text, rules |
    | What employers ask for | real adverts, summarised | reduced: US adverts, not openings |
    | Interview practice | questions and a checklist | reduced: not a chatbot |
-5. **How it works.** `docs/uml/a3/01-architecture.png`, or three boxes: *Kaggle
-   O\*NET 29.0 (879 jobs, 35 skills) → one FastAPI service + SQLite → React app*.
-6. **Demo.** A title slide saying DEMO, so you can click away from it cleanly.
-7. **Evidence.** The five numbers in §6, large.
-8. **Limits and next.** Four bullets: American data, self-reported skills,
-   modest CV accuracy, no real-user test yet. Next: hosting, South African data
-   with approval, user testing.
+6. **Results.** The numbers in §6, large, with the source of each.
+7. **Limitations and next.** Three limits and three next steps.
+8. **Demo.** One word.
 9. **Questions.**
 
 ---
 
 ## 3. The demo path
 
-I ran this on 20 October with a browser walk that clicks every step of this
-7-minute path, and a second run that clicks all 15, and checks every number
-below. **Everything marked ✔ is what the app shows.** If a number
+I ran this with a browser walk that clicks every step of this 10-minute path
+and checks every number below (and a second run that clicks all 15 steps).
+It's built to fit the brief's **10-minute demo slot**: the times are my
+estimates, so time it yourself. **Everything marked ✔ is what the app shows.** If a number
 on screen ever differs from this page, run the check in §4 and tell me.
 
 Use a first name of your choice at step 1. The walk uses *Thabo*.
 
-### The 7-minute path (recommended)
+### The 10-minute path (about 9½ minutes if it runs smoothly)
 
 | # | Do this | What appears ✔ | Say |
 |---|---|---|---|
-| **1** | Open the app. Type a first name, tap *Start my plan*. | "Find a career you can actually reach." "No email, no password." | "There's no account. A plan code brings you back; nothing personal is held." |
+| **1** *(about 50 s)* | Open the app. Tap **I have a plan code**: the button stays greyed. Type *ZZZZZZ* and tap it. Then tap **I'm new**, type a first name, tap *Start my plan*. | "Find a career you can actually reach." "No email, no password." The wrong code gets: **"No plan matches that code. Check it and try again."** | "Bad input gets a plain message, and the button won't work until a full code is typed. There's no account: a plan code brings you back, and nothing personal is held." *(This is brief 2.1 and 2.4: validation, error feedback, protection of personal data.)* |
 | **2** | Tap **I left school**, then tick six skills: *Operation and Control, Operations Monitoring, Equipment Maintenance, Active Listening, Critical Thinking, Monitoring*. | Six skills ticked. | "This is self-reported, the same as a CV: you say what you can do." |
-| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Chemical Equipment Operators… each "Because you have: Operation and Control, Equipment Maintenance…". The job panel has *A day in this job*. | "It recommends by how closely the skills match, and says why. Search works on other names too, which I'll show." |
+| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Chemical Equipment Operators… each "Because you have: Operation and Control, Equipment Maintenance…". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
 | **4** | Continue. **The gap.** | "You already have **6 of the 34** skills." **2 must-haves**: Troubleshooting and Repairing. | "Two skills stand between this person and the job. Not a long list: the two that the job depends on." |
 | **5** | Continue. **The route.** Then *Save as my plan*. | Boilermakers → Electrical Power-Line Installers and Repairers → Electrical and Electronics Repairers → **Electricians**. Each says how close it is to you now. | "This is the Pathway: nearby jobs that need nearly the same skills, ordered so the next step is the most achievable." |
 | **6** | **Home.** On *Troubleshooting* tap **Start learning**; then **I can do this now**. | Learning changes nothing. Then the card: **1 of 2** must-haves; *Electrical Power-Line Installers* now ready; "every must-have for **106 jobs**, 4 more than before". | "Only 'I can do this now' closes a gap. 'Learning' doesn't. That's a deliberate rule, so progress isn't flattering." |
-| **7** | **Home → Check my CV → Use an example CV → Check my CV.** Add *Repairing*. | Skills with the line that triggered each. After adding: the card again, now **2 of 2** ("You now have everything this job depends on"). "How it reads for Electricians": *Microsoft Excel* and *Multimeters* named; "Troubleshooting: not shown yet". "…read and forgotten, never saved." | "It points at the evidence in your own words, and you confirm each one. Nothing is added automatically." |
+| **7** | **Home → Check my CV.** Type *hi*: *Check my CV* stays greyed. Then **Use an example CV → Check my CV.** Add *Repairing*. | Skills with the line that triggered each. After adding: the card again, now **2 of 2** ("You now have everything this job depends on"). "How it reads for Electricians": *Microsoft Excel* and *Multimeters* named; "Troubleshooting: not shown yet". "…read and forgotten, never saved." | "It points at the evidence in your own words, and you confirm each one. Nothing is added automatically." |
 | **8** | **Home → What employers ask for → See what employers ask for.** | "**84** real adverts… **United States**, listed in **April 2024**. They've closed." Of the 73 that said a level, **7 in 10** open to beginners; **7 in 10** mention a trade licence; **3 in 10** a driver's licence; skills: Installation, Repairing, Troubleshooting. | "Real adverts, but American and expired, so this shows what employers asked for, not jobs to apply for. I looked for South African data twice. Both sets failed verification." |
 | **9** | **Home → Practise for an interview.** Question 2. Type *I fixed it.* → **Get feedback**. Paste the full story → **Get feedback**. | **2 of 7** with tips. Then **7 of 7**. | "It's guidance, not a chatbot. There's no language model in this build. The feedback is a checklist: situation, action, result, your own part." |
-| **10** | **Me → Print my plan.** Note the plan code. **Sign out**, then **I have a plan code**. | A one-page plan. The plan comes back, Electricians still the goal. | "That's the whole 'login': a six-character code. The screen says it's a bearer credential." |
+| **10** | **Me → Print my plan.** Note the plan code. **Sign out**, then **I have a plan code**. | A one-page plan. The plan comes back, Electricians still the goal. | "That's the whole 'login': a six-character code, and the screen says it's the only key. Nothing from the CV or the interview answers is saved. Saved data is a first name and a skills list." *(Brief 2.4: access control, protection of personal data.)* |
 
 **Full story to paste at step 9** (also in `frontend/tests/demo_walk.js`):
 
@@ -193,7 +209,7 @@ use them). From the repo folder: `npm i --no-save playwright`, then
 `npx playwright install chromium`.
 
 ```
-SHORT=1 node frontend/tests/demo_walk.js     # the 7-minute path, about 15 seconds
+SHORT=1 node frontend/tests/demo_walk.js     # the 10-minute path, about 15 seconds
 node frontend/tests/demo_walk.js             # all 15 steps
 ```
 
@@ -485,6 +501,30 @@ and fix it. The `BACKLOG.md` lists the ones I already know.
 
 ---
 
+### 5.8 "Explain your own design, implementation and testing decisions" (brief 5.4)
+
+This is worth 2 marks and the rubric's top band says *strong individual
+understanding*. **Pick three decisions you can explain from start to finish,** one
+each for design, implementation and testing. For each, be ready to say in two
+sentences: *what I decided, why, and what I rejected*. These are candidates from
+the decision log (`docs/DECISIONS.md`); **use only the ones that are true of you and
+that you can defend without this page.**
+
+| Kind | Decision | The reason | What was rejected | Evidence |
+|---|---|---|---|---|
+| Design | Progress has two states: only "I can do this now" closes a gap (ADR-0005) | Self-reported "learning" shouldn't make a plan look finished | One tick box | Unlock card: 1 of 2 only after "can do it now" |
+| Design | Sign-in is a six-character plan code, not an account (ADR-0008) | Nothing personal is held, so a password protects nothing a code doesn't | Email and password | `test_api.py`; 887 million possible codes |
+| Design | Everything from Kaggle; no South African data (ADR-0002) | The course rule | Live job feeds (ESSA, Adzuna) | Two "South African" datasets failed verification |
+| Implementation | Mean-centred cosine over 35 skills, not a trained model (`recommend.py`) | O\*NET vectors all point the same way; no outcome labels to train on; explainable | Plain cosine (nearest neighbour is 0.994 similar); a learned model | 58.5% vs 25.9% by chance (PT-01b) |
+| Implementation | CV skills come from rules, not text matching (ADR-0014) | Three smarter designs did worse than plain word matching | TF-IDF, task statements, nearest sentence | r = 0.27 vs 0.16 on 172 held-out CVs |
+| Testing | Measure before building, and report limits (ADR-0013, 0020) | Richer vectors moved accuracy by 0.8 points (noise); the first accuracy figure was flattering | Building what sounded better | `performance-2026-10-20.txt` |
+| Testing | The demo is run by a script that checks every number (`demo_walk.js`) | A number on a slide that the app doesn't show is the worst thing to find live | Checking by eye | 50 checks, all 15 steps |
+
+◆ **"How much of this is yours?"** may come up (see Q6.4). Your repo is open about
+using an AI assistant. Know which of the decisions above you made yourself.
+
+---
+
 ## 6. The numbers, in one place
 
 All reproduced by a command or a document in the repo. **Quote only these.**
@@ -517,7 +557,7 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | **Automated tests in all** | **161** |
 | Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **23** screens, in light mode, dark mode, and at 320 px wide |
 | Keyboard-only walk of the demo | **21** of 21 checks |
-| Demo walk (this page's script) | **47** checks over all 15 steps; **37** over the 7-minute path |
+| Demo walk (this page's script) | **50** checks over all 15 steps; **40** over the 10-minute path |
 
 Run any of them with `python backend/tests/test_<name>.py` (the server running
 for the API and performance ones), or the `node frontend/tests/...` scripts.
@@ -526,12 +566,52 @@ header of each file.
 
 ---
 
-## 8. Open items before Saturday
+## 8. Open items for today
 
+- ◆ **The report and slides to Brightspace** (§9). Check the deadline.
+- ◆ Your slides, timed against the 5 + 10 split (§2).
 - ◆ Requirements FR-11 onward (yours).
-- ◆ Your slides, and a timed run-through with them.
-- ◆ Q1.2: run the first-time-user test if you can, and add what you find.
-- ◆ Q6.4: your own answer on how you built this.
-- Set up the laptop (§4), and run `demo_walk.js` on it.
-- Record the demo on Friday as a backup.
+- ◆ §5.8: choose your three decisions. Q6.4: your own answer on how you built this.
+- Laptop set up from a fresh copy of `main` (§4), and `demo_walk.js` run on it.
 - Rotate the Kaggle token that was pasted into this project's chat.
+
+---
+
+## 9. The written report and slides (brief Q1–Q4)
+
+Besides the presentation, the brief asks for **one searchable PDF, 8–12 pages
+(excluding the cover, references and appendices),** named
+`ISJ107V_Assignment4_StudentNumber.pdf`, **plus the slides**, both uploaded to
+Brightspace. It must carry captions, references, and **declarations of original
+work and of permitted AI-tool use**. **A draft was built on 24 October:** `docs/ISJ107V_Assignment4_219045719.pdf` (10 pages of body plus cover, references and two appendices), from `docs/assignment-4-submission.md`, with the diagrams in `docs/uml/a4/`. Rebuild it with `node docs/build-assignment-4.js`, then `soffice --headless --convert-to pdf` on the .docx. **Read it, then fill in and sign the two declarations: they are marked in square brackets.** The table below shows where each question's material came from.
+
+| Brief | Marks | What it asks for | What exists | What's missing |
+|---|---|---|---|---|
+| **Q1.1** | 2 | Title, problem, users, purpose, emerging technology | Text in `assignment-3-submission.md` | Updating for the current prototype |
+| **Q1.2** | 5 | At least 5 functional requirements, split into implemented, partial and deferred | FR-01 to FR-10, all built | The status table; your FR-11 onward |
+| **Q1.3** | 2 | Setup and access: software, hardware, sample data, repository location | §4 here; `deploy.md`; repo `github.com/ShogunLSG/SAYCEP` | Pulling it into the report |
+| **Q2** | 16 | The working prototype, its workflow, the emerging technology, data and security | **Built** (the demo) | The evidence table (below) |
+| **Q3.1–3.5** | 10 | **Five UML diagrams:** use case, activity, class, sequence, component or deployment, plus the differences between design and build | `docs/uml/a3/` has all five types (use case, activity, class, sequence, component and deployment) plus an ERD, drawn in PlantUML on 30 September | **They predate the CV check, interview practice and employer adverts**, so each needs updating |
+| **Q4.1** | 4 | At least 5 test cases: expected, actual, status | 161 automated tests with IDs (TC-U, TC-I, PT) | Choosing five and tabulating them |
+| **Q4.2** | 2 | At least 2 quantitative measures | Many: p95 response, accuracy, accessibility, CV r | Choosing and presenting |
+| **Q4.3** | 2 | Two limitations or risks, each with a corrective action | §5.7 here; `BACKLOG.md` | Writing them up |
+| **Declarations** | | Original work, and **permitted AI-tool use** | | **Yours to write and sign** |
+
+**The brief's recommended evidence table** (Requirement · Status · Feature · Test
+case · Evidence) is easy to fill from what exists. For example: FR-06 · Completed ·
+Recommendations with reasons · PT-01b · "58.5% vs 25.9%".
+
+**Two oddities in the brief.** Q1 is printed as 9 marks but the rubric says 6, so
+the total printed would be 53, not 50. And the PDF's own title reads "Assignment 3".
+Neither changes what to do, but a marker may notice the same.
+
+**On the AI declaration:** this project used an AI coding assistant throughout, and
+the repo records it (`CLAUDE.md`, `DECISIONS.md`, commit co-author lines). The
+declaration should say so accurately, and **you need to check that the module's
+rules permit it.** I can give you a factual list of what the assistant did, but the
+declaration is yours.
+
+**What I can draft for you, in the same pipeline that built Assignment 3** (the
+markdown becomes a Word file, then a PDF): the updated diagrams, the setup text,
+the test-case and measures tables, and the limitations. The requirements wording
+and the declarations stay yours.
