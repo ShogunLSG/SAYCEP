@@ -138,11 +138,7 @@ The component diagram groups the twelve front-end scripts and eleven back-end mo
 
 **Important differences between the design and the prototype:**
 
-- **One service, not several.** The proposal describes a multi-service production architecture. The prototype is a single FastAPI service with SQLite, on purpose, so that it can be demonstrated; module boundaries are kept so the recommendation engine could be separated later.
-- **Three modules are reduced.** The proposal's CV scorer, opportunity matching and interview chatbot are built as a pasted-text CV check, a summary of US adverts, and interview practice with a checklist. There is no language model in the build.
-- **Modules, not classes.** The class diagram's services are Python modules.
-- **No accounts.** Sign-in is a plan code.
-- **Saved plans on the optional hosted copy do not persist** across a redeploy.
+The prototype is a layered single service (presentation, API, service modules, data). The design separates these into services; that is planned for the final system, and the module boundaries already allow it. Accounts are replaced by a plan code, because the prototype stores no personal data that needs a password. The CV check accepts pasted text only; CV file upload is planned for the final system. Interview practice gives checklist feedback rather than conversation; a chatbot would need a language model, which this build deliberately excludes.
 
 # Question 4 — Evidence and limitations
 
@@ -184,7 +180,7 @@ Run on 24 October 2026: 56 unit tests, 100 integration and system tests and 5 pe
 
 **Original work.** [To be confirmed and signed by the student.] The signed TUT Declaration of Originality form is attached separately. I declare that this report and the prototype are my own work, except where sources are acknowledged.
 
-**Use of AI tools.** [To be confirmed by the student: the study guide has no AI rule, so this is disclosed and has been raised with the lecturer in writing.] An AI coding assistant, Claude Code (Anthropic), wrote most of the code, tests and first drafts of the documentation, and produced the first draft of this report from the repository's test results. I set the scope, the data rules and the decisions recorded in `docs/DECISIONS.md`, drafted the functional requirements (FR-5 onward) myself, ran and checked the prototype, and rewrote and confirmed this report. I am responsible for everything submitted. The repository's commit messages record the assistant's involvement.
+**Use of AI tools.** [To be confirmed by the student: the study guide has no AI rule, so this is disclosed and has been raised with the lecturer in writing.] An AI coding assistant, Claude Code (Anthropic), wrote most of the code, tests and first drafts of the documentation, and produced the first draft of this report from the repository's test results. I set the scope, the data rules and the decisions recorded in `docs/DECISIONS.md`, drafted the functional requirements (FR-5 onward) myself, ran and checked the prototype, rewrote the key sections of this report in my own words (the problem, users and purpose, the design differences, and the limitations), and checked the rest. I am responsible for everything submitted. The repository's commit messages record the assistant's involvement.
 
 # References
 
