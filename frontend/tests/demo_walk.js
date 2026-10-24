@@ -9,13 +9,13 @@
  *   node frontend/tests/demo_walk.js
  *   SHOTS=/some/folder node frontend/tests/demo_walk.js     also saves a screenshot per step
  *   BASE=http://127.0.0.1:8001 node frontend/tests/demo_walk.js   another address or port
- *   SHORT=1 node frontend/tests/demo_walk.js                       the 7-minute path only
+ *   SHORT=1 node frontend/tests/demo_walk.js                       the 10-minute path only
  * Exit code 0 only if every check passed and the page logged no errors.
  */
 const { chromium } = require('playwright');
 const SHOTS = process.env.SHOTS;
 const BASE = process.env.BASE || 'http://127.0.0.1:8000';
-const SHORT = !!process.env.SHORT;      // the 7-minute path: docs/presentation.md §3 (skips steps 7-10)
+const SHORT = !!process.env.SHORT;      // the 10-minute path: docs/presentation.md §3 (skips steps 7-10)
 let fails = 0, step = '';
 const say = (m) => console.log(m);
 const ok = (c, m, got) => { say(`  ${c ? 'PASS' : 'FAIL'}  ${m}${c ? '' : `   (got: ${String(got).replace(/\s+/g, ' ').slice(0, 160)})`}`); if (!c) fails++; };
@@ -27,7 +27,8 @@ const has = (text, ...parts) => parts.every((x) => (x instanceof RegExp ? x.test
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message));
-  p.on('console', (m) => m.type() === 'error' && !/CERT|fonts/.test(m.text()) && errs.push(m.text()));
+  let expect404 = false;   // true only while the wrong-plan-code step deliberately provokes a 404
+  p.on('console', (m) => m.type() === 'error' && !/CERT|fonts/.test(m.text()) && !(expect404 && /404/.test(m.text())) && errs.push(m.text()));
   const txt = (sel) => p.textContent(sel).then((t) => (t || '').replace(/\s+/g, ' ').trim());
   const shot = async (n) => { if (SHOTS) { await p.waitForTimeout(500); await p.screenshot({ path: `${SHOTS}/${n}.png` }); } };
   const head = (n, t) => { step = n; say(`\nStep ${n}  ${t}`); };
@@ -38,6 +39,14 @@ const has = (text, ...parts) => parts.every((x) => (x instanceof RegExp ? x.test
   const hero = await txt('.hero');
   ok(has(hero, 'Find a career you can actually reach'), 'welcome screen shows the headline', hero);
   ok(has(await txt('.door'), /plan code/i) && has(await txt('.door'), /no email/i), 'the door says "No email, no password" and offers a plan code', await txt('.door'));
+  // Input validation and error feedback (brief Q2.1): the button waits for a full code, and a wrong one gets a plain message.
+  await p.click('text=I have a plan code');
+  ok(await p.locator('.door .cta').isDisabled(), 'sign-in button stays disabled until a full six-character code is typed');
+  expect404 = true;
+  await p.fill('#welcome-code', 'ZZZZZZ'); await p.click('.door .cta'); await p.waitForSelector('.door .banner'); expect404 = false;
+  ok(has(await txt('.door .banner'), 'No plan matches that code'), 'a wrong plan code gets a plain message, not a crash', await txt('.door .banner'));
+  await shot('01b-wrong-code');
+  await p.click("text=I'm new");
   await p.fill('#welcome-name', 'Thabo'); await shot('01-welcome'); await p.click('.door .cta');
 
   head(2, 'I left school, tick the six operator skills');
@@ -138,6 +147,9 @@ const has = (text, ...parts) => parts.every((x) => (x instanceof RegExp ? x.test
   }
   head(11, 'Home → Check my CV: skills with quoted lines; Add Repairing; goal check; never saved');
   await p.click('.cvcard .btn'); await p.waitForSelector('#cv-text');
+  await p.fill('#cv-text', 'hi');
+  ok(await p.locator('button:has-text("Check my CV")').last().isDisabled(), 'the CV check refuses text that is too short (the button stays disabled)');
+  await p.fill('#cv-text', '');
   await p.click('text=Use an example CV'); await p.click('text=Check my CV >> nth=-1'); await p.waitForSelector('.cvs');
   const cvSkills = await p.locator('.cvs .ps-t b').allTextContents();
   ok(cvSkills.some((s) => /Repairing/.test(s)), 'CV suggests Repairing', cvSkills.join(', '));

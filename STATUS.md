@@ -44,6 +44,7 @@
 
 ## Not done — in order of what hurts most if left
 
+0. **The Assignment 4 report and slides** (found 24 October, from the brief): a searchable PDF of 8–12 pages named `ISJ107V_Assignment4_StudentNumber.pdf` (Q1–Q4, five UML diagrams, tests, measures, limitations, AI and originality declarations) plus the slides, uploaded to Brightspace. The brief also sets the presentation as **5 minutes of talk and a 10-minute demo**. See `docs/presentation.md` §0, §2 and §9.
 1. **Write the requirements for what the app now does — yours, not mine.**
    FR-11 (progress), and likely FR-12 onward: alternate-title search, job
    pages, saved jobs and compare, the interest quiz, progress history, the
@@ -67,7 +68,7 @@
 
 Moved on 20 October to **`docs/presentation.md`** (§3 is the demo path, §5 the
 questions to expect), so there's one copy that can't drift. It's checked by
-`frontend/tests/demo_walk.js`: `SHORT=1` for the 7-minute path, no flag for all
+`frontend/tests/demo_walk.js`: `SHORT=1` for the 10-minute path, no flag for all
 15 steps. Screenshots of each step are in `docs/screenshots/v4/`.
 
 ## Built on 5 October — accessibility (ADR-0016)
