@@ -84,6 +84,14 @@ pen so nothing gets lost.
   tools (ADR-0018). What still differs is the vendor policy and longest
   match. Merging them is a re-measure away. Raised by code review,
   2026-10-08.
+- **Search by field of study for the enrolled student.** Today the student
+  starts on title search. O\*NET has no qualification names and no
+  qualification-to-job link, but `Knowledge.txt` rates 33 knowledge areas
+  (Engineering and Technology, Economics and Accounting, ...) per occupation,
+  so "pick your field" could rank jobs by that knowledge. Needs a new table
+  (schema change), a requirement and a plan. Also: high-school learners as a
+  third starting point. Both deferred past the Assignment 4 submission so the
+  report matches the prototype. (Noted 2026-10-24.)
 
 ---
 
