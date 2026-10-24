@@ -1,6 +1,7 @@
 # Plan: "Past adverts you'd fit": matching the user to real adverts
 
-*Written 24 October 2026. Status: **plan only, waiting for go.** Would
+*Written 24 October 2026. **Go given the same day**, with a job-card design:
+"Jobs for you", every card labelled as sample data. Would
 partly supersede ADR-0017. It keeps that ADR's "never offered as openings"
 rule and adds per-advert matching.*
 
@@ -13,17 +14,22 @@ a limitation (decided 24 October).
 
 ## What the user sees
 
-On a job page and on the dashboard, a section **"Past adverts you'd fit"**
-lists up to 10 real adverts for that job, best fit first. Each shows:
+**"Jobs for you"**: job cards, as on a job board.
+- **On Home:** the three best-fitting cards from the goal and the jobs on the
+  user's route, with "See all".
+- **On a job page:** that job's cards.
+
+Each card shows:
 
 - the advert title and US state;
 - **how you fit:** "You have 4 of the 6 skills it mentions";
 - whether it is open to beginners, and the years of experience it asks;
 - what it requires: matric, degree, trade or driver's licence, training given.
 
-It always says **United States, March–April 2024, closed: examples, not
-openings to apply to.** It shows no company name, no link and no salary
-(US dollars would confuse a South African user).
+Every section carries a **"Sample listings"** badge: real adverts from the
+United States, March–April 2024, used as demo data. The **Apply** button
+explains that, in the full system, it opens the live advert. No company name,
+no link and no salary (US dollars would confuse a South African user).
 
 ## How the fit is scored (simple and explainable)
 
@@ -31,8 +37,7 @@ openings to apply to.** It shows no company name, no link and no salary
    now), the share the user holds.
 2. **Beginner-friendly** adverts rank higher for a school-leaver: entry level,
    or no years asked.
-3. A tie-break on the job's software and tools that the user's CV named, if
-   they used the CV check.
+3. Then fewer years asked, then the most recent.
 
 The score is shown as plain words, never as a percentage that suggests
 precision. **No accuracy is claimed.** There's no ground truth (nobody was
