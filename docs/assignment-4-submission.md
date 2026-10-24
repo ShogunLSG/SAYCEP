@@ -182,9 +182,9 @@ Run on 24 October 2026: 56 unit tests, 100 integration and system tests and 5 pe
 
 # Declarations
 
-**Original work.** [To be confirmed and signed by the student: *I declare that this report and the prototype are my own work, except where sources are acknowledged.*]
+**Original work.** [To be confirmed and signed by the student.] The signed TUT Declaration of Originality form is attached separately. I declare that this report and the prototype are my own work, except where sources are acknowledged.
 
-**Use of AI tools.** [To be confirmed by the student, after checking that the module permits it.] An AI coding assistant, Claude Code (Anthropic), was used throughout this project to write and review code, tests and documentation, and to draft this report from the repository's test results. The student set the scope, the data rules and the decisions recorded in `docs/DECISIONS.md`, ran and checked the prototype, and is responsible for everything submitted. The repository records the assistant's involvement in its commit messages.
+**Use of AI tools.** [To be confirmed by the student: the study guide has no AI rule, so this is disclosed and has been raised with the lecturer in writing.] An AI coding assistant, Claude Code (Anthropic), wrote most of the code, tests and first drafts of the documentation, and produced the first draft of this report from the repository's test results. I set the scope, the data rules and the decisions recorded in `docs/DECISIONS.md`, drafted the functional requirements (FR-5 onward) myself, ran and checked the prototype, and rewrote and confirmed this report. I am responsible for everything submitted. The repository's commit messages record the assistant's involvement.
 
 # References
 
