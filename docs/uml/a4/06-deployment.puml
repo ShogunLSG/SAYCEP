@@ -1,0 +1,39 @@
+@startuml SAYCEP_A4_Deployment
+' Assignment 4 Q3.5 - execution environment of the prototype.
+title SAYCEP - Deployment Diagram (prototype)
+skinparam shadowing false
+
+node "Presenter laptop (Windows or macOS), Python 3.10+" as Laptop {
+  node "uvicorn process, 127.0.0.1:8000" as Proc {
+    artifact "backend/*.py" as Code
+    artifact "frontend/ static files" as Static
+  }
+  database "saycep.db\nSQLite, 19 MB\n(built from O*NET)" as DB
+  folder "backend/data/onet/\n41 text files\n(not in git)" as Onet
+  folder "backend/seed/\nadvert counts, 0.7 MB\n(in git)" as Seed
+}
+
+node "Web browser" as Browser {
+  artifact "index.html + 12 scripts\nReact vendored locally" as Page
+}
+
+node "Fly.io machine, Johannesburg (optional safety net)\n512 MB, one machine, always on" as Fly {
+  node "uvicorn, port 8080, HTTPS in front" as FProc
+  database "saycep.db\nbaked into the image;\nsaved plans reset on redeploy" as FDB
+}
+
+cloud "Kaggle" as Kaggle
+
+Browser --> Proc : HTTP, localhost
+Browser ..> FProc : HTTPS, public link
+Proc --> DB : sqlite3, one connection per request
+FProc --> FDB
+Onet --> DB : load_onet.py (about 6 s)
+Seed --> DB : counts loaded by load_onet.py
+Kaggle ..> Onet : one-time download (login)
+
+note bottom of Laptop
+  Main path for the presentation. No internet is needed at run time;
+  the text font loads from Google when online and falls back otherwise.
+end note
+@enduml

@@ -1,0 +1,81 @@
+@startuml SAYCEP_A4_Class_Domain
+' Assignment 4 Q3.3, part A - the main data classes. Names follow the tables.
+title SAYCEP - Class Diagram, part A: domain classes
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 35
+skinparam ranksep 45
+
+class Profile {
+  profileId : str
+  profileType : student | school_leaver
+  targetSocCode : str [0..1]
+  displayName : str [0..1]
+  planCode : str
+  createdAt : datetime
+}
+class UserSkill {
+  status : held | learning
+  updatedAt : datetime
+}
+class SavedOccupation {
+  savedAt : datetime
+}
+class ProgressEvent {
+  at : datetime
+  kind : started | skill | goal
+  goalHave : int
+  goalTotal : int
+}
+class Occupation {
+  socCode : str
+  title : str
+  description : str
+  jobZone : 1..5
+  sourceDataset : str
+}
+class Skill {
+  elementId : str
+  name : str
+  description : str
+}
+class OccupationSkill {
+  importance : float 1..5
+  sourceDate : MM/YYYY
+  isEssential() : bool  <<importance >= 3.5>>
+}
+class RelatedOccupation {
+  tier : str
+  sortIndex : int
+}
+class OccupationTask {
+  task : str
+  importance : float [0..1]
+}
+class AdvertSummary {
+  adverts : int
+  levelN : int
+  entryLevel : int
+  yearsMedian : float [0..1]
+  listedFrom : date
+  listedTo : date
+}
+class AdvertCount {
+  kind : skill | tool | software | req
+  item : str
+  n : int
+}
+
+Profile "1" -- "0..*" UserSkill : holds
+Profile "1" -- "0..*" SavedOccupation : saves
+Profile "1" -- "0..*" ProgressEvent : history
+UserSkill "0..*" -- "1" Skill
+SavedOccupation "0..*" -- "1" Occupation
+Profile "0..*" -- "0..1" Occupation : target
+Occupation "1" -- "0..*" OccupationSkill : requires
+OccupationSkill "0..*" -- "1" Skill
+Occupation "1" -- "0..*" RelatedOccupation : primary related
+Occupation "1" -- "0..*" OccupationTask
+Occupation "1" -- "0..1" AdvertSummary : adverts linked by title
+AdvertSummary "1" -- "0..*" AdvertCount
+@enduml

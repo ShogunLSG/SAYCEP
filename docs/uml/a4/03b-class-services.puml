@@ -1,0 +1,77 @@
+@startuml SAYCEP_A4_Class_Services
+' Assignment 4 Q3.3, part B - the service classes and their main operations.
+title SAYCEP - Class Diagram, part B: services
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam nodesep 35
+skinparam ranksep 50
+
+class SaycepApi <<app.py>> {
+  + createProfile(type, skills) : Profile
+  + resumePlan(planCode) : Profile
+  + setSkillStatus(profileId, elementId, status)
+  + getRecommendations(profileId, limit) : Recommendation[*]
+  + getGap(profileId) : SkillsGap
+  + getPathway(profileId) : Pathway
+  + scanCv(text, profileId) : CvResult
+  + interviewQuestions(socCode) : Question[*]
+  + interviewFeedback(answer, skillId) : Checklist
+  + occupationAdverts(socCode, profileId) : AdvertView
+}
+class RecommendationEngine <<recommend.py>> #D6E8F5 {
+  + recommend(held, limit, maxJobZone) : Recommendation[*]
+  + cosine(a : float[35], b : float[35]) : float
+  + centreProfile(held, means) : float[35]
+  + centreOccupations(vectors, means) : map
+  + reasons(profile, occupation) : Skill[1..3]
+}
+class GapAnalyser <<gap.py>> {
+  + computeGap(profileId, socCode) : SkillsGap
+}
+class PathwayService <<pathway.py>> {
+  + generatePathway(profileId, socCode) : Pathway
+  + stepReadiness(socCode, held) : bool
+}
+class CvScanner <<cvscan.py>> {
+  + skillEvidence(text) : map
+  + softwareNamed(text) : str[*]
+  + toolsNamed(text) : str[*]
+  + goalScore(evidence, software, tools, soc) : float
+}
+class InterviewPractice <<interview.py>> {
+  + questions(socCode) : Question[*]
+  + feedback(answer, skillId) : Checklist
+}
+class AdvertSummariser <<adverts.py>> {
+  + link(title) : socCode [0..1]
+  + requirements(text) : str[*]
+  + summarise(row, counts) : AdvertView
+}
+class OccupationRepository <<repository.py>> {
+  + createProfile(...) : str
+  + profileByPlanCode(code) : Profile
+  + profileSkillIds(profileId) : str[*]
+  + requiredSkills(socCode) : OccupationSkill[*]
+  + advertSummary(socCode) : AdvertSummary
+}
+class Loaders <<load_onet.py, load_adverts.py>> {
+  + main()
+}
+class "saycep.db" as DB <<SQLite file>>
+
+SaycepApi ..> RecommendationEngine
+SaycepApi ..> GapAnalyser
+SaycepApi ..> PathwayService
+SaycepApi ..> CvScanner
+SaycepApi ..> InterviewPractice
+SaycepApi ..> AdvertSummariser
+SaycepApi ..> OccupationRepository
+PathwayService ..> RecommendationEngine : ranks steps
+PathwayService ..> OccupationRepository
+GapAnalyser ..> OccupationRepository
+InterviewPractice ..> CvScanner : reuses skill rules
+RecommendationEngine ..> DB
+OccupationRepository ..> DB
+Loaders ..> DB : rebuilds
+Loaders ..> AdvertSummariser
+@enduml

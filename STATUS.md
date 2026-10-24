@@ -44,7 +44,7 @@
 
 ## Not done — in order of what hurts most if left
 
-0. **The Assignment 4 report and slides** (found 24 October, from the brief): a searchable PDF of 8–12 pages named `ISJ107V_Assignment4_StudentNumber.pdf` (Q1–Q4, five UML diagrams, tests, measures, limitations, AI and originality declarations) plus the slides, uploaded to Brightspace. The brief also sets the presentation as **5 minutes of talk and a 10-minute demo**. See `docs/presentation.md` §0, §2 and §9.
+0. **The Assignment 4 report and slides. Report drafted 24 October** (`docs/ISJ107V_Assignment4_219045719.pdf`, 10 body pages, five UML types updated in `docs/uml/a4/`); **you still need to read it, confirm the two declarations, and upload it and your slides to Brightspace.** Brief: (found 24 October, from the brief): a searchable PDF of 8–12 pages named `ISJ107V_Assignment4_StudentNumber.pdf` (Q1–Q4, five UML diagrams, tests, measures, limitations, AI and originality declarations) plus the slides, uploaded to Brightspace. The brief also sets the presentation as **5 minutes of talk and a 10-minute demo**. See `docs/presentation.md` §0, §2 and §9.
 1. **Write the requirements for what the app now does — yours, not mine.**
    FR-11 (progress), and likely FR-12 onward: alternate-title search, job
    pages, saved jobs and compare, the interest quiz, progress history, the

@@ -583,7 +583,7 @@ Besides the presentation, the brief asks for **one searchable PDF, 8–12 pages
 (excluding the cover, references and appendices),** named
 `ISJ107V_Assignment4_StudentNumber.pdf`, **plus the slides**, both uploaded to
 Brightspace. It must carry captions, references, and **declarations of original
-work and of permitted AI-tool use**. The repo has no Assignment 4 report yet.
+work and of permitted AI-tool use**. **A draft was built on 24 October:** `docs/ISJ107V_Assignment4_219045719.pdf` (10 pages of body plus cover, references and two appendices), from `docs/assignment-4-submission.md`, with the diagrams in `docs/uml/a4/`. Rebuild it with `node docs/build-assignment-4.js`, then `soffice --headless --convert-to pdf` on the .docx. **Read it, then fill in and sign the two declarations: they are marked in square brackets.** The table below shows where each question's material came from.
 
 | Brief | Marks | What it asks for | What exists | What's missing |
 |---|---|---|---|---|

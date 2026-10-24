@@ -1,0 +1,56 @@
+@startuml SAYCEP_A4_Component
+' Assignment 4 Q3.5 - component diagram of the prototype modules.
+title SAYCEP - Component Diagram (prototype modules)
+skinparam shadowing false
+left to right direction
+
+package "frontend/ (React 18 + htm, no build step)" {
+  component "Journey and app shell\napp.js, main.js, welcome.js" as UI
+  component "Feature screens\njob.js, skills.js, saved.js,\ninterests.js, history.js, me.js,\ncv.js, practice.js, employers.js" as Screens
+}
+
+package "backend/ (Python, FastAPI)" {
+  component "SAYCEP API\napp.py" as API
+  component "Recommendation Engine\nrecommend.py" as RE #D6E8F5
+  component "Gap Analyser\ngap.py" as GA
+  component "Pathway Service\npathway.py" as PS
+  component "CV Scanner\ncvscan.py" as CV
+  component "Interview Practice\ninterview.py" as IP
+  component "Advert Summariser\nadverts.py" as AD
+  component "Interest Matcher\ninterests.py" as IM
+  component "Repository\nrepository.py" as Repo
+  component "Plain labels, config\nplain.py, config.py" as PL
+}
+
+package "data loading (run by hand)" {
+  component "load_onet.py" as L1
+  component "load_adverts.py" as L2
+}
+
+database "saycep.db\n(SQLite)" as DB
+file "backend/seed/\nadvert_counts.cache.json" as Seed
+file "O*NET 29.0 text files\n(Kaggle)" as Onet
+
+UI ..> API : fetch (REST, JSON)
+Screens ..> API : fetch
+API ..> RE
+API ..> GA
+API ..> PS
+API ..> CV
+API ..> IP
+API ..> AD
+API ..> IM
+API ..> Repo
+API ..> PL
+PS ..> RE
+PS ..> Repo
+GA ..> Repo
+IP ..> CV
+Repo ..> DB
+RE ..> DB
+L1 ..> Onet
+L1 ..> DB : rebuild
+L1 ..> L2
+L2 ..> Seed : reads counts
+L2 ..> DB : advert tables
+@enduml
