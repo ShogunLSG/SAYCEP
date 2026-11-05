@@ -1,4 +1,4 @@
-# Presentation: Saturday 24 October 2026
+# Presentation: Friday 6 November 2026
 
 The script, the demo path, what to do if it breaks, and the questions to
 expect. **The words are suggestions: put them in your own voice.** You're
@@ -82,8 +82,8 @@ seconds. That's tight: **one idea per slide, and practise it against a timer.**
 | 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
 | 2:00 | **Emerging technology** | 4 | Each job is a 35-number skill vector; your skills are another. Ranking is mean-centred cosine similarity. It's measured: **58.5% against 25.9% by chance**. |
 | 2:45 | **Prototype features** | 5 | Five modules. Two built in full (pathway, gap); three in reduced forms I'll name: CV check, interview practice, what employers ask for. |
-| 3:15 | **Results** | 6 | 161 automated tests pass. Response about 120 ms at p95. CV score r = 0.27. Accessibility: 169 failures to 0. |
-| 4:05 | **Limitations** | 7 | The data is American. Skills are self-reported. Nobody outside the project has used it yet. Next: South African data, a user test, hosting. |
+| 3:15 | **Results** | 6 | 161 automated tests pass. Response about 98 ms at p95. CV score r = 0.27. Accessibility: 169 failures to 0. |
+| 4:05 | **Limitations** | 7 | The data isn't South African (O\*NET is American; the course required Kaggle). Too little for students mid-study: no internships, certificates or learnerships. Next: South African occupational data (OFO) with approval, linking skills to SETA learnerships and TVET courses, a user test. |
 | **5:00** | **Live demo** | 8 | §3, **10 minutes**. A "DEMO" slide, so you can click away from it cleanly. |
 | 15:00 | **Questions** | 9 | |
 
@@ -180,7 +180,7 @@ as your backup if the live demo fails.
 **The app and its data don't travel with the repo.** The O\*NET files, the
 database and the 517 MB advert file are all kept out of git. A fresh checkout
 has none of them, and I found this while preparing this page. The steps below
-are the tested path. **Do them on the laptop you'll present from, by Wednesday.**
+are the tested path. **Do them on the laptop you'll present from, tonight.**
 
 ### Setup (once, about 10 minutes)
 
@@ -215,8 +215,8 @@ node frontend/tests/demo_walk.js             # all 15 steps
 
 It prints PASS or FAIL for each check and ends with **DEMO PATH OK** if every
 number matches this page. (With the server on another port:
-`BASE=http://127.0.0.1:8001 node ...`.) **Run it on Wednesday, Thursday, and the
-morning of the 24th.** If you'd rather not install Node, just walk the demo by
+`BASE=http://127.0.0.1:8001 node ...`.) **Run it tonight and again tomorrow
+morning.** If you'd rather not install Node, just walk the demo by
 hand and use §3 as the checklist; the numbers are all there.
 
 ### Showing it to a room
@@ -238,8 +238,8 @@ hand and use §3 as the checklist; the numbers are all there.
 
 If you've deployed it (`docs/deploy.md`), the link is `https://<your-app>.fly.dev`.
 It's always on, in Johannesburg. Check it with
-`BASE=<the link> SHORT=1 node frontend/tests/demo_walk.js` on Wednesday, Thursday
-and the morning of the 24th. **Rehearse on the laptop and use the link only if
+`BASE=<the link> SHORT=1 node frontend/tests/demo_walk.js` tonight and tomorrow
+morning. **Rehearse on the laptop and use the link only if
 the laptop fails,** or to let someone try it on their own phone.
 
 ### If it breaks on the day
@@ -249,7 +249,7 @@ the laptop fails,** or to let someone try it on their own phone.
 | Server won't start | Read the last line. "saycep.db is missing" means step 2 wasn't run: `python backend/load_onet.py`. |
 | "Address already in use" | Another copy is running. Use `--port 8001` and open that address. |
 | Page loads but data is empty | Reload. If it persists, restart the server. |
-| The whole laptop fails | Open the live link on any other device. If that fails too, use `docs/screenshots/v4/` as a slideshow and talk through the steps. **Record the demo on Friday** with the screen recorder (about 7 minutes) and keep the file on a USB stick and your phone. |
+| The whole laptop fails | Open the live link on any other device. If that fails too, use `docs/screenshots/v4/` as a slideshow and talk through the steps. **Record the demo tonight** with the screen recorder (about 7 minutes) and keep the file on a USB stick and your phone. |
 
 ---
 
@@ -270,7 +270,7 @@ the least guidance. Written work used Q1 (60.9%); Q2 is the latest.
 Two: the school-leaver (15–24) and the enrolled student. **No, not with a real
 first-time user yet**, so NFR-02 (a first-time user reaches a route in five
 screens, unassisted) is reported as *partial*. ◆ *If you run the ten-minute
-test before Saturday, say what happened, in your own words.*
+test before the presentation, say what happened, in your own words.*
 
 **Q1.3 Does it help anyone get a job?**
 Not measured, and I don't claim it. It's a guidance tool: it makes the gap and
@@ -449,7 +449,7 @@ requirements were written** (progress tracking, saved jobs and compare, the
 quiz, the CV check, interview practice, employer adverts, accessibility)
 **need your requirements, FR-11 onward.** `docs/plans/full-app.md` lists each
 one with a measurable figure to build the acceptance test on. Have each one's
-wording ready before Saturday.
+wording ready before the presentation.
 
 **Q6.2 Why did the scope grow beyond two modules?**
 The plan was to build two and specify three. The core landed early, so I built
@@ -535,8 +535,8 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | The data | 879 jobs · 35 skills · 27,463 ratings · O\*NET 29.0 | `load_onet.py`; `test_units.py` |
 | Recommendation, as submitted | 59.7% vs 25.8% random, n = 124 | `test_performance.py` PT-01 |
 | Recommendation, stricter | **58.5%** vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b |
-| Ranking speed | about 7 ms at p95 (limit 100 ms) | PT-02 |
-| Response time over HTTP | about 120 ms at p95 (limit 2,000 ms) | PT-03 |
+| Ranking speed | about 5 ms at p95 (limit 100 ms) | PT-02 |
+| Response time over HTTP | about 98 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
 | Rebuild from source | a few seconds (limit 60 s) | PT-04 |
 | CV scanner | r = **0.27** on 172 held-out CVs, vs 0.16 word matching | `benchmark-cv-2026-10-09.txt` |
 | Employer adverts | 123,849 read · 26,472 linked · 438 jobs with 5+ · Electricians 84 | `adverts-2026-10-05.txt` |
@@ -547,7 +547,7 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 
 ---
 
-## 7. Test counts, checked 20 October
+## 7. Test counts, checked 5 November on a fresh build
 
 | Check | Result |
 |---|---|
@@ -566,13 +566,14 @@ header of each file.
 
 ---
 
-## 8. Open items for today
+## 8. Open items before you present
 
-- ◆ **The report and slides to Brightspace** (§9). Check the deadline.
-- ◆ Your slides, timed against the 5 + 10 split (§2).
-- ◆ Requirements FR-11 onward (yours).
-- ◆ §5.8: choose your three decisions. Q6.4: your own answer on how you built this.
-- Laptop set up from a fresh copy of `main` (§4), and `demo_walk.js` run on it.
+- ◆ **Set up the presenting laptop from a fresh copy** (§4) and run `demo_walk.js` on it. Tonight, then again tomorrow morning.
+- ◆ **Rehearse against a timer:** 5 minutes of slides, then the 10-minute path (§3), twice.
+- ◆ **Record the demo tonight** as the fallback (§4), and keep the screenshots in `docs/screenshots/v4/` to hand.
+- ◆ §5.8: choose your three decisions, and §5.3: be able to explain the recommendation maths in your own words.
+- The live link is **not deployed** (checked 5 November). Either deploy it tonight (`docs/deploy.md`) or rely on the laptop, recording and screenshots.
+- Requirements FR-11 onward (yours), if you're asked about them.
 - Rotate the Kaggle token that was pasted into this project's chat.
 
 ---
