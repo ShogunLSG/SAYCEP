@@ -25,7 +25,7 @@ async function readCvFile(file) {
   else if (name.endsWith(".docx")) text = await docxText(await file.arrayBuffer());
   else if (name.endsWith(".pdf")) text = await pdfText(await file.arrayBuffer());
   else throw new CvFileError("Upload a PDF, a Word file (.docx) or a text file. Older .doc files: save as .docx first.");
-  text = text.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  text = tidy(text);
   if (text.length < 20) {
     throw new CvFileError(name.endsWith(".pdf")
       ? "This looks like a scanned document, so there's no text to read. Paste the text instead."
@@ -33,6 +33,16 @@ async function readCvFile(file) {
   }
   const cut = text.length > CV_MAX_CHARS;
   return { text: cut ? text.slice(0, CV_MAX_CHARS) : text, cut };
+}
+
+/** Bullets and symbol-font characters as plain text. Word's bullets come out
+ *  of PDFs as private-use characters (U+F0B7 and friends) that show as boxes. */
+function tidy(text) {
+  return text
+    .replace(/^([ \t]*)[\uE000-\uF8FF\u2022\u25AA\u25CF\u25E6\u2023\u2043]+[ \t]*/gm, "$1- ")
+    .replace(/[\uE000-\uF8FF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 /** The text of a .docx: one line per paragraph, tabs as spaces. */

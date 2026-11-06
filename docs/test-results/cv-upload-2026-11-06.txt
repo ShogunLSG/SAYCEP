@@ -1,0 +1,45 @@
+
+CV upload: the files a CV comes as  (ADR-0023)
+  PASS  a Word file fills the box, one line per paragraph  -- 558 chars
+  PASS  the message names the file and says to check the text
+  PASS  a PDF fills the box  -- 558 chars
+  PASS  the uploaded text scans like pasted text: skills found
+  PASS  a text file is read directly
+
+CV upload: designed CVs (two columns, a table, bullets, headings)
+  PASS  Word: both columns and every section are read  -- 971 chars
+  PASS  Word: the last page is read too
+  PASS  Word: bullets come out as plain dashes, with no boxes  -- "  Served customers at the till and answered their questions."
+  PASS  Word: the scan finds Repairing and Equipment Maintenance  -- Service Orientation, Management of Material Resources, Repairing, Coordination, Equipment Maintenance, Management of Financial Resources, Mathematics, Quality Control Analysis, Science
+  PASS  PDF exported from Word: both columns and every section are read  -- 971 chars
+  PASS  PDF exported from Word: the last page is read too
+  PASS  PDF exported from Word: bullets come out as plain dashes, with no boxes  -- "- Served customers at the till and answered their questions."
+  PASS  PDF exported from Word: the scan finds Repairing and Equipment Maintenance  -- Service Orientation, Management of Material Resources, Repairing, Coordination, Equipment Maintenance, Management of Financial Resources, Mathematics, Quality Control Analysis
+  PASS  two-page PDF printed from a browser: both columns and every section are read  -- 947 chars
+  PASS  two-page PDF printed from a browser: the last page is read too
+  PASS  two-page PDF printed from a browser: bullets come out as plain dashes, with no boxes  -- "Served customers at the till and answered their questions."
+  PASS  two-page PDF printed from a browser: the scan finds Repairing and Equipment Maintenance  -- Service Orientation, Management of Material Resources, Repairing, Coordination, Equipment Maintenance, Management of Financial Resources, Mathematics, Quality Control Analysis
+
+CV upload: edge cases
+  PASS  an upper-case extension (.PDF) is accepted
+  PASS  a .docx saved without compression is read
+  PASS  accents, dashes and isiZulu survive
+  PASS  a CV over 15,000 characters is cut to the limit, and the message says so  -- 15000 chars
+  PASS  the same file can be chosen twice in a row
+  PASS  the file control is a labelled input
+
+CV upload: refusals, each with a plain message and the box left alone
+  PASS  a scanned PDF (no text layer): refused  -- This looks like a scanned document, so there's no text to read. Paste the text instead.
+  PASS  a corrupt PDF: refused  -- That PDF couldn't be opened. Paste the text instead.
+  PASS  a corrupt .docx: refused  -- That doesn't look like a Word document. Paste the text instead.
+  PASS  an old .doc file: refused  -- Upload a PDF, a Word file (.docx) or a text file. Older .doc files: save as .docx first.
+  PASS  a picture: refused  -- Upload a PDF, a Word file (.docx) or a text file. Older .doc files: save as .docx first.
+  PASS  a file over 5 MB: refused  -- That file is over 5 MB. Try a smaller copy, or paste the text instead.
+  PASS  after a refusal, a good file works again and the message is no longer an error
+
+CV upload: privacy
+  PASS  only text is sent: every request is JSON, never a file  -- 4 scans; /cv/scan application/json
+  PASS  no request carries PDF or Word file bytes
+  PASS  no page or console errors
+
+33 passed. CV UPLOAD OK

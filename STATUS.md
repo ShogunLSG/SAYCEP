@@ -36,6 +36,24 @@
    Word (.docx) and text, read in the browser; pdf.js 3.11.174 vendored.
    `frontend/tests/cv_upload.js` passes 9 of 9.
 
+**Thorough testing, 6 Nov afternoon** (transcripts in `docs/test-results/*-2026-11-06.txt`):
+- `frontend/tests/cv_upload.js`, **33 checks**: Word, PDF (from Word and from
+  Chrome, one and two pages, two columns, bullets) and text; an upper-case
+  extension, an uncompressed .docx, accented and isiZulu text, the 15,000-character
+  cut, the same file twice; refusals for a scanned PDF, a corrupt PDF, a corrupt
+  .docx, an old .doc, a picture and a file over 5 MB; and that no file bytes
+  reach the server. It found one bug, now fixed: Word's bullets came out of PDFs
+  as box characters.
+- `frontend/tests/job_cards.js`, **28 checks**: labelling, ranking and fit
+  against the API, Apply (mouse and keyboard), the Jobs page, Back and focus,
+  card links, the job-page section (show more and fewer), live updates without a
+  reload, a goal change, a job with no adverts, the enrolled student, dark mode
+  and 320 px.
+- With the listings table missing, the cards hide themselves, with no errors,
+  and the demo path still passes.
+- **Not tested:** password-protected PDFs (they should get "couldn't be opened")
+  and CVs that are images (they need pasting; no OCR).
+
 **Both features are done and green (6 Nov, about 15:05 SAST):** 62 unit, 108
 API and 5 performance tests; the demo walk (50/50, numbers unchanged); the
 keyboard walk; axe 0 failures in light, dark and 320 px, the new screens
