@@ -1153,3 +1153,54 @@ code:
   their plan to last should use the printed plan.
 - **No schema change,** so the user-data split moves to ADR-0022 if it's ever
   built, and `plans/hosting.md` renumbers accordingly.
+
+---
+
+## ADR-0022 — Jobs for you: real adverts as labelled sample listings, ranked by fit
+
+**Date:** 2026-11-06
+**Status:** Accepted. The project owner asked for job cards ("Jobs for you")
+on presentation day, and the go was given on 24 October with every card
+labelled as sample data.
+**Partly supersedes:** ADR-0017. It keeps that ADR's rule that closed US
+adverts are never offered as openings, and adds per-advert matching.
+**Relates to:** `plans/advert-matching.md`, ADR-0002 (Kaggle only), ADR-0019
+(committed seed). It takes the number ADR-0021 had reserved for the user-data
+split, which becomes ADR-0023 if it's ever built.
+
+### Decision
+
+- **One advert per card.** For the goal and the jobs on the user's Pathway,
+  the app shows real LinkedIn adverts as job cards: the advert's title, US
+  place, work type, listing date, whether it's open to beginners, years asked,
+  requirements, and **how you fit**: "You have 3 of the 8 skills it mentions".
+- **Fit is plain counting.** It's the share of the O\*NET skills an advert
+  mentions that the user holds, shown in words (Strong fit, Good fit, Some fit,
+  A stretch), never as a percentage. Ranking is by that share, then open to
+  beginners, then fewer years asked, then newest. **No accuracy is claimed**:
+  nobody was hired, so there's no ground truth. The rules are unit-tested
+  (TC-U15).
+- **Labelled every time.** Each section carries a "Sample listings" badge and
+  says the adverts are from the United States, spring 2024, used as demo data,
+  and closed. **Apply** explains that it's a demo and that the full system
+  would open the live advert.
+- **Features only.** New table `advert_listings`: the 20 most recent linked
+  adverts per occupation (7,094 over 682 occupations), with no advert text,
+  company, link or pay. TC-U15f and TC-I21f check this.
+- **Its own module and cache.** It lives in `listings.py` and
+  `load_listings.py`, with the cache committed at
+  `backend/seed/advert_listings.cache.json` (1.4 MB). It's kept apart from
+  `adverts.py`, so the committed advert-count cache (ADR-0019) stays valid.
+  Linking and mention rules are the same as the counts'.
+
+### Consequences
+
+- **A schema change:** one new, optional table. Without it, the cards simply
+  don't appear.
+- **The skills signal is weak** (ADR-0017: median Spearman +0.23 against
+  O\*NET), so the cards present fit as a rough guide. O\*NET's ratings stay the
+  guide to what a job needs.
+- **The next step is a live South African source.** Adzuna's South Africa API
+  is the candidate (ADR-0001), but it needs the lecturer's approval under
+  ADR-0002. The cards are built so that a source can replace the sample data
+  without a redesign.

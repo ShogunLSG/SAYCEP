@@ -25,13 +25,13 @@
      Cache committed at `backend/seed/advert_listings.cache.json` (7,094
      listings, 682 occupations, 1.4 MB). Kept apart from `adverts.py` so the
      committed advert-count cache stays valid.
-   - [ ] Call `load_listings.load(con, compute_if_stale=False)` from `load_onet.py`.
-   - [ ] API: `GET /occupations/{soc}/listings?profile_id=` and
+   - [x] Called from `load_onet.py` (cache only).
+   - [x] API: `GET /occupations/{soc}/listings?profile_id=` and
      `GET /profiles/{id}/listings` (goal + Pathway steps).
-   - [ ] UI: `frontend/jobs.js` (job cards, "Sample listings" badge, Apply note),
+   - [x] UI: `frontend/jobs.js` (job cards, "Sample listings" badge, Apply note),
      a Home card and a job-page section; CSS.
-   - [ ] Tests (unit, API), then the demo walk, keyboard walk and axe audit.
-   - [ ] Docs: ADR-0022, `architecture.md` schema, `presentation.md` demo lines.
+   - [x] Tests: TC-U15a–f, TC-I21a–h; 62 unit + 108 API + 5 performance pass; axe 0 failures (light, dark, 320 px, new screens included); keyboard and demo walks pass.
+   - [x] ADR-0022 written. Still to do: `architecture.md` schema, `presentation.md` demo lines.
 2. **CV file upload** (`docs/plans/cv-upload.md`): not started. Only if (1) is
    done and green before the cut-off.
 
