@@ -1,5 +1,46 @@
 # Status
 
+## Presentation day: Friday 6 November 2026 (read this first)
+
+**Slot: Room 2, 18:00–18:30, on Microsoft Teams** (from `Prototype_Presentation_2026_List.xlsx`).
+
+- **Safe, demo-ready snapshot: branch `presentation-2026-11-06`.** All 161 tests,
+  the 50-check demo walk, the keyboard walk and the axe audit (0 failures, 23
+  screens) pass on it, from a fresh clone (5–6 Nov). **If anything below is
+  unfinished at 16:45 SAST, present from this branch.**
+- Report and slides were submitted (Q1.1, Q3.5 and Q4.3 rewritten from the
+  student's own answers). The spoken script is `docs/presentation-script.md`;
+  the demo path, the Teams set-up and the Q&A are in `docs/presentation.md`.
+- Screenshots of every demo step: `docs/screenshots/demo-2026-11-06/` (the
+  fallback if screen sharing fails).
+- How to start the app: `python -m uvicorn app:app --app-dir backend --port 8000`,
+  then http://127.0.0.1:8000 (one command serves both the API and the UI).
+
+### Being built on `main-7rly7s` (6 November, from 14:50 SAST; cut-off 16:45)
+
+1. **"Jobs for you" job cards** (`docs/plans/advert-matching.md`, go given 24 Oct).
+   - [x] `backend/listings.py`: pure functions (title tidy, beginner_ok, fit, rank).
+   - [x] `backend/load_listings.py`: new table `advert_listings` (schema change,
+     ADR-0022 to write), 20 newest adverts per occupation as features only.
+     Cache committed at `backend/seed/advert_listings.cache.json` (7,094
+     listings, 682 occupations, 1.4 MB). Kept apart from `adverts.py` so the
+     committed advert-count cache stays valid.
+   - [ ] Call `load_listings.load(con, compute_if_stale=False)` from `load_onet.py`.
+   - [ ] API: `GET /occupations/{soc}/listings?profile_id=` and
+     `GET /profiles/{id}/listings` (goal + Pathway steps).
+   - [ ] UI: `frontend/jobs.js` (job cards, "Sample listings" badge, Apply note),
+     a Home card and a job-page section; CSS.
+   - [ ] Tests (unit, API), then the demo walk, keyboard walk and axe audit.
+   - [ ] Docs: ADR-0022, `architecture.md` schema, `presentation.md` demo lines.
+2. **CV file upload** (`docs/plans/cv-upload.md`): not started. Only if (1) is
+   done and green before the cut-off.
+
+Every card must say the listings are **real US adverts from March–April 2024,
+used as demo data**, not openings to apply to (ADR-0017 still holds).
+
+---
+
+
 **As of 20 October 2026: the prototype is built and its demo path is machine-checked, for presentation on Saturday 24 October. The human rehearsal is still to do.** A welcome screen with plan-code sign-in, the five-screen journey as onboarding, then four tabs (Home, Explore, Skills, Me) with job pages, skill pages, saved jobs and comparison, an interest quiz, progress history, a printable plan, and the proposal's other three modules in reduced, stated forms: a CV check, interview practice, and what employers ask for. All of it is checked by automated tests (counts in `docs/presentation.md` §7), a WCAG 2.1 AA audit and a script that runs the demo. **A minimal Fly.io deploy is ready (`docs/deploy.md`, ADR-0021) as a safety net: saved plans on it reset on redeploy.** The laptop is the main path.
 
 **For the presentation, start at `docs/presentation.md`:** running order, the demo path, the laptop setup, the failure plan, and the questions to expect.
