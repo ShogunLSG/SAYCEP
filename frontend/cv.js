@@ -20,6 +20,22 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [added, setAdded] = useState(() => new Set());
+  const [fileMsg, setFileMsg] = useState(null);   // { ok, text } about the last upload
+
+  async function upload(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";                            // the same file can be chosen again
+    if (!file) return;
+    setFileMsg({ ok: true, text: `Reading ${file.name}…` });
+    try {
+      const r = await readCvFile(file);
+      setText(r.text); setRes(null);
+      setFileMsg({ ok: true, text: `Read ${file.name}. Check the text below, then tap Check my CV.`
+        + (r.cut ? " It was long, so only the first 15,000 characters are kept." : "") });
+    } catch (err) {
+      setFileMsg({ ok: false, text: err instanceof CvFileError ? err.message : "That file couldn't be read. Paste the text instead." });
+    }
+  }
 
   async function scan() {
     setBusy(true); setError(null);
@@ -35,7 +51,13 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
       <div class="page-body">
         <p class="kicker">Check my CV${PRESENTER ? " · ADR-0014" : ""}</p>
         <h3 class="sheet-title">What does your CV show?</h3>
-        <p class="about">Paste your CV below. We'll point out the skills it shows and how it reads for your goal.${" "}<b>It's read and forgotten — never saved.</b></p>
+        <p class="about">Upload your CV or paste it below. We'll point out the skills it shows and how it reads for your goal.${" "}<b>It's read and forgotten — never saved.</b></p>
+        <div class="cvup">
+          <label for="cv-file">Upload a CV <span class="meta">PDF, Word (.docx) or text, up to 5 MB</span></label>
+          <input id="cv-file" type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                 onChange=${upload} />
+          <p class=${"cvup-msg" + (fileMsg && !fileMsg.ok ? " bad" : "")} role="status">${fileMsg ? fileMsg.text : "The file stays on your device: only its text is checked."}</p>
+        </div>
         <textarea id="cv-text" class="cvbox" aria-label="Your CV text" rows="9" maxLength="15000" value=${text}
                   placeholder="Paste the text of your CV here…" onInput=${(e) => setText(e.target.value)}></textarea>
         <div class="plan-actions">

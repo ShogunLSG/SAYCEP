@@ -574,3 +574,12 @@ form.card .btn{margin-top:-4px}
 .jc-apply{margin-top:10px}
 .jc-note{margin:8px 0 0}
 .jobs .more{margin-bottom:6px}
+
+/* ---------- CV upload (ADR-0023) ---------- */
+.cvup{border:1px dashed var(--accent-dim); border-radius:12px; padding:10px 12px; margin:0 0 10px; background:var(--sunk)}
+.cvup label{display:block; font-weight:600; font-size:13.5px; margin-bottom:6px}
+.cvup label .meta{display:block; font-weight:400; font-size:12px; color:var(--muted)}
+.cvup input[type=file]{font:inherit; font-size:13px; color:var(--ink-2); max-width:100%}
+.cvup input[type=file]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.cvup-msg{font-size:12.5px; color:var(--ink-2); margin:6px 0 0}
+.cvup-msg.bad{color:var(--danger)}
