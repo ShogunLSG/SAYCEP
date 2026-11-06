@@ -234,6 +234,24 @@ hand and use §3 as the checklist; the numbers are all there.
   calls out. The text font comes from Google when online and falls back to a
   system font when not, so it may look slightly different but works the same.
 
+### Presenting on Microsoft Teams (6 November: Room 2, 18:00)
+
+- **Share your entire screen, not one window.** Then switching between the
+  slides and the browser with Alt+Tab shows up for the markers. Don't use
+  "PowerPoint Live": you can't switch to the app from it.
+- **Turn on Do not disturb** in Windows, and set Teams itself to Do not
+  disturb, so no chat or email pop-ups appear on the shared screen. Close
+  WhatsApp, email and other browser tabs.
+- **The app runs on the laptop, so Wi-Fi only affects the call.** Keep a phone
+  hotspot ready in case the connection drops.
+- **Zoom the browser to about 175%.** Shared video is compressed, so small text
+  blurs.
+- **Join 10–15 minutes early,** test sharing once, and check your microphone.
+  Use headphones if you can. Keep the laptop plugged in.
+- **The markers can't open your app themselves.** It runs on your laptop, and
+  the live link isn't deployed. If sharing fails, post the screenshots from
+  `docs/screenshots/demo-2026-11-06/` in the meeting chat and talk through them.
+
 ### The live link (safety net)
 
 If you've deployed it (`docs/deploy.md`), the link is `https://<your-app>.fly.dev`.
