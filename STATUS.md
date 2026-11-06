@@ -32,8 +32,15 @@
      a Home card and a job-page section; CSS.
    - [x] Tests: TC-U15a–f, TC-I21a–h; 62 unit + 108 API + 5 performance pass; axe 0 failures (light, dark, 320 px, new screens included); keyboard and demo walks pass.
    - [x] ADR-0022 written. Still to do: `architecture.md` schema, `presentation.md` demo lines.
-2. **CV file upload** (`docs/plans/cv-upload.md`): not started. Only if (1) is
-   done and green before the cut-off.
+2. **CV file upload** (`docs/plans/cv-upload.md`, ADR-0023): **done.** PDF,
+   Word (.docx) and text, read in the browser; pdf.js 3.11.174 vendored.
+   `frontend/tests/cv_upload.js` passes 9 of 9.
+
+**Both features are done and green (6 Nov, about 15:05 SAST):** 62 unit, 108
+API and 5 performance tests; the demo walk (50/50, numbers unchanged); the
+keyboard walk; axe 0 failures in light, dark and 320 px, the new screens
+included; and a fresh clone without the advert file loads both caches. They are
+on `main-7rly7s`; `main` and `presentation-2026-11-06` don't have them.
 
 Every card must say the listings are **real US adverts from March–April 2024,
 used as demo data**, not openings to apply to (ADR-0017 still holds).

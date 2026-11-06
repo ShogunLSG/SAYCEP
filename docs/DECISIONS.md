@@ -1204,3 +1204,42 @@ split, which becomes ADR-0023 if it's ever built.
   is the candidate (ADR-0001), but it needs the lecturer's approval under
   ADR-0002. The cards are built so that a source can replace the sample data
   without a redesign.
+
+---
+
+## ADR-0023 — CV upload is read in the browser: PDF, Word and text
+
+**Date:** 2026-11-06
+**Status:** Accepted. The project owner asked for it on presentation day,
+following `plans/cv-upload.md` (the browser option).
+**Relates to:** ADR-0014 (the CV scanner), ADR-0018. It takes the next number,
+so the user-data split, if ever built, becomes ADR-0024.
+
+### Decision
+
+- **The browser pulls the text out of the file and puts it in the CV box**, so
+  the user can check it before scanning. **Only the text is sent**, as when
+  it's pasted, so the backend, the scanner and its measured r = 0.27 are
+  unchanged. The file never leaves the device.
+- **.txt** is read directly. **.docx** is a zip of XML: `word/document.xml` is
+  unzipped with the browser's own `DecompressionStream`, with no library.
+- **.pdf** uses **pdf.js 3.11.174** (Mozilla, Apache-2.0), vendored in
+  `frontend/vendor/` and loaded only when a PDF is chosen. This is a **new
+  front-end dependency**: reading PDFs without one isn't realistic. That version
+  is affected by CVE-2024-4367 when `isEvalSupported` is on, so it's turned
+  off, which is the published fix. Version 4 is fixed, but it ships only as ES
+  modules, and serving `.mjs` with the right type isn't reliable on every
+  laptop.
+- **Refused, with a plain message:** other file types and old `.doc` files,
+  files over 5 MB, and a PDF with no text layer ("This looks like a scanned
+  document… Paste the text instead"). Text over the scanner's 15,000-character
+  limit is cut, and the screen says so.
+
+### Consequences
+
+- **No OCR,** so scanned CVs still need pasting.
+- **Tests:** `frontend/tests/cv_upload.js` uploads real fixture files (9
+  checks, including that no request carries a file). The axe audit and the
+  keyboard walk cover the new control.
+- The written report (submitted earlier) says "pasted text only". **In the
+  presentation, describe upload as added since the report.**

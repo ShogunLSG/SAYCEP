@@ -151,6 +151,16 @@ Use a first name of your choice at step 1. The walk uses *Thabo*.
 > the lights worked and my uncle saved paying an electrician R450. I learned to
 > always test before and after.
 
+### New since the report (6 November): show these if time allows
+
+Both are on `main-7rly7s`. Say **"added since the report"**: the submitted
+report and slides describe pasted text and adverts summarised.
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N1** *(at step 7)* | On *Check my CV*, use **Upload a CV** and choose a PDF or Word CV. Tap *Check my CV*. | The text appears in the box: "Read … Check the text below". Then the skills it shows. | "You can upload a PDF or Word file now. It's read in the browser, so the file never leaves your device; only the text is checked." |
+| **N2** *(after step 6, on Home)* | Scroll to **Jobs for you**. Tap **Apply** on a card, then **See all … jobs for you**. | Job cards marked "Sample listings": "You have 3 of the 8 skills it mentions", "Open to beginners". Apply says it's a demo listing. | "These are real adverts, ranked by how well you fit. They're American and from 2024, so they're labelled as sample listings, not openings. Live South African adverts would come from Adzuna's South Africa API, with approval." |
+
 ### Add these if you have the time (to the 15-step version)
 
 | # | Do this | What appears ✔ | Say |
