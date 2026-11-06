@@ -278,6 +278,34 @@ def main():
     check("TC-U14b", "a change in the O*NET rows the counts were built from makes the cache stale", stale is False)
     check("TC-U14c", "a corrupt cache is treated as no cache, not a crash", corrupt is False)
 
+    print("\nTC-U15  Jobs for you: fit and ranking  (ADR-0022)")
+    import listings
+    import load_listings
+    st = {"a": "held", "b": "held", "c": "held", "d": "learning"}
+    words = [listings.fit(m, st)["words"] for m in (["a", "b", "c", "x"], ["a", "b", "x", "y"], ["a", "x", "y"], ["x"], [])]
+    check("TC-U15a", "fit words follow the share held: strong, good, some, a stretch, none named",
+          words == ["Strong fit", "Good fit", "Some fit", "A stretch", "No skills named"], str(words))
+    f = listings.fit(["a", "d", "x"], st)
+    check("TC-U15b", "a skill being learned is counted apart, never as held",
+          (f["have"], f["learning"], f["mentioned"]) == (1, 1, 3), str(f))
+    check("TC-U15c", "open to beginners: entry level, training given, or a year or less asked",
+          [listings.beginner_ok(*a) for a in (("Entry level", [], 5), ("", ["train"], None), ("", [], 1), ("Associate", [], 3))]
+          == [True, True, True, False])
+    mk = lambda i, have, n, beg, yrs, d: {"advert_id": i, "fit": listings.fit(["a"] * have + ["x"] * (n - have), {"a": "held"}),
+                                          "beginner": beg, "years": yrs, "listed": d}
+    order = [x["advert_id"] for x in listings.rank([
+        mk("old", 1, 2, True, None, "2024-04-01"), mk("new", 1, 2, True, None, "2024-04-20"),
+        mk("pro", 1, 2, False, None, "2024-04-25"), mk("best", 2, 2, False, 5, "2024-04-02"),
+        mk("yrs", 1, 2, True, 3, "2024-04-30")])]
+    check("TC-U15d", "ranked by share held, then beginners, then fewer years, then newest",
+          order == ["best", "new", "old", "yrs", "pro"], str(order))
+    check("TC-U15e", "the committed listings match the current code and O*NET rows "
+          "(if not: python backend/load_listings.py --fresh, then commit backend/seed/)",
+          json.loads(load_listings.CACHE.read_text()).get("inputs") == load_listings.fingerprint(con), "stale seed")
+    check("TC-U15f", "listings store features only: no description, company, link or pay columns",
+          not {"description", "company_name", "job_posting_url", "application_url", "max_salary", "min_salary"}
+          & {r[1] for r in con.execute("PRAGMA table_info(advert_listings)")})
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

@@ -50,9 +50,15 @@ def fit(mentioned, statuses):
     return {"have": len(have), "learning": len(learning), "mentioned": n, "band": band, "words": word}
 
 
+def share(f):
+    """The share of an advert's named skills the user holds (0 when it names none)."""
+    return f["have"] / f["mentioned"] if f["mentioned"] else 0.0
+
+
 def rank(items):
-    """Best fit first; then open to beginners; then fewer years asked; then
-    the most recent. items: dicts with fit, beginner, years, listed, advert_id."""
+    """Best fit first (the share of the advert's named skills the user holds);
+    then open to beginners; then fewer years asked; then the most recent.
+    items: dicts with fit, beginner, years, listed, advert_id."""
     newest = sorted(items, key=lambda x: (x["listed"], x["advert_id"]), reverse=True)
     return sorted(newest, key=lambda x: (      # stable: ties stay newest first
-        -x["fit"]["band"], not x["beginner"], x["years"] if x["years"] is not None else 0))
+        -share(x["fit"]), not x["beginner"], x["years"] if x["years"] is not None else 0))

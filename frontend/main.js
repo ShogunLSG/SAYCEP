@@ -195,6 +195,7 @@ function App() {
     const openCompare = (socs) => push({ kind: "compare", socs });
     const openCv = () => push({ kind: "cv" });
     const openPractice = () => push({ kind: "practice" });
+    const openJobs = () => push({ kind: "jobs" });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
     // The tab stays mounted under any pushed page, so coming back finds the
     // search, filter and scroll position exactly as they were.
@@ -206,6 +207,8 @@ function App() {
                    onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
     } else if (page && page.kind === "compare") {
       pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
+    } else if (page && page.kind === "jobs") {
+      pageEl = html`<${JobsPage} profileId=${profile.id} onOpenJob=${openJob} />`;
     } else if (page && page.kind === "practice") {
       pageEl = html`<${PracticePage} profileId=${profile.id} />`;
     } else if (page && page.kind === "cv") {
@@ -234,6 +237,7 @@ function App() {
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
                  <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
                  <${CvCard} onOpen=${openCv} />
+                 <${JobsForYouCard} profileId=${profile.id} rev=${rev + skillRev} onOpenAll=${openJobs} onOpenJob=${openJob} />
                  <${EmployersCard} profileId=${profile.id} goal=${target}
                    onOpen=${() => push({ kind: "job", soc_code: target.soc_code, title: target.title, focus: "employers" })} />
                  <${PracticeCard} onOpen=${openPractice} />

@@ -236,6 +236,19 @@ def advert_titles(con, soc_code, limit=5):
                        " ORDER BY n DESC, title LIMIT ?", (soc_code, limit)).fetchall()
 
 
+def listings_loaded(con):
+    """Whether load_listings.py has run (the sample listings are optional)."""
+    return con.execute("SELECT 1 FROM sqlite_master WHERE name = 'advert_listings'").fetchone() is not None
+
+
+def advert_listings(con, soc_codes):
+    """Every sample listing for these occupations, with the occupation's title."""
+    marks = ",".join("?" * len(soc_codes))
+    return con.execute(f"SELECT l.*, o.title AS occupation FROM advert_listings l"
+                       f" JOIN occupations o ON o.soc_code = l.soc_code"
+                       f" WHERE l.soc_code IN ({marks})", list(soc_codes)).fetchall()
+
+
 def advert_baseline(con):
     """({(kind, item): n}, total linked adverts)."""
     rows = con.execute("SELECT kind, item, n FROM advert_baseline").fetchall()

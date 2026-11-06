@@ -33,6 +33,7 @@ import cvscan
 import gap as gap_analyser
 import interview as interview_practice
 import interests as interest_matcher
+import listings as job_listings
 import pathway as pathway_service
 import plain
 import recommend as recommendation_engine
@@ -611,6 +612,74 @@ def occupation_adverts(soc_code: str, profile_id: str | None = None, con=Depends
                basis=("Skills are the ones these adverts mention noticeably more than adverts in general. "
                       "Checked against O*NET's ratings: a weak but real agreement (ADR-0017)."))
     return out
+
+
+# ---------- Jobs for you: sample listings (module 4 as job cards, ADR-0022) ----------
+
+def _listing_note(con):
+    first, last = repository.advert_period(con)
+    when = advert_summary.period(first, last) if first else "2024"
+    return (f"Real job adverts from the United States, {when}, used as demo data. "
+            "They have closed, so they show the kind of jobs you'd fit, not openings to apply to.")
+
+
+def _listing(row, statuses, names):
+    mentioned = [e for e in row["skills"].split(",") if e]
+    reqs = [k for k in row["reqs"].split(",") if k]
+    return {
+        "advert_id": row["advert_id"], "soc_code": row["soc_code"], "occupation": row["occupation"],
+        "title": row["title"], "location": row["location"], "work_type": row["work_type"],
+        "level": row["level"], "years": row["years"], "listed": row["listed"],
+        "beginner": job_listings.beginner_ok(row["level"], reqs, row["years"]),
+        "requirements": [advert_summary.REQUIREMENT_LABELS[k] for k in reqs
+                         if k in advert_summary.REQUIREMENT_LABELS and k != "train"],
+        "training_given": "train" in reqs,
+        "tools": [x for x in row["tools"].split("|") if x][:4],
+        "skills": [{"element_id": e, "name": names[e], "status": statuses.get(e)}
+                   for e in mentioned if e in names],
+        "fit": job_listings.fit(mentioned, statuses),
+    }
+
+
+def _listings(con, soc_codes, profile_id, limit):
+    statuses = ({r["element_id"]: r["status"] for r in repository.profile_skills(con, profile_id)}
+                if profile_id else {})
+    loaded = repository.listings_loaded(con)
+    out = {"loaded": loaded, "note": _listing_note(con) if loaded else None,
+           "dataset": LISTINGS_DATASET if loaded else None, "total": 0, "listings": []}
+    if not loaded or not soc_codes:
+        return out
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    items = [_listing(r, statuses, names) for r in repository.advert_listings(con, soc_codes)]
+    out.update(total=len(items), listings=job_listings.rank(items)[:limit])
+    return out
+
+
+LISTINGS_DATASET = "LinkedIn Job Postings 2023-2024 (Kaggle arshkon/linkedin-job-postings, CC BY-SA 4.0)"
+
+
+@app.get("/occupations/{soc_code}/listings", tags=["adverts"])
+def occupation_listings(soc_code: str, profile_id: str | None = None,
+                        limit: int = Query(10, ge=1, le=20), con=Depends(db)):
+    """Sample listings for one occupation, best fit for the profile first.
+    Real US adverts from 2024, all closed: shown as examples, never as openings."""
+    _require_occupation(con, soc_code)
+    if profile_id:
+        _require_profile(con, profile_id)
+    return {"soc_code": soc_code, **_listings(con, [soc_code], profile_id, limit)}
+
+
+@app.get("/profiles/{profile_id}/listings", tags=["adverts"])
+def profile_listings(profile_id: str, limit: int = Query(12, ge=1, le=40), con=Depends(db)):
+    """Jobs for you: sample listings across the goal and the jobs on the
+    profile's Pathway, best fit first. No goal, no listings."""
+    profile = _require_profile(con, profile_id)
+    target = profile["target_soc_code"]
+    socs = []
+    if target:
+        route = pathway_service.generate_pathway(con, profile_id, target)
+        socs = [st["soc_code"] for st in route["steps"]]
+    return {"profile_id": profile_id, "occupations": socs, **_listings(con, socs, profile_id, limit)}
 
 
 # ---------- interests (slice 4, ADR-0011) ----------

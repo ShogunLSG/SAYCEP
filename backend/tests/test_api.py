@@ -420,6 +420,36 @@ def main():
     s, e = call("GET", "/occupations/99-9999.99/adverts")
     check("TC-I20g", "an unknown occupation returns 404", s == 404, str(s))
 
+    print("\nTC-I21  Jobs for you: sample listings  (module 4, ADR-0022)")
+    s, lp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    lpid = lp["profile_id"]
+    s, none_yet = call("GET", f"/profiles/{lpid}/listings")
+    check("TC-I21a", "no goal yet: no listings, not an error", s == 200 and none_yet["listings"] == [], str(s))
+    call("PUT", f"/profiles/{lpid}/target", {"soc_code": "47-2111.00"})
+    s, jl = call("GET", f"/profiles/{lpid}/listings?limit=40")
+    if s == 200 and not jl["loaded"]:
+        print("  SKIP  TC-I21  listings not loaded (run python backend/load_listings.py)")
+    else:
+        _, lpw = call("GET", f"/profiles/{lpid}/pathway")
+        items = jl["listings"]
+        check("TC-I21b", "listings come from the goal and the jobs on the route, and only those",
+              set(jl["occupations"]) == {st["soc_code"] for st in lpw["steps"]}
+              and items and {x["soc_code"] for x in items} <= set(jl["occupations"]), str(jl["occupations"]))
+        check("TC-I21c", "every listing is labelled: US adverts, demo data, closed, not openings; dataset named",
+              all(w in jl["note"] for w in ("United States", "demo data", "closed", "not openings")) and "CC BY-SA" in jl["dataset"])
+        shares = [x["fit"]["have"] / x["fit"]["mentioned"] if x["fit"]["mentioned"] else 0 for x in items]
+        check("TC-I21d", "best fit first: the share of named skills held never rises down the list",
+              all(a >= b for a, b in zip(shares, shares[1:])), str([round(v, 2) for v in shares[:6]]))
+        check("TC-I21e", "fit counts agree with the skills listed and the profile",
+              all(x["fit"]["have"] == sum(k["status"] == "held" for k in x["skills"]) for x in items))
+        check("TC-I21f", "no advert text, company, link or pay comes back",
+              not any(k in json.dumps(jl).lower() for k in ("description", "company", "http", "salary")))
+        s, one = call("GET", f"/occupations/47-2111.00/listings?profile_id={lpid}&limit=3")
+        check("TC-I21g", "a job page gets at most the limit, all for that job",
+              s == 200 and 0 < len(one["listings"]) <= 3 and all(x["soc_code"] == "47-2111.00" for x in one["listings"]))
+    s, _ = call("GET", "/occupations/99-9999.99/listings")
+    check("TC-I21h", "an unknown occupation returns 404", s == 404, str(s))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

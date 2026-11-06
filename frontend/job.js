@@ -47,6 +47,7 @@ function JobDetail({ data, full, onOpenJob, profileId, focus, onOpenSkill }) {
       ${all ? "Show fewer" : `Show all ${rest.length}`}</button>`}
 
     ${full && html`<${EmployersAsk} soc=${data.soc_code} profileId=${profileId} focus=${focus} onOpenSkill=${onOpenSkill} />`}
+    ${full && html`<${JobListings} soc=${data.soc_code} profileId=${profileId} />`}
 
     ${full && data.tool_groups.length > 0 && html`
       <h4 class="sect">Tools of the trade</h4>

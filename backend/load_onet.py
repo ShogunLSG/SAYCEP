@@ -329,6 +329,11 @@ def main():
         load_adverts.load(con, compute_if_stale=False)
     except Exception as e:   # the O*NET database above is complete either way
         print(f"Adverts: skipped ({e}).")
+    import load_listings     # Jobs for you (ADR-0022): the same rule, its own cache
+    try:
+        load_listings.load(con, compute_if_stale=False)
+    except Exception as e:
+        print(f"Listings: skipped ({e}).")
     con.close()
 
 

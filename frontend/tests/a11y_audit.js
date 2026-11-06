@@ -71,6 +71,11 @@ const results = [];
   if (await p.evaluate(() => fetch('/occupations/47-2111.00/adverts').then((r) => r.json()).then((d) => d.loaded))) {
     await p.click('text=See what employers ask for'); await p.waitForSelector('.emp'); await audit('employers section'); await p.click('.back');
   } else console.log('employers section      skipped: advert data not loaded');
+  // Jobs for you (ADR-0022) is optional data too.
+  if (await p.evaluate(() => fetch('/occupations/47-2111.00/listings').then((r) => r.json()).then((d) => d.loaded))) {
+    await p.waitForSelector('.card.jobs .jc'); await p.click('.card.jobs .jc-apply >> nth=0'); await audit('jobs for you card');
+    await p.click('text=/See all .* jobs for you/'); await p.waitForSelector('.page .jc'); await audit('jobs for you page'); await p.click('.back');
+  } else console.log('jobs for you           skipped: listings not loaded');
   await p.click('.tb >> text="Me"'); await p.waitForSelector('#me-name'); await audit('me');
   if (process.env.OUT) fs.writeFileSync(process.env.OUT, JSON.stringify(results, null, 1));
   const tot = results.reduce((a, s) => a + s.r.reduce((b, v) => b + v.nodes.length, 0), 0);

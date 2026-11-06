@@ -555,3 +555,22 @@ form.card .btn{margin-top:-4px}
 .emp-list .share{flex:none; width:68px; font-weight:600; color:var(--accent); font-size:12.5px}
 .tag.held{background:var(--ok-soft); color:var(--ok)}
 .tag.learning{background:var(--accent-soft); color:var(--accent)}
+
+/* ---------- Jobs for you: sample listings (ADR-0022) ---------- */
+.sample{display:flex; gap:8px; align-items:flex-start; background:var(--sunk); border-radius:10px; padding:9px 11px; margin:0 0 10px; font-size:12.5px; color:var(--ink-2)}
+.sample-b{flex:none; font-size:10px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; color:var(--essential); background:var(--essential-soft); border-radius:4px; padding:2px 6px; margin-top:1px}
+.jc{border:1px solid var(--line); border-radius:14px; padding:12px 13px; margin-bottom:10px; background:var(--card)}
+.jc-top{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px}
+.fitb{font-size:11px; font-weight:700; border-radius:999px; padding:3px 9px}
+.fitb.b3{background:var(--ok); color:var(--on-fill)}
+.fitb.b2{background:var(--ok-soft); color:var(--ok)}
+.fitb.b1{background:var(--accent-soft); color:var(--accent-ink)}
+.fitb.b0{background:var(--sunk); color:var(--muted)}
+.jc-when{font-size:11.5px; color:var(--muted)}
+.jc-t{font-size:15.5px; margin:0 0 2px}
+.jc-meta{font-size:12.5px; color:var(--ink-2); margin:0 0 8px}
+.jc-have{font-size:13px; margin:0 0 6px}
+.jc-facts{margin-top:9px}
+.jc-apply{margin-top:10px}
+.jc-note{margin:8px 0 0}
+.jobs .more{margin-bottom:6px}
