@@ -1,8 +1,16 @@
 # Plan: sharper CV advice and interview practice, before the final presentation
 
 *Written 15 November 2026. Status: **plan only, waiting for go.** Final
-presentation: **Tuesday 17 November, 18:00**. Code freeze: **Monday 16
-November, 20:00**. Tuesday is rehearsal only.*
+presentation: **Friday 20 November, 18:00** (moved from the 17th). Code freeze:
+**Thursday 19 November, 20:00**. Friday is rehearsal only.*
+
+| Day | Work |
+|---|---|
+| Sun 15 / Mon 16 | Items 1–3 below, with tests |
+| Tue 17 | Item 4; the user test, if the owner can find five people |
+| Wed 18 | Item 5 (CV skill rules, measured), only if the owner says go |
+| Thu 19 | Full regression, docs, rehearsal. **Freeze 20:00** |
+| Fri 20 | Rehearsal and set-up only. Nothing new. |
 
 ## What exists today (checked in the code, 15 November)
 
@@ -53,16 +61,19 @@ Resubmitting an answer shows **"2 of 7 → 5 of 7"** and which items turned gree
 Front-end only, plus a short worked example answer for the missing parts
 (situation, action, result) built from the user's own wording where possible.
 
-### 4. Optional, only if 1–3 are done and green by Monday 16:00
-- **More CV tips:** contact details, dates, length. Small rules, no accuracy
-  claim.
+### 4. More CV tips (about 1 hour)
+Contact details, dates and length: small rules, no accuracy claim. Only once
+1–3 are done and green.
+
+### 5. Optional: catch more of what a CV shows (about half a day, needs a go)
+Run the 9,544 Kaggle CVs through the skill rules, find clear phrases they miss,
+and add rules, with the change **measured before and after** (r = 0.27 must not
+fall). **This is the one risky item:** `cvscan.py` is in the advert-cache
+fingerprint (ADR-0019), so it needs `load_adverts.py --fresh` and
+`load_listings.py --fresh` (about 4 minutes, with the 517 MB advert file) and
+both seeds committed. Done on Wednesday at the latest, so it can be reverted.
 
 ## What I'd deliberately not do
-- **Change the CV skill rules** (to catch more phrases). `cvscan.py` is part of
-  the advert-cache fingerprint (ADR-0019), so any edit invalidates **both**
-  committed seeds and needs the 517 MB advert file and about 4 minutes of
-  recomputing, plus a re-measure of r = 0.27. Too risky two days out.
-  Backlog it.
 - **An LLM interviewer,** or data from outside Kaggle.
 
 ## Tests (same standard as the last two features)
@@ -72,7 +83,7 @@ Front-end only, plus a short worked example answer for the missing parts
   `frontend/tests/interview_retry.js`. Then the full regression: 62 unit, 108
   API and 5 performance tests, demo walk, keyboard walk, CV upload, job cards,
   and axe in light, dark and 320 px.
-- If anything fails and isn't fixed by **Monday 20:00**, I revert that item, and
+- If anything fails and isn't fixed by **Thursday 19:00**, I revert that item, and
   the rest ships.
 
 ## Safety net
