@@ -1,0 +1,86 @@
+
+Step 1  Welcome: a first name, no email or password
+  PASS  welcome screen shows the headline
+  PASS  the door says "No email, no password" and offers a plan code
+  PASS  sign-in button stays disabled until a full six-character code is typed
+  PASS  a wrong plan code gets a plain message, not a crash
+
+Step 2  I left school, tick the six operator skills
+  PASS  six skills ticked
+
+Step 3  For you: ranked, with why; Search "electric"; Electricians; Aim for this job
+  PASS  each recommendation says why ("Because you have…")
+  PASS  job panel shows the job and "A day in this job"
+
+Step 4  The gap: 6 of 34 held, 2 must-haves (Troubleshooting, Repairing)
+  PASS  "6 of the 34" skills already held
+  PASS  two must-haves named
+  PASS  Troubleshooting and Repairing are the must-haves
+
+Step 5  The route: four jobs, each saying why; Save as my plan
+  PASS  route order: Boilermakers → Power-Line Installers → Electronics Repairers → Electricians
+  PASS  steps say why ("Closest to you now…")
+
+Step 6  Home: learning changes nothing; "I can do this now" opens the unlock card
+  PASS  Home greets by name
+  PASS  Start learning marks it learning
+  PASS  unlock card: 1 of 2 must-haves
+  PASS  unlock card: Power-Line Installers now ready
+  PASS  unlock card: about 106 jobs with every must-have
+        unlock card says: Troubleshooting — addedYour goal · Electricians1 of 2 must-have skillsYou're now ready forElectrical Power-Line Installers and RepairersA job closely related to your goal›You have every must-have for 106 jobs — 4 more th
+
+Step 7  Explore → Search "conduit installer"; open Electricians; save three jobs
+  PASS  Electricians found by another name ("also called Conduit Installer")
+  PASS  job page: tools of the trade
+  PASS  job page: software and "Jobs like this"
+  PASS  three jobs saved
+
+Step 8  Explore → Interests: twelve questions, jobs that fit
+  PASS  twelve questions
+  PASS  results: "You lean towards…" and a list of jobs
+  PASS  screen says it is a simplified version
+
+Step 9  Skills → Repairing → I can already: the goal is complete (2 of 2)
+  PASS  unlock card: 2 of 2 must-haves
+  PASS  "You now have everything this job depends on"
+  PASS  about 131 jobs with every must-have
+        unlock card says: Repairing — addedYour goal · Electricians2 of 2 must-have skillsYou now have everything this job depends on.You're now ready forElectrical and Electronics Repairers, Powerhouse, Substation, and RelayA job closely related
+
+Step 10  Home → Saved jobs → tick three → Compare; Your progress 0 → 0 → 1 → 2
+  PASS  compare shows three columns
+  PASS  progress: 0 → 0 → 1 → 2
+
+Step 11  Home → Check my CV: skills with quoted lines; Add Repairing; goal check; never saved
+  PASS  the CV check refuses text that is too short (the button stays disabled)
+  PASS  CV suggests Repairing
+  PASS  screen says "never saved"
+  PASS  goal check names Multimeters and Microsoft Excel
+  PASS  Troubleshooting "not shown yet"
+
+Step 12  Home → What employers ask for: Electricians, US adverts, April 2024
+  PASS  84 real adverts
+  PASS  labelled United States, April 2024
+  PASS  says they have closed
+  PASS  7 in 10 of the 73 that state a level were open to beginners
+  PASS  7 in 10 mention a trade licence
+  PASS  3 in 10 mention a driver's licence
+  PASS  skills they stress: Installation, Repairing, Troubleshooting
+
+Step 13  Home → Practise for an interview: "I fixed it." 2 of 7; a full story 7 of 7
+        question 2: Tell me about a time something stopped working and you worked out why.
+  PASS  question 2 is about Troubleshooting
+  PASS  "I fixed it." meets 2 of 7
+  PASS  the full story meets 7 of 7
+
+Step 14  Me → Print my plan; note the code; sign out; sign back in with the code
+  PASS  a six-character plan code is shown
+  PASS  Print my plan builds a page and calls print
+  PASS  the plan comes back with the plan code
+  PASS  the goal (Electricians) is still there after signing back in
+
+Step 15  For the marker: ?presenter brings the codes and ratings back
+  PASS  presenter mode shows requirement ids / SOC codes / Job Zones
+
+  PASS  no console or page errors during the whole walk
+
+DEMO PATH OK: every number in the script matches the app

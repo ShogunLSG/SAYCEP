@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 
 from config import ESSENTIAL_THRESHOLD
 import adverts as advert_summary
+import cvadvice
 import cvscan
 import gap as gap_analyser
 import interview as interview_practice
@@ -89,6 +90,7 @@ class AnswerIn(BaseModel):
     # Never stored (ADR-0015).
     answer: str = Field(..., max_length=5000)
     skill_element_id: str | None = None
+    tool: str | None = Field(None, max_length=120)   # the tool a technical question asked about
 
 
 class NameIn(BaseModel):
@@ -544,7 +546,23 @@ def scan_cv(body: CvIn, con=Depends(db)):
             "worth_mentioning": mention,
             "basis": BENCHMARK_NOTE,
         }
+        missing = [k["name"] for k in out["goal"]["key_skills"] if not k["evidence"]]
+        out["goal"]["add"] = cvadvice.advice(_advert_view(con, soc, held), body.text, software | tools, missing)
     return out
+
+
+def _advert_view(con, soc_code, held):
+    """The advert summary the CV advice is built on, or None where this job
+    has too few adverts (or none are loaded): then no advert figure is claimed."""
+    if not repository.adverts_loaded(con):
+        return None
+    row = repository.advert_summary(con, soc_code)
+    if row is None or row["adverts"] < advert_summary.MIN_ADVERTS:
+        return None
+    base, total = repository.advert_baseline(con)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    return {**advert_summary.summarise(row, repository.advert_counts(con, soc_code), base, total, names, held),
+            "adverts": row["adverts"], "period": advert_summary.period(row["listed_from"], row["listed_to"])}
 
 
 # ---------- interview practice (module 5, ADR-0015) ----------
@@ -570,7 +588,7 @@ def interview_feedback(body: AnswerIn, con=Depends(db)):
     index = _cv(con)
     if body.skill_element_id and body.skill_element_id not in index.skills:
         raise HTTPException(404, f"No skill {body.skill_element_id}")
-    return {**interview_practice.feedback(index, body.answer, body.skill_element_id), "stored": False}
+    return {**interview_practice.feedback(index, body.answer, body.skill_element_id, body.tool), "stored": False}
 
 
 # ---------- what employers ask for (module 4, ADR-0017) ----------

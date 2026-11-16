@@ -1,6 +1,23 @@
 # Status
 
-## Presentation day: Friday 6 November 2026 (read this first)
+## Final presentation: Friday 20 November 2026, 18:00 (read this first)
+
+**16 November: CV advice and the interview upgrade are built and green**
+(`docs/plans/cv-interview-upgrade.md` items 1–3, ADR-0024), on `main-7rly7s`:
+- **CV "What to add":** requirements, tools and skills the CV lacks, with how
+  common each is in real (US) adverts and an example line. Scanner and score
+  untouched, so r = 0.27 stands.
+- **Interview:** a technical question about a tool the job's adverts name (168
+  of 879 jobs), and retry that shows "2 of 7 → 7 of 7" with sentence starters.
+- **Tests:** 75 unit, 117 API, 5 performance; demo walk 50/50 (numbers
+  unchanged); keyboard walk; CV upload 33; job cards 28; interview and CV advice
+  18; axe 0 failures in light, dark and 320 px.
+- **Fallback if anything goes wrong:** `git checkout f8d9d55` (6 November's
+  tested state, with job cards and CV upload but without these three items).
+- **Code freeze: Thursday 19 November, 20:00.** Not done: adding CV skill rules
+  (plan item 5, optional, needs a go) and the user test.
+
+## Earlier: presentation day, Friday 6 November 2026
 
 **Slot: Room 2, 18:00–18:30, on Microsoft Teams** (from `Prototype_Presentation_2026_List.xlsx`).
 

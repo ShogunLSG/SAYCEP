@@ -1243,3 +1243,60 @@ so the user-data split, if ever built, becomes ADR-0024.
   keyboard walk cover the new control.
 - The written report (submitted earlier) says "pasted text only". **In the
   presentation, describe upload as added since the report.**
+
+---
+
+## ADR-0024 — CV advice and a technical interview question, from data already in the app
+
+**Date:** 2026-11-16
+**Status:** Accepted. The project owner approved items 1–3 of
+`plans/cv-interview-upgrade.md` for the final presentation (Friday 20 November).
+**Relates to:** ADR-0014 (CV scanner), ADR-0015 (interview practice), ADR-0017
+(adverts). It takes the next number, so the user-data split, if ever built,
+becomes ADR-0025.
+
+### Context
+
+The CV check said what a CV shows but not what to add, and interview practice
+asked skill questions only and gave feedback once per answer. No new data was
+sought: **no Kaggle interview-question dataset was found** (the nearest are on
+Hugging Face, which ADR-0002 rules out without approval), and the Kaggle
+LiveCareer CVs have category labels but no match scores, so they can't improve
+or measure the goal score.
+
+### Decision
+
+- **CV: "What to add".** For the goal job, `cvadvice.py` turns the advert
+  counts (ADR-0017) into up to three pieces of each kind of advice:
+  - **requirements** adverts commonly ask for (25%+ of adverts) that the CV
+    doesn't mention, in South African terms ("Code 8", "N2", "matric"), each
+    with an example line;
+  - **tools** at least 15% of adverts name that the CV doesn't;
+  - **key skills** (O\*NET essential) the CV doesn't show, with a worked example
+    for 15 common skills and a frame for the rest.
+  Every advert figure says how many US adverts and when ("7 in 10 of the 84 US
+  adverts for this job (April 2024)"). A job with too few adverts gets skill
+  advice only and no advert figure. **The scanner, its rules and the goal score
+  are not touched**, so r = 0.27 stands, and the advice claims no accuracy.
+- **Interview: a technical question.** After the skill questions, "Tell me about
+  a time you used *X*, or how you would use it in this job", where X is the tool
+  or software the most real adverts name (at least 5 adverts and 5% of them).
+  **168 of 879 jobs get one;** the rest don't, rather than a generic or silly
+  question. (O\*NET's "hot technology" list was tried first and rejected: it
+  offered Git for coroners and Apache Spark for nurses.) Feedback gains a
+  "Names *X*" item, matched word by word with plurals folded.
+- **Interview: retry.** Checking an answer again shows "2 of 7 → 7 of 7" and
+  what is now there, kept per question and never stored; sentence starters
+  appear only for the missing parts of the story.
+
+### Consequences
+
+- **No schema change, no new data, no seed change:** `cvscan.py` and the
+  advert cache fingerprint are untouched.
+- Electricians' technical question is about **Microsoft Excel**: that is what
+  their adverts name most (8%), though multimeters are the more natural tool.
+- **Deferred (backlog):** adding CV skill rules. It would invalidate both
+  committed seeds and need a re-measure of r = 0.27.
+- **Tests:** TC-U16a–h, TC-U17a–e, TC-I22a–i, a corrected TC-I19a, and
+  `frontend/tests/interview_retry.js` (18 checks); the axe audit covers the CV
+  result and the retry state.

@@ -359,8 +359,8 @@ def main():
     print("\nTC-I19  Interview practice  (ADR-0015)")
     s, iq = call("GET", f"/interview/questions?profile_id={pid}")
     kinds = [q["kind"] for q in iq["questions"]]
-    check("TC-I19a", "questions for the profile's goal: an opener, one per must-have, one from a task",
-          s == 200 and iq["soc_code"] == "47-2111.00" and kinds == ["opener", "skill", "skill", "task"]
+    check("TC-I19a", "questions for the profile's goal: an opener, one per must-have, a tool where adverts name one (ADR-0024), one from a task",
+          s == 200 and iq["soc_code"] == "47-2111.00" and kinds == ["opener", "skill", "skill", "tool", "task"]
           and {q["skill"]["name"] for q in iq["questions"] if q["skill"]} == {"Troubleshooting", "Repairing"},
           str(kinds))
     sq = next(q for q in iq["questions"] if q["kind"] == "skill")
@@ -449,6 +449,45 @@ def main():
               s == 200 and 0 < len(one["listings"]) <= 3 and all(x["soc_code"] == "47-2111.00" for x in one["listings"]))
     s, _ = call("GET", "/occupations/99-9999.99/listings")
     check("TC-I21h", "an unknown occupation returns 404", s == 404, str(s))
+
+    print("\nTC-I22  CV advice and the technical interview question  (ADR-0024)")
+    weak_cv = ("Lerato Nkosi. Matric 2023. Shop assistant at Pick n Pay: served customers at the till, kept stock records. "
+               "Volunteer: replaced plugs in the community hall.")
+    s, sc = call("POST", "/cv/scan", {"text": weak_cv, "soc_code": "47-2111.00"})
+    add = sc["goal"]["add"] if s == 200 and sc.get("goal") else []
+    check("TC-I22a", "a CV scan with a goal returns what to add: requirements, then skills, each with a reason and an example",
+          s == 200 and add and all(x["kind"] in ("requirement", "tool", "skill") and x["why"] and x["example"] for x in add)
+          and {x["kind"] for x in add} >= {"requirement", "skill"}, str([(x["kind"], x["title"]) for x in add]))
+    adv_ok = repository_has_adverts = "adverts" in json.dumps(add)
+    check("TC-I22b", "advert figures say how many US adverts, and when",
+          all("US adverts for this job (" in x["why"] for x in add if x["kind"] != "skill"))
+    s, lic = call("POST", "/cv/scan", {"text": weak_cv + " I hold a trade certificate and a Code 8 driver's licence.", "soc_code": "47-2111.00"})
+    check("TC-I22c", "naming a licence in the CV removes the licence advice",
+          s == 200 and not [x for x in lic["goal"]["add"] if x["title"] in ("A trade licence or certificate", "A driver's licence")],
+          str([x["title"] for x in lic["goal"]["add"]]))
+    s, nogoal = call("POST", "/cv/scan", {"text": weak_cv})
+    check("TC-I22d", "no goal, no advice: goal stays empty and nothing is stored", s == 200 and nogoal["goal"] is None and nogoal["stored"] is False)
+    import sqlite3
+    from pathlib import Path
+    dbc = sqlite3.connect(Path(__file__).resolve().parents[1] / "saycep.db")
+    no_adverts = dbc.execute("SELECT soc_code FROM occupations WHERE soc_code NOT IN (SELECT soc_code FROM advert_summary) AND soc_code IN "
+                             "(SELECT soc_code FROM occupation_skills) ORDER BY soc_code LIMIT 1").fetchone()[0]
+    dbc.close()
+    s, na = call("POST", "/cv/scan", {"text": weak_cv, "soc_code": no_adverts})
+    check("TC-I22e", "a job with no adverts: skill advice only, and no advert figure claimed",
+          s == 200 and na["goal"]["add"] and all(x["kind"] == "skill" for x in na["goal"]["add"]), no_adverts)
+    s, iq = call("GET", "/interview/questions?soc_code=47-2111.00")
+    tq = [q for q in iq.get("questions", []) if q["id"] == "tool"]
+    check("TC-I22f", "Electricians get a technical question about a tool the adverts name, after the skill questions",
+          s == 200 and len(tq) == 1 and tq[0]["tool"] in tq[0]["text"] and iq["questions"][-1]["id"] == "task", str(tq))
+    s, nq = call("GET", f"/interview/questions?soc_code={no_adverts}")
+    check("TC-I22g", "a job with no adverts gets no technical question", s == 200 and all(q["id"] != "tool" for q in nq["questions"]))
+    s, f1 = call("POST", "/interview/feedback", {"answer": "Last year I used " + tq[0]["tool"] + " at school to track the club's stock list. I made a sheet and it saved us time.", "tool": tq[0]["tool"]})
+    s, f2 = call("POST", "/interview/feedback", {"answer": "Last year at school I tracked the club's stock list by hand. I made a list and it saved us time.", "tool": tq[0]["tool"]})
+    check("TC-I22h", "feedback checks the tool is named: green when it is, a tip when it isn't",
+          s == 200 and f1["items"][0]["key"] == "tool" and f1["items"][0]["ok"] and not f2["items"][0]["ok"] and f2["items"][0]["tip"])
+    s, _ = call("POST", "/interview/feedback", {"answer": "x" * 10, "tool": "t" * 200})
+    check("TC-I22i", "an over-long tool name is refused (422), never stored", s == 422, str(s))
 
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})

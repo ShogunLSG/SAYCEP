@@ -96,8 +96,34 @@ SPECIFIC = re.compile(r"(\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|
                       r"april|may|june|july|august|september|october|november|december)\b)", re.I)
 
 
+def tool_for(con, soc_code, min_share=0.05, min_adverts=5):
+    """The one tool or piece of software to ask about for this job: the one the
+    most real adverts name, if at least min_adverts adverts and min_share of
+    them do. Otherwise none, and the practice set has no technical question:
+    no evidence beats a generic or silly one (O*NET's "hot technology" list
+    offered Git for coroners and Apache Spark for nurses)."""
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'advert_summary'").fetchone():
+        return None
+    row = con.execute("SELECT adverts FROM advert_summary WHERE soc_code = ?", (soc_code,)).fetchone()
+    if not row or row[0] < min_adverts:
+        return None
+    hit = con.execute("SELECT item FROM advert_counts WHERE soc_code = ? AND kind IN ('tool','software')"
+                      " AND n >= ? AND n >= ? ORDER BY n DESC, item LIMIT 1",
+                      (soc_code, min_adverts, min_share * row[0])).fetchone()
+    return hit[0] if hit else None
+
+
+def names_tool(answer, tool):
+    """Does the answer name this tool? Word by word, plural-folded like the CV
+    scanner, so 'multimeter' names Multimeters; a vendor alone doesn't count."""
+    want = cvscan._words(tool)
+    ws = cvscan._words(answer or "")
+    n = len(want)
+    return bool(n) and any(ws[i:i + n] == want for i in range(len(ws) - n + 1))
+
+
 def questions(con, soc_code, index):
-    """The practice set for one job, in order: opener, skills, a task."""
+    """The practice set for one job, in order: opener, skills, a tool, a task."""
     occ = con.execute("SELECT title FROM occupations WHERE soc_code = ?", (soc_code,)).fetchone()
     imp = index.importance.get(soc_code, {})
     names = {e: index.skills[e][0] for e in imp}
@@ -107,6 +133,10 @@ def questions(con, soc_code, index):
             "text": f"Why do you want this job ({occ[0]})? What draws you to it?"}]
     out += [{"id": f"skill:{e}", "kind": "skill", "skill": {"element_id": e, "name": names[e]},
              "text": SKILL_QUESTIONS[names[e]]} for e in keys]
+    tool = tool_for(con, soc_code)
+    if tool:
+        out.append({"id": "tool", "kind": "tool", "skill": None, "tool": tool,
+                    "text": f"Tell me about a time you used {tool}, or how you would use it in this job."})
     task = con.execute("SELECT task FROM occupation_tasks WHERE soc_code = ? AND importance IS NOT NULL"
                        " ORDER BY importance DESC LIMIT 1", (soc_code,)).fetchone()
     if task:
@@ -116,7 +146,7 @@ def questions(con, soc_code, index):
     return out
 
 
-def feedback(index, answer, skill_id=None):
+def feedback(index, answer, skill_id=None, tool=None):
     """A checklist for one answer. Each item: key, ok, and a tip when not ok."""
     text = (answer or "").strip()
     words = len(re.findall(r"\b\w+\b", text))
@@ -131,6 +161,9 @@ def feedback(index, answer, skill_id=None):
         extra = _ANSWER_RX.get(name)
         add("skill", f"Shows {name}", skill_id in ev or bool(extra and extra.search(text)),
             f"Say plainly what you did that shows {name.lower()} — the action, in everyday words.")
+    if tool:
+        add("tool", f"Names {tool}", names_tool(text, tool),
+            f"Say which tool you used and what for: “I used {tool.lower()} to …”. If you haven't used it, say how you would.")
     add("situation", "Sets the scene (when and where)", SITUATION.search(text),
         "Start with the situation: when it was and where — school, home, church, sport or work all count.")
     add("action", "Says what *you* did", ACTION.search(text),

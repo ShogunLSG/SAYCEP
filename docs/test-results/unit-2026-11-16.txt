@@ -1,0 +1,115 @@
+
+TC-U01  gap.compute_gap classifies at the threshold boundary  (FR-07)
+  PASS  TC-U01a  Troubleshooting (4.00) classifies essential
+  PASS  TC-U01b  Speaking (3.38) classifies desirable
+  PASS  TC-U01c  No skill sits on both sides of the threshold
+
+TC-U02  recommend.cosine and vector construction  (FR-06, TR-03)
+  PASS  TC-U02a  35 skill dimensions loaded
+  PASS  TC-U02b  879 occupation vectors loaded
+  PASS  TC-U02c  cosine(v, v) == 1.0 for any real vector
+  PASS  TC-U02d  empty skill set returns no recommendations, not an error
+
+TC-U03  pathway._step_focus badging  (FR-08)
+  PASS  TC-U03a  a skill the profile lacks is badged 'new'
+  PASS  TC-U03b  a held skill is never badged 'new'
+
+TC-U04  loader row-count guard  (FR-10, NFR-03)
+  PASS  TC-U04a  expected counts are pinned to O*NET's published dictionary
+
+TC-U05  API refuses to start without reference data  (NFR-03)
+  PASS  TC-U05a  startup exits non-zero when saycep.db has no data
+  PASS  TC-U05b  the exit message names the fix (run load_onet.py)
+
+TC-U06  plain-language labels agree with the figures they replace  (FR-07)
+  PASS  TC-U06a  every essential importance is labelled at least 'Very important'
+  PASS  TC-U06b  no desirable importance is labelled 'Very important' or above
+  PASS  TC-U06c  all 35 skills fall into a named group, none into 'Other skills'
+  PASS  TC-U06d  every Job Zone 1-5 has a plain label
+  PASS  TC-U06e  a negative similarity still gets a match label, not an error
+
+TC-U08  every occupation has something to say about its day-to-day  (ADR-0007)
+  PASS  TC-U08a  all 879 occupations have at least one task statement
+
+TC-U07  a pre-ADR-0005 database gains the status column  (ADR-0005)
+  PASS  TC-U07a  status column added in place
+  PASS  TC-U07b  existing skills default to held, so no gap changes on upgrade
+
+TC-U09  plan codes  (ADR-0008)
+  PASS  TC-U09a  the code alphabet has no look-alike characters
+  PASS  TC-U09b  codes normalise however they are typed
+  PASS  TC-U09c  an older database gains display_name and plan_code in place
+
+TC-U10  CV scanner: rules, product names, privacy  (ADR-0014)
+  PASS  TC-U10a  plain CV lines trigger the expected skills, each quoting its line
+  PASS  TC-U10b  every one of the 35 skills has a rule
+  PASS  TC-U10c  ordinary words don't match software ('points', 'records', 'power'); Microsoft Excel does
+  PASS  TC-U10d  a one-word product name that is ordinary English needs its vendor (Teams, Windows)
+  PASS  TC-U10f  plurals fold to their real singular: canes -> cane, not can (ADR-0018)
+  PASS  TC-U10g  'I can', 'a plan', 'I saw', 'tap' name no tools (Canes, Planes, Saws, Taps)
+  PASS  TC-U10h  a real mention still names the tool: 'canes and walkers'
+  PASS  TC-U10e  the scanner never writes to the database (no INSERT/UPDATE/DELETE in cvscan.py)
+
+TC-U11  Interview practice feedback rules  (ADR-0015)
+  PASS  TC-U11a  a full situation-action-result answer meets every item
+  PASS  TC-U11b  'I need' and 'I want' are not counted as actions; a short answer gets tips
+  PASS  TC-U11c  an answer told only as 'we' is flagged for your own part
+  PASS  TC-U11d  every one of the 35 skills has a practice question
+
+TC-U12  Advert linking and requirement rules  (ADR-0017)
+  PASS  TC-U12a  a plain trade title links to its one occupation, seniority and location stripped
+  PASS  TC-U12b  generic titles are dropped, not guessed (Director, Project Manager, Sales Associate)
+  PASS  TC-U12c  a title matching several occupations is dropped
+  PASS  TC-U12d  requirement rules find school, driver's licence, lifting and training
+  PASS  TC-U12e  'certified as a Great Place to Work' and a CDL data link are not requirements
+  PASS  TC-U12f  years asked: run-together text, ranges, 'yrs', and the lowest figure wins
+  PASS  TC-U12g  named tools: vendor dropped only for known vendors; 'can' is not Canes
+  PASS  TC-U12h  shares read as words: 7 in 10, almost all, a few
+
+TC-U13  Advert fixes after code review  (ADR-0017, 8 October)
+  PASS  TC-U13a  a curly apostrophe counts: driver’s license, 2 years’ experience
+  PASS  TC-U13b  '1.5 years' is 1.5, not 5; 'field.5-8 years' is 5, not 8
+  PASS  TC-U13c  a driving licence is not also a trade licence
+  PASS  TC-U13d  employer boilerplate is not a trade licence; 'ASE Certified preferred' is
+  PASS  TC-U13e  one mention names one product: the longest match, not also the names inside it
+  PASS  TC-U13f  advert titles keep their acronyms (IT, not It)
+  PASS  TC-U13g  the period comes from the dates: April 2024, or March–April 2024
+  PASS  TC-U13h  beginners are a share of adverts that state a level; years need 5+ adverts; unknown keys are skipped, not fatal
+
+TC-U14  The advert cache  (NFR-04, ADR-0017)
+Adverts: from cache (c.json); inputs unchanged.
+Adverts: 1 read, 1 linked to one O*NET occupation (100.0%); 1 occupations, 1 with 5+ adverts.
+Adverts: skipped (the cache is out of date). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp1wtcp8_g/no-postings.csv)
+Adverts: skipped (no cache). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp1wtcp8_g/no-postings.csv)
+  PASS  TC-U14d  the committed advert counts match the current code and O*NET rows (if not: python backend/load_adverts.py --fresh, then commit backend/seed/)
+  PASS  TC-U14e  the fingerprint ignores line endings (a Windows checkout must not look stale)
+  PASS  TC-U14a  a valid cache loads without the 517 MB advert file
+  PASS  TC-U14b  a change in the O*NET rows the counts were built from makes the cache stale
+  PASS  TC-U14c  a corrupt cache is treated as no cache, not a crash
+
+TC-U15  Jobs for you: fit and ranking  (ADR-0022)
+  PASS  TC-U15a  fit words follow the share held: strong, good, some, a stretch, none named
+  PASS  TC-U15b  a skill being learned is counted apart, never as held
+  PASS  TC-U15c  open to beginners: entry level, training given, or a year or less asked
+  PASS  TC-U15d  ranked by share held, then beginners, then fewer years, then newest
+  PASS  TC-U15e  the committed listings match the current code and O*NET rows (if not: python backend/load_listings.py --fresh, then commit backend/seed/)
+  PASS  TC-U15f  listings store features only: no description, company, link or pay columns
+
+TC-U16  CV advice: what to add  (ADR-0024)
+  PASS  TC-U16a  requirements the CV doesn't mention, commonest first; what it mentions (matric) is left out
+  PASS  TC-U16b  weak signals are not advice: a few adverts (physical work, a tool) and 'training given'
+  PASS  TC-U16c  tools: the CV's own tools are left out; the rest named by 15%+ of adverts are advised
+  PASS  TC-U16d  every advert figure says how many, that they are US, and when
+  PASS  TC-U16e  missing skills get a worked example (known skills) or a frame (others)
+  PASS  TC-U16f  no summary (too few adverts): skill advice only, and no advert figure claimed
+  PASS  TC-U16g  at most 3 pieces of each kind
+  PASS  TC-U16h  South African wording counts: 'Code 8', 'N2', 'TVET', 'matric' are seen as the CV mentioning it
+
+TC-U17  Interview: a technical question from the job's tools  (ADR-0024)
+  PASS  TC-U17a  a tool is asked about only where real adverts name it (5+ adverts and 5%+): Electricians -> Microsoft Excel
+  PASS  TC-U17b  no adverts for the job: no tool, not a generic or invented one
+  PASS  TC-U17c  naming the tool: plural and case folded ('multimeter' names Multimeters); a vendor alone does not
+  PASS  TC-U17d  the question comes after the skill questions and before the task question, and carries the tool
+  PASS  TC-U17e  feedback adds a 'Names the tool' item, green when named, with a tip when not
+
+75 passed, 0 failed, 75 total

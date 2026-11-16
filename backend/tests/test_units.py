@@ -306,6 +306,65 @@ def main():
           not {"description", "company_name", "job_posting_url", "application_url", "max_salary", "min_salary"}
           & {r[1] for r in con.execute("PRAGMA table_info(advert_listings)")})
 
+    print("\nTC-U16  CV advice: what to add  (ADR-0024)")
+    import cvadvice
+    import interview as interview_mod
+    summ = {"adverts": 84, "period": "April 2024",
+            "requirements": [{"key": "licence", "share": 0.7, "words": "7 in 10"},
+                             {"key": "school", "share": 0.9, "words": "almost all"},
+                             {"key": "driver", "share": 0.3, "words": "3 in 10"},
+                             {"key": "lifting", "share": 0.1, "words": "a few"},
+                             {"key": "train", "share": 0.5, "words": "5 in 10"}],
+            "tools": [{"name": "Microsoft Excel", "share": 0.4, "words": "4 in 10"},
+                      {"name": "Multimeters", "share": 0.2, "words": "2 in 10"},
+                      {"name": "Respirators", "share": 0.06, "words": "a few"}]}
+    cv = "Matric 2023. Shop assistant. Used Microsoft Excel for stock lists."
+    adv = cvadvice.advice(summ, cv, {"Microsoft Excel"}, ["Troubleshooting", "Repairing"])
+    kinds = [(x["kind"], x["title"]) for x in adv]
+    check("TC-U16a", "requirements the CV doesn't mention, commonest first; what it mentions (matric) is left out",
+          [k for k in kinds if k[0] == "requirement"] == [("requirement", "A trade licence or certificate"), ("requirement", "A driver's licence")],
+          str(kinds))
+    check("TC-U16b", "weak signals are not advice: a few adverts (physical work, a tool) and 'training given'",
+          not any(x["title"] in ("Physical work", "Respirators") or "train" in x["title"].lower() for x in adv))
+    check("TC-U16c", "tools: the CV's own tools are left out; the rest named by 15%+ of adverts are advised",
+          [x["title"] for x in adv if x["kind"] == "tool"] == ["Multimeters"], str(kinds))
+    check("TC-U16d", "every advert figure says how many, that they are US, and when",
+          all("of the 84 US adverts for this job (April 2024)" in x["why"] for x in adv if x["kind"] != "skill"))
+    check("TC-U16e", "missing skills get a worked example (known skills) or a frame (others)",
+          "tested each plug point" in adv[-2]["example"] and cvadvice.example_for("Zebra Handling").startswith("Add one line"))
+    check("TC-U16f", "no summary (too few adverts): skill advice only, and no advert figure claimed",
+          [x["kind"] for x in cvadvice.advice(None, cv, set(), ["Repairing"])] == ["skill"]
+          and "adverts" not in cvadvice.advice(None, cv, set(), ["Repairing"])[0]["why"])
+    many = cvadvice.advice(dict(summ, requirements=[{"key": k, "share": 0.9, "words": "almost all"} for k in ("licence", "driver", "lifting", "degree", "school")]),
+                           "", set(), ["A", "B", "C", "D", "E"])
+    check("TC-U16g", f"at most {cvadvice.MAX_PER_KIND} pieces of each kind",
+          Counter(x["kind"] for x in many).most_common(1)[0][1] <= cvadvice.MAX_PER_KIND, str(Counter(x["kind"] for x in many)))
+    check("TC-U16h", "South African wording counts: 'Code 8', 'N2', 'TVET', 'matric' are seen as the CV mentioning it",
+          not [x for x in cvadvice.advice(dict(summ, requirements=[{"key": "driver", "share": 0.9, "words": "almost all"},
+               {"key": "degree", "share": 0.9, "words": "almost all"}], tools=[]), "Code 8 licence. Studying N2 at a TVET college.", set(), [])
+               if x["kind"] == "requirement"])
+
+    print("\nTC-U17  Interview: a technical question from the job's tools  (ADR-0024)")
+    check("TC-U17a", "a tool is asked about only where real adverts name it (5+ adverts and 5%+): Electricians -> Microsoft Excel",
+          interview_mod.tool_for(con, "47-2111.00") == "Microsoft Excel", str(interview_mod.tool_for(con, "47-2111.00")))
+    none_soc = con.execute("SELECT soc_code FROM occupations WHERE soc_code NOT IN (SELECT soc_code FROM advert_summary) LIMIT 1").fetchone()[0]
+    check("TC-U17b", "no adverts for the job: no tool, not a generic or invented one", interview_mod.tool_for(con, none_soc) is None, none_soc)
+    check("TC-U17c", "naming the tool: plural and case folded ('multimeter' names Multimeters); a vendor alone does not",
+          interview_mod.names_tool("I tested it with a multimeter.", "Multimeters")
+          and interview_mod.names_tool("I used microsoft excel daily", "Microsoft Excel")
+          and not interview_mod.names_tool("I used Microsoft Word", "Microsoft Excel")
+          and not interview_mod.names_tool("", "Multimeters"))
+    qs_ = interview_mod.questions(con, "47-2111.00", cvscan.Index(con))
+    ids = [q["id"] for q in qs_]
+    check("TC-U17d", "the question comes after the skill questions and before the task question, and carries the tool",
+          ids.index("tool") > max(i for i, x in enumerate(ids) if x.startswith("skill:")) and ids.index("tool") < ids.index("task")
+          and qs_[ids.index("tool")]["tool"] == "Microsoft Excel", str(ids))
+    fb_yes = interview_mod.feedback(cvscan.Index(con), "I used Microsoft Excel to track stock.", None, "Microsoft Excel")
+    fb_no = interview_mod.feedback(cvscan.Index(con), "I tracked stock.", None, "Microsoft Excel")
+    check("TC-U17e", "feedback adds a 'Names the tool' item, green when named, with a tip when not",
+          fb_yes["items"][0]["key"] == "tool" and fb_yes["items"][0]["ok"] and not fb_no["items"][0]["ok"] and fb_no["items"][0]["tip"]
+          and fb_yes["of"] == fb_no["of"] == 7, str([i["key"] for i in fb_yes["items"]]))
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

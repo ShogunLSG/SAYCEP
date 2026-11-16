@@ -66,7 +66,8 @@ const results = [];
   await p.click('text=Use an example CV'); await p.click('text=Check my CV >> nth=-1');
   await p.waitForSelector('.cvs'); await audit('cv result'); await p.click('.back');
   await p.click('text=Start practising'); await p.waitForSelector('.qtext'); await audit('practice');
-  await p.fill('#answer', 'Last year at school I fixed the printer. In the end it worked.'); await p.click('text=Get feedback'); await p.waitForSelector('.fbk'); await audit('practice feedback'); await p.click('.back');
+  await p.fill('#answer', 'Last year at school I fixed the printer. In the end it worked.'); await p.click('text=Get feedback'); await p.waitForSelector('.fbk'); await audit('practice feedback');
+  await p.fill('#answer', 'Last year at school I fixed the printer for our class. I checked the cables and replaced the toner. In the end it worked and we printed 30 pages on time, and I learned to test before and after.'); await p.click('text=Get feedback'); await p.waitForSelector('.retry'); await audit('practice retry'); await p.click('.back');
   // The advert data is optional (ADR-0017): audit the section only where it's loaded.
   if (await p.evaluate(() => fetch('/occupations/47-2111.00/adverts').then((r) => r.json()).then((d) => d.loaded))) {
     await p.click('text=See what employers ask for'); await p.waitForSelector('.emp'); await audit('employers section'); await p.click('.back');

@@ -92,6 +92,12 @@ pen so nothing gets lost.
   (schema change), a requirement and a plan. Also: high-school learners as a
   third starting point. Both deferred past the Assignment 4 submission so the
   report matches the prototype. (Noted 2026-10-24.)
+- **CV skill rules: catch more of what a CV shows.** Run the 9,544 Kaggle CVs
+  through `SKILL_RULES`, find clear phrases they miss, add rules, and re-measure
+  (r = 0.27 must not fall). `cvscan.py` is in the advert-cache fingerprint
+  (ADR-0019), so it needs `load_adverts.py --fresh` and `load_listings.py --fresh`
+  (the 517 MB advert file, about 4 minutes) and both seeds committed. (Noted
+  2026-11-16; plan item 5.)
 
 ---
 

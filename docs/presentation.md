@@ -161,6 +161,15 @@ report and slides describe pasted text and adverts summarised.
 | **N1** *(at step 7)* | On *Check my CV*, use **Upload a CV** and choose a PDF or Word CV. Tap *Check my CV*. | The text appears in the box: "Read … Check the text below". Then the skills it shows. | "You can upload a PDF or Word file now. It's read in the browser, so the file never leaves your device; only the text is checked." |
 | **N2** *(after step 6, on Home)* | Scroll to **Jobs for you**. Tap **Apply** on a card, then **See all … jobs for you**. | Job cards marked "Sample listings": "You have 3 of the 8 skills it mentions", "Open to beginners". Apply says it's a demo listing. | "These are real adverts, ranked by how well you fit. They're American and from 2024, so they're labelled as sample listings, not openings. Live South African adverts would come from Adzuna's South Africa API, with approval." |
 
+### New since the report, part 2 (16 November): CV advice and interview retry
+
+On `main-7rly7s`. Say "added since the report".
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N3** *(at step 7, after the CV check)* | Scroll to **What to add**. | Advice such as "A trade licence or certificate: 7 in 10 of the 84 US adverts for this job (April 2024) mention it. Your CV doesn't", with an example line. | "It doesn't just say what your CV shows: it says what to add, and how common that is in real adverts. They're American, so it says so. The scanner and its score are unchanged." |
+| **N4** *(at step 9, interview practice)* | Open question **4** (the tool). Type *I fixed it.*, then **Get feedback**. Then paste a fuller answer and check again. | The technical question ("Tell me about a time you used Microsoft Excel…"). "2 of 7 → 7 of 7 +5. Now there: …". | "There's a technical question from a tool the job's adverts name. Improve your answer and check again, and it shows what got better. It's guidance, not a score." |
+
 ### Add these if you have the time (to the 15-step version)
 
 | # | Do this | What appears ✔ | Say |

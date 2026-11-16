@@ -583,3 +583,21 @@ form.card .btn{margin-top:-4px}
 .cvup input[type=file]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .cvup-msg{font-size:12.5px; color:var(--ink-2); margin:6px 0 0}
 .cvup-msg.bad{color:var(--danger)}
+
+/* ---------- CV advice: what to add (ADR-0024) ---------- */
+.addlist{list-style:none; margin:0; padding:0}
+.addtip{display:flex; flex-direction:column; gap:3px; border:1px solid var(--line); border-left:3px solid var(--accent-dim); border-radius:10px; padding:9px 11px; margin-bottom:8px; background:var(--card)}
+.addtip.requirement{border-left-color:var(--essential)}
+.addtip.skill{border-left-color:var(--ok)}
+.addtip b{font-size:14px}
+.addtip .addwhy{font-size:12.5px; color:var(--ink-2)}
+.addtip .quote{font-size:13px}
+
+/* ---------- interview retry (ADR-0024) ---------- */
+.retry{margin:4px 0 10px; font-size:13.5px}
+.retry .up{color:var(--ok); font-weight:700}
+.retry .down{color:var(--danger); font-weight:700}
+.retry .gained{color:var(--ink-2)}
+.starters{margin-top:10px; padding:9px 11px; border-radius:10px; background:var(--sunk); font-size:13px}
+.starters p{margin:4px 0 0}
+.sr-only{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}

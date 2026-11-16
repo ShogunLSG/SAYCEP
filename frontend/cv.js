@@ -93,9 +93,19 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
                 <p key=${k.element_id} class="cvline">${k.evidence
                   ? html`<span class="okt">${Icon.check}</span> <b>${k.name}</b> — “${k.evidence}”`
                   : html`<span class="miss">○</span> <b>${k.name}</b> — not shown yet. Add an example of when you did it.`}</p>`)}
-              ${g.worth_mentioning.length > 0 && html`<p class="note">Worth mentioning if you've used them: ${g.worth_mentioning.join(", ")}.</p>`}
+              ${g.worth_mentioning.length > 0 && !(g.add && g.add.some((a) => a.kind === "tool")) && html`<p class="note">Worth mentioning if you've used them: ${g.worth_mentioning.join(", ")}.</p>`}
               <${Figure}>score ${g.score} (overlap ${g.overlap}, coverage ${g.coverage}) · ${g.basis}<//>
             </div>`}
+
+          ${g && g.add && g.add.length > 0 && html`
+            <h4 class="sect" id="cv-add">What to add</h4>
+            <p class="note">Only add what is true for you. The figures are for real adverts for ${g.title.toLowerCase()}, from the United States.</p>
+            <ul class="addlist">${g.add.map((a) => html`
+              <li key=${a.kind + a.title} class=${"addtip " + a.kind}>
+                <b>${a.title}</b>
+                <span class="addwhy">${a.why}</span>
+                <span class="quote">${a.example}</span>
+              </li>`)}</ul>`}
 
           <h4 class="sect">CV checklist</h4>
           <ul class="sk">${res.checks.map((c) => html`
