@@ -212,7 +212,7 @@ function App() {
     } else if (page && page.kind === "practice") {
       pageEl = html`<${PracticePage} profileId=${profile.id} />`;
     } else if (page && page.kind === "cv") {
-      pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} />`;
+      pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} onOpenJob=${openJob} />`;
     } else if (page && page.kind === "skill") {
       pageEl = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
                    rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;

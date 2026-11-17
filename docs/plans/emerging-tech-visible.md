@@ -35,9 +35,12 @@ numbers for this person and this job, in the four steps the presentation uses:
    most. These are the same reasons the list shows, so the panel explains the
    list.
 
-Plus one comparison the lecturer will remember: **"Without step 3, every job
-scores about 0.9 against you. With it, the spread is real."** It shows this
-job's score before and after centring.
+Plus one comparison the lecturer will remember. It shows this job's score before
+and after centring, and the range across all 879 jobs. For Thabo, **without
+step 3 every job scores between 0.27 and 0.58**, all squeezed together and all
+positive; **with it they spread from −0.56 to 0.64**, and unsuitable jobs go
+negative. *(Corrected 17 November: the first draft said "about 0.9", which is
+the job-to-job figure, not the person-to-job one. Measured before building.)*
 
 - **Backend:** `GET /profiles/{id}/match/{soc}`. Per skill: job importance, its
   centred value, whether you hold it, your centred value, and its contribution

@@ -86,6 +86,45 @@ def cosine(a, b):
     return dot / (na * nb) if na and nb else 0.0
 
 
+def explain(skill_ids, vectors, means, held_skill_ids, soc):
+    """Every number behind one job's score for one person: the "How we matched
+    you" page (ADR-0025). Built from the same functions as recommend(), so it
+    cannot disagree with the list.
+
+    Per skill: the job's importance, the average job's, the job's centred
+    value, whether the person holds it, their centred value, and the product
+    (its contribution to the score's numerator). Also the score, the score
+    with no centring, and the spread of both across every job, which is what
+    centring is for."""
+    held = set(held_skill_ids)
+    job = vectors[soc]
+    job_c = [job[i] - means[i] for i in range(len(means))]
+    you_c = centre_profile(skill_ids, held, means)
+    you_raw = [1.0 if e in held else 0.0 for e in skill_ids]
+    rows = [{"element_id": e, "importance": job[i], "average": means[i], "job_centred": job_c[i],
+             "typical": means[i] >= ESSENTIAL_THRESHOLD, "held": e in held,
+             "you_centred": you_c[i], "contribution": job_c[i] * you_c[i]}
+            for i, e in enumerate(skill_ids)]
+    centred = centre_occupations(vectors, means)
+    raw_all = sorted(cosine(you_raw, v) for v in vectors.values())
+    cen_all = sorted(cosine(you_c, v) for v in centred.values())
+    span = lambda v: {"low": v[0], "high": v[-1], "median": v[len(v) // 2]}
+    return {"rows": rows, "score": cosine(you_c, job_c), "score_uncentred": cosine(you_raw, job),
+            "spread": {"uncentred": span(raw_all), "centred": span(cen_all), "jobs": len(vectors)},
+            "reasons": reasons(skill_ids, job_c, you_c, held)}
+
+
+def similar(centred, soc, limit=5):
+    """The jobs whose centred skill vectors point most nearly the same way as
+    this job's: job-to-job similarity (ADR-0025, PT-05). [(soc, score)]."""
+    if soc not in centred:
+        return []
+    me = centred[soc]
+    scored = [(o, cosine(me, v)) for o, v in centred.items() if o != soc]
+    scored.sort(key=lambda p: (-p[1], p[0]))
+    return scored[:limit]
+
+
 def rank(profile_vec, centred, limit=5, restrict_to=None):
     scored = [(soc, cosine(profile_vec, vec)) for soc, vec in centred.items()
               if restrict_to is None or soc in restrict_to]

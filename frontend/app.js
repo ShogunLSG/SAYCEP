@@ -300,6 +300,7 @@ function StepSkills({ held, onToggle }) {
 
 function StepExplore({ profileId, type, target, onOpen, head }) {
   const leaver = type === "school_leaver";
+  const [explain, setExplain] = useState(null);   // a soc: the "How we matched you" panel (ADR-0025)
   const [tab, setTab] = useState(leaver ? "foryou" : "search");
   const [zone, setZone] = useState(leaver ? 3 : 4);
   const [q, setQ] = useState("");
@@ -331,11 +332,16 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
         : "Ranked by how closely your skills match, across every preparation level."}
         ${" "}The number is the match score: 1.00 would be identical.</p>
       <${Status} loading=${recs.loading} error=${recs.error}>
+        ${recs.data && recs.data.recommendations.length > 0 && html`<${ModelTag}
+          onExplain=${() => setExplain(recs.data.recommendations[0].soc_code)} />`}
         ${recs.data && html`<div class="list">
           ${recs.data.recommendations.map((r) => html`
-            <${OccRow} key=${r.soc_code} occ=${r} score=${r.score} match=${r.match}
-                       picked=${isPicked(r)} onPick=${onOpen} />`)}
+            <div key=${r.soc_code} class="occwrap">
+              <${OccRow} occ=${r} score=${r.score} match=${r.match} picked=${isPicked(r)} onPick=${onOpen} />
+              <button class="how" onClick=${() => setExplain(r.soc_code)}>How we matched this<span class="sr-only"> to ${r.title}</span></button>
+            </div>`)}
         </div>`}
+        ${explain && html`<${MatchSheet} profileId=${profileId} soc=${explain} onClose=${() => setExplain(null)} />`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
       <//>`}
 
@@ -449,6 +455,7 @@ function StepPathway({ profileId, onOpen }) {
       ${data && html`
         <p class="sub">${data.intermediate_steps} related jobs that build toward ${data.target.title.toLowerCase()},
           starting with the one closest to what you can already do.</p>
+        <p class="model-tag"><span class="mt-b">Skill-matching model</span><span>orders these steps, closest to your skills first</span></p>
         <div class="steps">
           ${data.steps.map((s, i) => html`
             <div key=${s.soc_code} class=${"step" + (s.is_target ? " target-step" : "")}>

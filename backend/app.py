@@ -520,12 +520,18 @@ def scan_cv(body: CvIn, con=Depends(db)):
         _require_occupation(con, soc)
 
     evidence = cvscan.skill_evidence(index, body.text)
+    leaver = bool(body.profile_id) and profile["profile_type"] == "school_leaver"
     software = cvscan.software_named(index, body.text)
     tools = cvscan.tools_named(index, body.text)
     out = {
         "suggestions": [{**sg, "status": held.get(sg["element_id"])} for sg in cvscan.suggestions(index, evidence)],
         "software_named": sorted(software), "tools_named": sorted(tools),
         "checks": cvscan.checks(body.text),
+        # Jobs your CV points to (ADR-0025): the skills the CV seems to show, put
+        # through the same engine as For you. Unconfirmed suggestions, so
+        # nothing is added to the profile.
+        "points_to": _ranked(con, list(evidence), 5, 3 if leaver else None),
+        "points_to_basis": "The skills your CV seems to show, matched by the skill-matching model.",
         "goal": None,
         "stored": False,
     }
@@ -851,33 +857,91 @@ def get_recommendations(
     """
     _require_profile(con, profile_id)
     held = repository.profile_skill_ids(con, profile_id)
-    results = recommendation_engine.recommend(con, held, limit, max_job_zone)
-    zones = repository.occupation_zones(con)
-    why = {}
-    if results:
-        ids, vectors = recommendation_engine.load_vectors(con)
-        means = recommendation_engine.skill_means(vectors, len(ids))
-        centred = recommendation_engine.centre_occupations(vectors, means)
-        pv = recommendation_engine.centre_profile(ids, held, means)
-        names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
-        why = {soc: [names[e] for e in recommendation_engine.reasons(ids, centred[soc], pv, held)]
-               for soc, _, _ in results}
+    results = _ranked(con, held, limit, max_job_zone)
     return {
         "profile_id": profile_id,
-        "method": "mean-centred cosine similarity over 35-dimensional "
-                  "O*NET skill-importance vectors",
+        "method": METHOD,
         "max_job_zone": max_job_zone,
-        "recommendations": [
-            {"soc_code": soc, "title": title, "score": round(score, 3),
-             "match": plain.match_level(score), "job_zone": zones.get(soc),
-             # FR-06: the held skills that lifted this job most (recommend.reasons).
-             "because": why.get(soc, []),
-             "preparation": plain.preparation(zones.get(soc))}
-            for soc, title, score in results
-        ],
+        "recommendations": results,
         "message": None if results else
                    "Select at least one skill to receive recommendations.",
     }
+
+
+METHOD = "mean-centred cosine similarity over 35-dimensional O*NET skill-importance vectors"
+
+
+def _ranked(con, held, limit, max_job_zone=None):
+    """The engine's ranked jobs for a set of held skills, each with its score,
+    plain match words and the held skills that lifted it most (FR-06). Shared
+    by For you and the CV's "Jobs your CV points to" (ADR-0025)."""
+    results = recommendation_engine.recommend(con, held, limit, max_job_zone)
+    if not results:
+        return []
+    zones = repository.occupation_zones(con)
+    ids, vectors = recommendation_engine.load_vectors(con)
+    means = recommendation_engine.skill_means(vectors, len(ids))
+    centred = recommendation_engine.centre_occupations(vectors, means)
+    pv = recommendation_engine.centre_profile(ids, held, means)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    return [{"soc_code": soc, "title": title, "score": round(score, 3),
+             "match": plain.match_level(score), "job_zone": zones.get(soc),
+             # FR-06: the held skills that lifted this job most (recommend.reasons).
+             "because": [names[e] for e in recommendation_engine.reasons(ids, centred[soc], pv, held)],
+             "preparation": plain.preparation(zones.get(soc))}
+            for soc, title, score in results]
+
+
+@app.get("/profiles/{profile_id}/match/{soc_code}", tags=["recommendation"])
+def match_explained(profile_id: str, soc_code: str, con=Depends(db)):
+    """How we matched you (ADR-0025): every number behind this job's score for
+    this profile, from the engine's own functions -- the job's 35 ratings, the
+    average job, what is left after centring, the profile's skills, each
+    skill's contribution, the score with and without centring, and how both
+    spread across every job."""
+    _require_profile(con, profile_id)
+    occ = _require_occupation(con, soc_code)
+    held = repository.profile_skill_ids(con, profile_id)
+    out = {"profile_id": profile_id, "soc_code": soc_code, "title": occ["title"], "method": METHOD}
+    ids, vectors = recommendation_engine.load_vectors(con)
+    if not held or soc_code not in vectors:
+        return {**out, "explained": False,
+                "message": "Tick at least one skill first." if not held else "This job has no skill ratings to compare."}
+    means = recommendation_engine.skill_means(vectors, len(ids))
+    ex = recommendation_engine.explain(ids, vectors, means, held, soc_code)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    r3 = lambda x: round(x, 3)
+    return {**out, "explained": True,
+            "score": r3(ex["score"]), "match": plain.match_level(ex["score"]),
+            "score_uncentred": r3(ex["score_uncentred"]),
+            "spread": {k: ({kk: r3(vv) for kk, vv in v.items()} if isinstance(v, dict) else v)
+                       for k, v in ex["spread"].items()},
+            "because": [names[e] for e in ex["reasons"]],
+            "skills": [{"element_id": r["element_id"], "name": names[r["element_id"]],
+                        "group": plain.skill_group(r["element_id"]),
+                        "importance": r3(r["importance"]), "average": r3(r["average"]),
+                        "job_centred": r3(r["job_centred"]), "typical": r["typical"], "held": r["held"],
+                        "you_centred": r["you_centred"], "contribution": r3(r["contribution"])}
+                       for r in ex["rows"]],
+            "dataset": occ["source_dataset"]}
+
+
+@app.get("/occupations/{soc_code}/similar", tags=["recommendation"])
+def similar_jobs(soc_code: str, limit: int = Query(5, ge=1, le=20), con=Depends(db)):
+    """Jobs with the closest skills (ADR-0025): the engine compares this job's
+    centred skill vector with every other job's. Each says whether O*NET's
+    experts also list it as related -- the agreement PT-05 measures."""
+    occ = _require_occupation(con, soc_code)
+    ids, vectors = recommendation_engine.load_vectors(con)
+    means = recommendation_engine.skill_means(vectors, len(ids))
+    centred = recommendation_engine.centre_occupations(vectors, means)
+    expert = {r["related_soc_code"] for r in repository.related_occupations(con, soc_code)}
+    zones = repository.occupation_zones(con)
+    titles = dict(con.execute("SELECT soc_code, title FROM occupations"))
+    return {"soc_code": soc_code, "title": occ["title"], "method": METHOD,
+            "similar": [{"soc_code": o, "title": titles[o], "score": round(s, 3), "match": plain.match_level(s),
+                         "expert_listed": o in expert, "preparation": plain.preparation(zones.get(o))}
+                        for o, s in recommendation_engine.similar(centred, soc_code, limit)]}
 
 
 # ---------- the app ----------

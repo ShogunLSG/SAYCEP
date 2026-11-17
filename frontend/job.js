@@ -67,6 +67,8 @@ function JobDetail({ data, full, onOpenJob, profileId, focus, onOpenSkill }) {
                 title=${t.category}>${t.example}${t.hot ? html` <i>in wide use</i>` : ""}</span>`)}
       </div>`}
 
+    ${full && html`<${SimilarJobs} soc=${data.soc_code} title=${data.title} onOpenJob=${onOpenJob} />`}
+
     ${full && data.related.length > 0 && html`
       <h4 class="sect">Jobs like this</h4>
       <p class="note">O*NET's experts list these as closest to ${data.title.toLowerCase()}.</p>
@@ -81,6 +83,26 @@ function JobDetail({ data, full, onOpenJob, profileId, focus, onOpenSkill }) {
     <${Prov} dataset=${data.provenance.dataset} dates=${data.provenance.skill_rating_dates} label="skill ratings dated" />
     ${data.provenance.task_dates.length > 0 && data.tasks.length > 0 &&
       html`<p class="prov tight">Tasks dated ${data.provenance.task_dates.join(", ")}</p>`}`;
+}
+
+/** Jobs with the closest skills (ADR-0025): the engine compares this job with
+ *  every other; each says whether O*NET's experts also list it (PT-05). */
+function SimilarJobs({ soc, title, onOpenJob }) {
+  const { data } = useFetch(`/occupations/${soc}/similar?limit=5`);
+  if (!data || data.similar.length === 0) return null;
+  return html`
+    <section class="similar" aria-labelledby="sim-h">
+      <h4 class="sect" id="sim-h">Jobs with the closest skills</h4>
+      <${ModelTag} />
+      <p class="note">The model compares the 35 skill ratings of ${title.toLowerCase()} with every other job's.</p>
+      <div class="list">${data.similar.map((r) => html`
+        <button key=${r.soc_code} class="occ" onClick=${() => onOpenJob(r)}>
+          <span class="t">${r.title}
+            <span class="meta"><b class="match">${r.match}</b><span class="score mono">${r.score.toFixed(2)}</span>
+              ${r.expert_listed ? html` · <span class="expert">also listed by O*NET's experts</span>` : ""} · ${r.preparation.label}</span>
+          </span><span class="chev">›</span>
+        </button>`)}</div>
+    </section>`;
 }
 
 function JobPage({ soc, profileId, goalSoc, focus, onOpenJob, onOpenSkill, onMakeGoal, onSavedChange }) {
@@ -99,12 +121,16 @@ function JobPage({ soc, profileId, goalSoc, focus, onOpenJob, onOpenSkill, onMak
     } catch (_) { setSaved(!next); }
   }
   const isGoal = goalSoc === soc;
+  const [explain, setExplain] = useState(false);
   return html`
     <div class="page">
       <${Status} loading=${loading} error=${error}>
         ${data && html`
           <div class="page-body"><${JobDetail} data=${data} full onOpenJob=${onOpenJob}
-                                                   profileId=${profileId} focus=${focus} onOpenSkill=${onOpenSkill} /></div>
+                                                   profileId=${profileId} focus=${focus} onOpenSkill=${onOpenSkill} />
+            ${profileId && html`<button class="btn ghost full how-btn" onClick=${() => setExplain(true)}>How well do my skills match this job?</button>`}
+          </div>
+          ${explain && html`<${MatchSheet} profileId=${profileId} soc=${soc} onClose=${() => setExplain(false)} />`}
           <div class="page-foot">
             <button class=${"btn full" + (isSaved ? " ok" : "")} aria-pressed=${!!isSaved} onClick=${toggleSave}>
               ${isSaved ? html`${Icon.check} Saved` : "Save this job"}</button>

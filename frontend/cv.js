@@ -14,7 +14,7 @@ Experience:
 - Worked at a hardware store: served customers, checked stock and kept records.
 Skills: using a multimeter, soldering irons and power drills; Microsoft Excel; working in a team; reading circuit diagrams.`;
 
-function CvPage({ profileId, onSet, onOpenSkill }) {
+function CvPage({ profileId, onSet, onOpenSkill, onOpenJob }) {
   const [text, setText] = useState("");
   const [res, setRes] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -82,6 +82,18 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
                       : html`<button class="btn" onClick=${() => add(sg)}>Add to my skills</button>`}</div>
                   </div>`;
               })}`}
+
+          ${res.points_to && res.points_to.length > 0 && html`
+            <h4 class="sect" id="cv-points">Jobs your CV points to</h4>
+            <${ModelTag} />
+            <p class="note">Based on the skills your CV seems to show, before you confirm them. Nothing is added to your plan.</p>
+            <div class="list">${res.points_to.map((r) => html`
+              <button key=${r.soc_code} class="occ" onClick=${() => onOpenJob && onOpenJob(r)}>
+                <span class="t">${r.title}
+                  ${r.because.length > 0 && html`<span class="why-rec">Because your CV shows:${" "}<b>${r.because.join(", ")}</b></span>`}
+                  <span class="meta"><b class="match">${r.match}</b><span class="score mono">${r.score.toFixed(2)}</span> · ${r.preparation.label}</span>
+                </span><span class="chev">›</span>
+              </button>`)}</div>`}
 
           ${g && html`
             <h4 class="sect">How it reads for ${g.title}</h4>
