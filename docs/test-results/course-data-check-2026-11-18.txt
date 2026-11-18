@@ -1,0 +1,95 @@
+Courses: Coursera 891 (GPL-2.0), Udemy finance 13608 (CC0-1.0)
+School-leaver jobs (Zones 1-3): 525; must-have slots: 1545
+Must-have slots with at least one Coursera keyword match: 62%  (before checking relevance)
+Must-have slots that are hands-on skills: 19%
+
+skill                              must-have coursera udemy-fin
+Active Listening                         200        1         9
+Speaking                                 175        4       118
+Critical Thinking                        159        0         2
+Reading Comprehension                    133        1        26
+Operations Monitoring                    114        0         0
+Monitoring                               100        1         3
+Social Perceptiveness                     71        0        25
+Operation and Control                     70        0         0
+Service Orientation                       66        0        49
+Coordination                              59        2        19
+Writing                                   43        9       175
+Repairing                                 40        0        15
+Troubleshooting                           37        2         4
+Judgment and Decision Making              36        4        17
+Time Management                           36        0        47
+Complex Problem Solving                   33        4        14
+Quality Control Analysis                  31        3       102
+Management of Personnel Resources         27       16       157
+Equipment Maintenance                     25        0         8
+Persuasion                                21        2        52
+Active Learning                           20        1         0
+Instructing                               14        8        22
+Learning Strategies                        9        1         2
+Negotiation                                9        3        44
+Installation                               3        1         4
+Programming                                3       68       134
+Systems Analysis                           3        1         0
+Equipment Selection                        2        0         0
+Operations Analysis                        2        1        65
+Systems Evaluation                         2        0         0
+Mathematics                                1       24        45
+Science                                    1       53        52
+Management of Financial Resources          0        2       213
+Management of Material Resources           0        6        77
+Technology Design                          0       29       117
+
+Every Coursera match, for hand-checking:
+  Active Listening: ['Learn English: Advanced Academic Speaking and Listening']
+  Speaking: ['Data Analysis and Presentation Skills: the PwC Approach', 'Dynamic Public Speaking', 'Learn English: Advanced Academic Speaking and Listening', 'Presentation Skills: Speechwriting, Slides and Delivery']
+  Reading Comprehension: ['Supporting children with difficulties in reading and writing']
+  Monitoring: ['Identifying, Monitoring, and Analyzing Risk and Incident Response and Recovery']
+  Coordination: ['High Performance Collaboration: Leadership, Teamwork, and Negotiation', 'Teamwork Skills: Communicating Effectively in Groups']
+  Writing: ['Academic English: Writing', 'Business Writing', 'Creative Writing', 'Creative Writing: The Craft of Plot', 'Good with Words: Writing and Editing', 'Interviewing and Resume Writing in English', 'Songwriting: Writing the Lyrics', 'Supporting children with difficulties in reading and writing', 'Writing in the Sciences']
+  Troubleshooting: ['AI for Medical Diagnosis', "Troubles du spectre de l'autisme : diagnostic"]
+  Judgment and Decision Making: ['Accounting for Decision Making', 'Data-driven Decision Making', 'Decision-Making and Scenarios', 'Foundational Finance for Strategic Decision Making']
+  Complex Problem Solving: ['Computational Thinking for Problem Solving', 'Creative Problem Solving', 'Excel/VBA for Creative Problem Solving', 'Excel/VBA for Creative Problem Solving, Part 1']
+  Quality Control Analysis: ['Data Analytics for Lean Six Sigma', 'Six Sigma Green Belt', 'Six Sigma and the Organization (Advanced)']
+  Management of Personnel Resources: ['Building Your Leadership Skills', 'Compassionate Leadership Through Service Learning with Jane Goodall and Roots & Shoots', 'Foundations of Everyday Leadership', 'High Performance Collaboration: Leadership, Teamwork, and Negotiation', 'Human Resource Management: HR for People Managers', 'Improving Leadership & Governance in Nonprofit Organizations', 'Inspirational Leadership: Leading with Sense', 'Inspired Leadership', 'International Leadership and Organizational Behavior', 'Leadership Development for Engineers', 'Leadership in 21st Century Organizations', 'Leading: Human Resource Management and Leadership', 'Organizational Leadership', 'Preparing to Manage Human Resources', 'Strategic Leadership and Management', "The Manager's Toolkit: A Practical Guide to Managing People at Work"]
+  Persuasion: ['Influencer Marketing Strategy', 'Influencing: Storytelling, Change Management and Governance']
+  Active Learning: ['Aprendiendo a aprender: Poderosas herramientas mentales con las que podrás dominar temas difíciles (Learning How to Learn)']
+  Instructing: ['Art & Ideas: Teaching with Themes', 'Get Interactive: Practical Teaching with Technology', 'Instructional Design Foundations and Applications', 'Instructional Methods in Health Professions Education', 'Teach English Now! Teaching Language Online', 'Teaching Character and Creating Positive Classrooms', 'University Teaching', 'e-Learning Ecologies: Innovative Approaches to Teaching and Learning for the Digital Age']
+  Learning Strategies: ['Aprendiendo a aprender: Poderosas herramientas mentales con las que podrás dominar temas difíciles (Learning How to Learn)']
+  Negotiation: ['High Performance Collaboration: Leadership, Teamwork, and Negotiation', 'Negotiation, Mediation and Conflict Resolution', 'Successful Negotiation: Essential Strategies and Skills']
+  Installation: ['Become a CBRS Certified Professional Installer by Google']
+  Programming: ['An Introduction to Programming the Internet of Things (IOT)', 'Applied Data Science with Python', 'Applied Machine Learning in Python', 'Applied Plotting, Charting & Data Representation in Python', 'Aprende a programar con Python', 'Biology Meets Programming: Bioinformatics for Beginners', 'Building Scalable Java Microservices with Spring Boot and Spring Cloud', 'C for Everyone: Programming Fundamentals', 'C# Programming for Unity Game Development', 'Capstone: Retrieving, Processing, and Visualizing Data with Python', 'Code Yourself! An Introduction to Programming', 'Crash Course on Python', 'Data Analysis with Python', 'Data Collection and Processing with Python', 'Data Visualization with Python', 'Functional Programming Principles in Scala', 'Functional Programming in Scala', 'Getting Started with SAS Programming', 'Google IT Automation with Python', 'HTML, CSS, and Javascript for Web Developers', 'Introducción a la programación en Python I: Aprendiendo a programar con Python', 'Introduction to Computer Programming', 'Introduction to Computer Science and Programming', 'Introduction to Data Science in Python', 'Introduction to Portfolio Construction and Analysis with Python', 'Introduction to Programming in C', 'Introduction to Programming with MATLAB', 'Introduction to Scripting in Python', 'Introdução à Ciência da Computação com Python Parte 1', 'Investment Management with Python and Machine Learning', 'Java Programming and Software Engineering Fundamentals', 'Java Programming: Solving Problems with Software', 'Julia Scientific Programming', 'Kotlin for Java Developers', 'Machine Learning with Python', 'Mastering Software Development in R', 'Object Oriented Java Programming: Data Structures and Beyond', 'Object Oriented Programming in Java', 'Object-Oriented Data Structures in C++', 'Open Source Software Development, Linux and Git', 'Parallel, Concurrent, and Distributed Programming in Java', 'Programming Foundations with JavaScript, HTML and CSS', 'Programming Fundamentals', 'Programming for Everybody (Getting Started with Python)', 'Programming with Google Go', 'Python Basics', 'Python Classes and Inheritance', 'Python Data Structures', 'Python Functions, Files, and Dictionaries', 'Python and Statistics for Financial Analysis', 'Python for Data Science and AI', 'Python for Everybody', 'R Programming', 'Secure Coding Practices', 'Software Development Lifecycle', 'Statistics with Python', 'Understanding and Visualizing Data with Python', 'Using Databases with Python', 'Using Python to Access Web Data', 'Using Python to Interact with the Operating System', 'Web Design for Everybody: Basics of Web Development & Coding', 'Искусство разработки на современном C++', 'Математика и Python для анализа данных', 'Основы программирования на Python', 'Основы разработки на C++: белый пояс', 'Погружение в Python', 'Программирование на Python', 'Разработка интерфейсов: вёрстка и JavaScript']
+  Systems Analysis: ['Systems Thinking In Public Health']
+  Operations Analysis: ['Managerial Economics and Business Analysis']
+  Mathematics: ['Basic Statistics', 'Bayesian Statistics: From Concept to Data Analysis', 'Bayesian Statistics: Techniques and Models', 'Biostatistics in Public Health', 'Business Statistics and Analysis', 'Data Science Math Skills', 'Data Science: Statistics and Machine Learning', 'English for Science, Technology, Engineering, and Mathematics', 'Introduction to Calculus', 'Introduction to Discrete Mathematics for Computer Science', 'Introduction to Mathematical Thinking', 'Introduction to Statistics & Data Analysis in Public Health', 'Mathematics for Data Science', 'Mathematics for Machine Learning', 'Mathematics for Machine Learning: Linear Algebra', 'Mathematics for Machine Learning: Multivariate Calculus', 'Mathematics for Machine Learning: PCA', 'Methods and Statistics in Social Sciences', 'Probability and Statistics: To p or not to p?', 'Python and Statistics for Financial Analysis', 'Statistics with Python', 'Statistics with R', 'Summary Statistics in Public Health', 'Understanding Clinical Research: Behind the Statistics']
+  Science: ['A Crash Course in Data Science', 'Accelerated Computer Science Fundamentals', 'Advanced Data Science with IBM', 'Applied Data Science', 'Applied Data Science Capstone', 'Applied Data Science with Python', 'Astrobiology and the Search for Extraterrestrial Life', 'Biology Meets Programming: Bioinformatics for Beginners', 'Challenging Forensic Science: How Science Should Speak to Court', 'Climate Change and Health: From Science to Action', 'Computational Social Science', 'Data Science', 'Data Science Math Skills', 'Data Science Methodology', 'Data Science: Foundations using R', 'Data Science: Statistics and Machine Learning', 'Databases and SQL for Data Science', 'Dino 101: Dinosaur Paleobiology', 'English for Science, Technology, Engineering, and Mathematics', 'Epidemiology: The Basic Science of Public Health', 'Executive Data Science', 'Genomic Data Science', 'How Things Work: An Introduction to Physics', 'IBM Data Science', 'Introducción a Data Science: Programación Estadística con R', 'Introduction to Chemistry:  Reactions and Ratios', 'Introduction to Computer Science and Programming', 'Introduction to Data Science', 'Introduction to Data Science in Python', 'Introduction to Discrete Mathematics for Computer Science', 'Introduction to Forensic Science', 'Introduction to the Biology of Cancer', 'Learn SQL Basics for Data Science', 'Materials Science: 10 Things Every Engineer Should Know', 'Mathematics for Data Science', 'Particle Physics: an Introduction', 'Positive Psychology: Martin E. P. Seligman’s Visionary Science', 'Practical Data Science with MATLAB', 'Process Mining: Data science in Action', 'Python for Data Science and AI', 'SQL for Data Science', 'Science of Exercise', 'Sleep: Neurobiology, Medicine, and Society', 'Systems Biology and Biotechnology', 'The Arts and Science of Relationships: Understanding Human Needs', 'The Science of Gastronomy', 'The Science of Stem Cells', 'The Science of Success: What Researchers Know that You Should Know', 'The Science of Training Young Athletes', 'The Science of Well-Being', 'Tools for Data Science', 'Understanding the Brain: The Neurobiology of Everyday Life', 'What is Data Science?']
+  Management of Financial Resources: ['Budgeting and Scheduling Projects', 'Financial Management']
+  Management of Material Resources: ['Supply Chain Analytics', 'Supply Chain Finance and Blockchain Technology', 'Supply Chain Logistics', 'Supply Chain Management', 'Supply Chain Operations', 'Supply Chain Principles']
+  Technology Design: ['Agile Meets Design Thinking', 'Autodesk Certified Professional: AutoCAD for Design and Drafting Exam Prep', 'Autodesk Certified Professional: Revit for Architectural Design Exam Prep', 'Blended Language Learning: Design and Practice for Teachers', 'Competitive Strategy and Organization Design', 'Design Thinking for Innovation', 'Design Thinking for the Greater Good: Innovation in the Social Sector', 'Design and Interpretation of Clinical Trials', 'Design and Make Infographics (Project-Centered Course)', 'Design-Led Strategy: Design thinking for business strategy and entrepreneurship', 'Digital Manufacturing & Design Technology', 'Fashion as Design', 'Fundamentals of Graphic Design', 'Game Design and Development', 'Graphic Design Elements for Non-Designers', 'Hardware Description Languages for FPGA Design', 'Innovation Through Design: Think, Make, Break, Repeat', 'Instructional Design Foundations and Applications', 'Interaction Design', 'Introduction to User Experience Design', 'Managing Innovation and Design Thinking', 'Object-Oriented Design', 'Responsive Website Development and Design', 'Software Design and Architecture', 'UI / UX Design', 'UX Design Fundamentals', 'User Experience Research and Design', 'User Interface Design', 'Web Design for Everybody: Basics of Web Development & Coding']
+
+---
+HAND CHECK (18 November 2026, by Claude, of every Coursera match above; judgement, not a measurement)
+
+Relevant to the skill as O*NET means it:
+  Speaking (3 of 4: public speaking, presentation skills x2), Coordination (2 of 2, teamwork),
+  Writing (business writing, editing), Judgment and Decision Making, Complex Problem Solving,
+  Quality Control Analysis (six sigma), Management of Personnel Resources (leadership),
+  Persuasion (influencing), Instructing (teaching), Negotiation, Programming, Science, Mathematics.
+Wrong matches:
+  Troubleshooting -> "AI for Medical Diagnosis", an autism-diagnosis course (French)
+  Reading Comprehension -> a course on supporting children with reading difficulties
+  Monitoring -> cyber-security incident response
+  Active Listening -> an English-language course (academic speaking and listening)
+  Active Learning, Learning Strategies -> "Learning How to Learn", but only its Spanish edition
+
+Must-have slots with a RELEVANT Coursera course: about 29% (453 of 1,545), not 62%.
+The hands-on skills (Operations Monitoring, Operation and Control, Repairing, Troubleshooting,
+Equipment Maintenance; 19% of must-have slots) have NO relevant Coursera course. The CC0 Udemy set
+is finance only; its few hands-on hits are business courses (maintenance management) or wrong
+("credit repair").
+
+CONCLUSION: the licensed Kaggle course data covers office and soft skills, not the hands-on skills
+most school-leaver jobs depend on, and keyword matching needs a hand-curated list to be trusted.
+Not worth building as an automatic "how to learn it". The source that would cover hands-on skills
+is South African training data (TVET courses, SETA learnerships): not on Kaggle, so it needs the
+lecturer's approval, as limitation 2 in the report already says.

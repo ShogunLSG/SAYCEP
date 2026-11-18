@@ -249,10 +249,12 @@ Looked for to improve the CV check and interview practice. Nothing was added:
 - **More CVs:** the Kaggle LiveCareer resume set (`snehaanbhawal/resume-dataset`)
   has CV text and category labels but **no match scores**, so it can't improve
   or measure the CV goal score. Its licence wasn't confirmed on Kaggle.
-- **Course catalogues** (Coursera, Udemy and Udacity sets on Kaggle) could
-  power "how to learn each missing skill". Their licences couldn't be verified,
-  they're scraped from the platforms, and linking courses to O\*NET's skills is
-  the text matching that failed in ADR-0014. Backlogged.
+- **Course catalogues** could power "how to learn each missing skill".
+  **Checked properly on 18 November (ADR-0026)** with Kaggle's own metadata:
+  only the Coursera Course Dataset (GPL-2.0) and Udemy Finance & Accounting
+  (CC0-1.0) are usably licensed. They cover about 29% of school-leavers'
+  must-have skills after a relevance check, and none of the hands-on ones. Not
+  used.
 - **More O\*NET dimensions** (knowledge and abilities, already in the Kaggle
   download) were measured in October (ADR-0013): 59.7% → 60.5%, which is noise.
   They'd help only with richer *user* input. Backlogged as "field of study".

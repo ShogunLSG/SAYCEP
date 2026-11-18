@@ -15,6 +15,11 @@ of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 - `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
   (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
 
+**18 November: two improvements tested and not adopted** (ADR-0026): graded
+skill ratings (worse than ticks: 54.8% against 58.5%), and the Kaggle course
+catalogues (usable licences, but no hands-on skills covered). These are evidence
+for "how would you improve it?" (presentation guide §5.9). The app is unchanged.
+
 **18 November: the Markdown docs were brought up to date:** the READMEs,
 `architecture.md` (now listing every table, with no LLM), the dev guide,
 data sources, the timeline, the presentation guide (8 slides, numbers, test

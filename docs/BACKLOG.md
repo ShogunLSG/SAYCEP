@@ -102,10 +102,14 @@ pen so nothing gets lost.
   what they study and puts it through the same engine. ADR-0013 found that
   richer *user* input is the real lever for accuracy. Needs a schema change, a
   new screen and a requirement. (Noted 2026-11-16, plan C.)
-- **Courses for each missing skill** from a Kaggle course catalogue (Coursera,
-  Udemy, Udacity sets exist). The licences were not verifiable on 15 November,
-  and linking courses to O\*NET skills is the text matching that failed in
-  ADR-0014, so it needs measuring first. (Noted 2026-11-16.)
+- **Courses for each missing skill.** Measured on 18 November (ADR-0026): the
+  two usably licensed Kaggle catalogues cover office and soft skills (about 29%
+  of school-leaver must-haves after a relevance check) and **none** of the
+  hands-on skills. The real source is South African TVET and SETA data, which
+  needs the lecturer's approval. (Noted 2026-11-16; measured 2026-11-18.)
+- **Graded skill ratings: tested and not worth it** (ADR-0026). Ticks beat
+  every graded variant. Richer input should be new dimensions, such as a field
+  of study, not finer grades.
 
 ---
 

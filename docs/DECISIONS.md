@@ -1368,3 +1368,62 @@ That's what the panel's "Why step 3 matters" shows.
 - **Tests:** TC-U18a–g, TC-I23a–i, PT-05, and `frontend/tests/engine_visible.js`
   (21 checks); the axe audit covers the panel (with all 35 rows), the job page
   with closest jobs, and the CV result with "points to".
+
+---
+
+## ADR-0026 — Two improvements tested and not adopted: skill grades, and Kaggle course catalogues
+
+**Date:** 2026-11-18
+**Status:** Accepted. Both checks were asked for by the project owner, as
+evidence for the presentation's "next steps". The app is unchanged.
+**Relates to:** ADR-0013 (richer vectors), ADR-0014 (text matching), ADR-0002
+(Kaggle only). It takes the next number, so the user-data split, if ever built,
+becomes ADR-0027.
+
+### 1. Grading skills ("a bit" or "well") instead of ticking them
+
+`backend/tests/experiment_skill_ratings.py` uses PT-01b's method (713 jobs,
+target removed; random baseline 25.9%). Transcript:
+`test-results/experiment-skill-ratings-2026-11-18.txt`.
+
+| Variant | Same family in top 5 | vs ticks |
+|---|---|---|
+| V0 ticks, as shipped | **58.5%** (54.8–62.3) | — |
+| V1 same skills, graded | 54.8% (51.3–58.5) | +45 / −71 jobs |
+| V1b the same, with everyday skills counted as ordinary at any grade | 56.5% (52.9–60.4) | +23 / −37 |
+| V2 V1 with a third of the grades wrong | 57.1% (53.6–60.7) | +39 / −49 |
+| V3 more skills, graded (an upper bound) | 52.9% (49.1–56.7) | +79 / −119 |
+
+**Not adopted.** No variant beats ticks, even with perfect grades copied from
+the target job, which flatters them. Part of the loss is how the engine centres
+a half-grade (V1 against V1b), but even the fairer centring doesn't win. Adding
+mid-importance skills (V3) dilutes what makes a job distinctive. **So the
+"richer user input" ADR-0013 points to is *other dimensions*, such as a field
+of study (O\*NET Knowledge), not finer grades of the same 35 skills.** That's
+the next step to name.
+
+### 2. Kaggle course catalogues, for "how to learn each missing skill"
+
+Licences were read from Kaggle's own metadata, with the owner's API key, on
+18 November. Of six candidates, only two are usable: the **Coursera Course
+Dataset** (`siddharthm1698`, **GPL-2.0**, 891 courses, titles only, scraped from
+Coursera) and **Udemy Finance & Accounting** (`jilkothari`, **CC0-1.0**,
+13,608 courses, finance only). Coursera 2021, Udemy (andrewmvd) and both edX
+sets are "unknown" or unspecified.
+
+`backend/tests/check_course_data.py` measured coverage against the skills
+school-leavers' jobs (Zones 1–3) need. Transcript:
+`test-results/course-data-check-2026-11-18.txt`.
+- **62%** of must-have slots have a keyword-matched Coursera course, but **about
+  29% after hand-checking relevance**. "Troubleshooting" matched "AI for Medical
+  Diagnosis", and "Reading Comprehension" matched a course for teachers.
+- **The hands-on skills** (operating and monitoring equipment, repairing,
+  troubleshooting, maintenance) are 19% of must-have slots and have **no
+  relevant course**.
+
+**Not adopted.** The usable data teaches office and soft skills, not the
+hands-on skills most school-leaver jobs depend on. Keyword matching needs hand
+curation, and the GPL-2.0 set is scraped from Coursera. The source that would
+cover hands-on training is South African (TVET courses, SETA learnerships). It
+isn't on Kaggle, so it needs the lecturer's approval: limitation 2 of the
+report.

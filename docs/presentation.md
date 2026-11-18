@@ -573,6 +573,20 @@ using an AI assistant. Know which of the decisions above you made yourself.
 
 ---
 
+### 5.9 "How would you improve it?": two things I tested on 18 November (ADR-0026)
+
+> "I tested two obvious ideas, and neither helped, so I didn't build them.
+> Letting users rate each skill as 'a bit' or 'well' made the model *less*
+> accurate: 58.5% with ticks against 54.8% graded. And the Kaggle course
+> catalogues with a usable licence cover office skills, but none of the
+> hands-on skills school-leavers' jobs need. What would help is a different
+> kind of input, like a field of study, and South African training data from
+> TVET colleges and SETAs, which needs approval because it isn't on Kaggle."
+
+That answer shows you measured rather than guessed. The numbers are in
+`test-results/experiment-skill-ratings-2026-11-18.txt` and
+`course-data-check-2026-11-18.txt`.
+
 ## 6. The numbers, in one place
 
 All reproduced by a command or a document in the repo. **Quote only these.**
