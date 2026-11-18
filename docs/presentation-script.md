@@ -1,9 +1,9 @@
 # What I say: the 5-minute talk, slide by slide
 
-*For the presentation on 6 November 2026. It works off the submitted slides,
-which stay as they are. Built from my own report answers (Q1.1, Q3.5, Q4.3).
-Read it out loud, change anything that doesn't sound like me, and memorise the
-**anchors**, not the words.*
+*For the final presentation on Friday 20 November 2026, 18:00. It follows
+**your 8-slide deck** (the results slide was removed in your 9 November edit).
+The slides stay as submitted; features added since the report are said aloud.
+Built from my own report answers (Q1.1, Q3.5, Q4.3).**anchors**, not the words.*
 
 Times are spoken at a normal pace. The whole talk is **about 5 minutes**.
 
@@ -88,36 +88,28 @@ the numbers beats describing them. A second figure, if asked: the same model
 compares jobs with jobs and agrees with O\*NET's experts for 60.6% of jobs,
 against 5.2% by chance (PT-05).
 
-## Slide 5: What the prototype does (about 30 s)
+## Slide 5: What the prototype does (about 50 s)
 
 > There are five modules. The two at the heart of the project are built in
 > full: the **Career Pathway Builder** and the **skills gap analyser**.
 >
 > The other three are built in reduced forms, and I'll be clear about how. The
-> **CV check** reads pasted text using rules. **What employers ask for**
-> summarises real job adverts, but they're from the US and have closed,
-> because Kaggle has no real South African adverts. And **interview practice**
-> gives checklist feedback, not a chatbot, because this build deliberately has
-> no language model.
+> **CV check** reads a CV with rules. **What employers ask for** uses real job
+> adverts, but they're from the US and have closed, because Kaggle has no real
+> South African adverts. And **interview practice** gives checklist feedback,
+> not a chatbot, because this build deliberately has no language model.
 >
-> Around them: saved plans with progress, saved jobs, an interest quiz, and
-> sign-in with a plan code instead of a password.
+> Since the report, I've added more than this slide shows: you can **upload a
+> CV** as a PDF or Word file, and it tells you **what to add** for your goal;
+> real adverts appear as **job cards ranked by how well you fit**, clearly
+> labelled as samples; interview practice has a **technical question** and lets
+> you **retry**; and there's a panel that shows **how the model matched you**.
+> All of it is covered by **214 automated tests**.
 
-**Anchors:** two full, three reduced, and say *why* each is reduced.
+**Anchors:** two full, three reduced, and why; then "since the report"; then
+214 tests.
 
-## Slide 6: Measured results (about 45 s)
-
-> Everything on this slide is reproduced by a test in the repository.
->
-> **161** automated tests pass: unit, integration and performance. Responses
-> come back in about **100 milliseconds**, against a limit of two seconds. The
-> CV check's score agrees with human match scores at **0.27**: that's modest,
-> but better than plain word matching at 0.16. And an accessibility audit went
-> from **169** failures to **zero** across 23 screens.
-
-**If short of time:** say only the 161 tests and the 169 to zero.
-
-## Slide 7: Limitations, and what comes next (about 50 s)
+## Slide 6: Limitations, and what comes next (about 50 s)
 
 > I want to name the limitations myself.
 >
@@ -132,21 +124,22 @@ against 5.2% by chance (PT-05).
 > missing skill to SETA learnerships and TVET short courses.
 >
 > The skills are also broad and self-reported, and no first-time user has
-> tested it yet, so a user test with school-leavers comes next, along with CV
-> file upload.
+> tested it yet, so a user test with school-leavers comes next.
 
 **Don't cut this slide**, even if you're running long. Saying the limits
 yourself is worth more than any statistic.
 
-## Slide 8: Live demonstration (switch to the app)
+## Slide 7: Live demonstration (switch to the app)
 
 > Let me show you. I'll follow one person, Thabo, a school-leaver, all the way
 > through.
 
 Then follow the 10-minute demo path in `docs/presentation.md` §3. What to say at
-each step is in the right-hand column there.
+each step is in the right-hand column there. **At step 3 (For you), open "How we
+matched this" and walk the four steps (N5).** That is where the lecturer sees the
+emerging technology working. Then the new steps N1–N4, N6 and N7, as time allows.
 
-## Slide 9: Questions
+## Slide 8: Questions
 
 > That's SAYCEP. Thank you, I'm happy to take questions.
 

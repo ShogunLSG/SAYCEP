@@ -2,6 +2,24 @@
 
 ## Final presentation: Friday 20 November 2026, 18:00 (read this first)
 
+**Where to start:** `docs/presentation.md` (demo path with steps N1–N7, set-up,
+Q&A, the numbers in §6) and `docs/presentation-script.md` (what to say over each
+of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
+
+**Still open** (as of 18 November):
+- Rehearse with N5 ("How we matched this") at step 3.
+- Optional, needs a go: more CV skill phrases (re-measured; plan item 5 in
+  `docs/plans/cv-interview-upgrade.md`), and the five-person user test.
+- Merge `main-7rly7s` into `main`.
+- Rotate the Kaggle token that was pasted into chat.
+- `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
+  (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
+
+**18 November: the Markdown docs were brought up to date:** the READMEs,
+`architecture.md` (now listing every table, with no LLM), the dev guide,
+data sources, the timeline, the presentation guide (8 slides, numbers, test
+counts) and the script.
+
 **17 November: the skill-matching model is made visible** (ADR-0025,
 `docs/plans/emerging-tech-visible.md`), on `main-7rly7s`:
 - **"How we matched you"**: a four-step panel of the real numbers, opened from
@@ -30,6 +48,8 @@
   tested state, with job cards and CV upload but without these three items).
 - **Code freeze: Thursday 19 November, 20:00.** Not done: adding CV skill rules
   (plan item 5, optional, needs a go) and the user test.
+
+## History (everything below this line is earlier state, kept for the record)
 
 ## Earlier: presentation day, Friday 6 November 2026
 

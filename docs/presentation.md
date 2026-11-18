@@ -1,4 +1,8 @@
-# Presentation: Friday 6 November 2026
+# Presentation: Friday 20 November 2026, 18:00 (final)
+
+*Updated 18 November for the final: your 8-slide deck (the results slide was
+removed in your 9 November edit), the features added since the report, and new
+demo steps N1–N7. The prototype presentation on 6 November went well.*
 
 The script, the demo path, what to do if it breaks, and the questions to
 expect. **The words are suggestions: put them in your own voice.** You're
@@ -78,34 +82,30 @@ seconds. That's tight: **one idea per slide, and practise it against a timer.**
 | Time | What | Slide | Say, in one breath |
 |---|---|---|---|
 | 0:00 | **Problem** | 1 | 62.8% of 15–24-year-olds are unemployed, against 33.6% overall (StatsSA, Q2 2026). The worst-hit group has the least guidance. |
-| 0:40 | **Solution and users** | 2 | SAYCEP shows the skills between a young person and a named job, and an ordered route of nearby jobs to get there: the **Pathway**. Two users: the school-leaver and the enrolled student. |
+| 0:40 | **Solution and users** | 2 | Skills → gap → Pathway → progress. Two users: the school-leaver and the enrolled student. |
 | 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
-| 2:00 | **Emerging technology** | 4 | Each job is a 35-number skill vector; your skills are another. Ranking is mean-centred cosine similarity. It's measured: **58.5% against 25.9% by chance**. |
-| 2:45 | **Prototype features** | 5 | Five modules. Two built in full (pathway, gap); three in reduced forms I'll name: CV check, interview practice, what employers ask for. |
-| 3:15 | **Results** | 6 | 161 automated tests pass. Response about 98 ms at p95. CV score r = 0.27. Accessibility: 169 failures to 0. |
-| 4:05 | **Limitations** | 7 | The data isn't South African (O\*NET is American; the course required Kaggle). Too little for students mid-study: no internships, certificates or learnerships. Next: South African occupational data (OFO) with approval, linking skills to SETA learnerships and TVET courses, a user test. |
-| **5:00** | **Live demo** | 8 | §3, **10 minutes**. A "DEMO" slide, so you can click away from it cleanly. |
-| 15:00 | **Questions** | 9 | |
+| 2:00 | **Emerging technology** | 4 | The **skill-matching model**: each job is 35 numbers, you're 35 numbers; subtract the average job, then cosine similarity. Measured: **58.5% against 25.9% by chance**, and it agrees with O\*NET's experts for **60.6% of jobs against 5.2%** (PT-05). "I'll show you its numbers in the demo." |
+| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, and the model panel. 214 automated tests pass. |
+| 3:50 | **Limitations** | 6 | The data isn't South African (the course required Kaggle). Too little for students mid-study. Next: the OFO with approval, SETA learnerships and TVET courses, a user test. |
+| **5:00** | **Live demo** | 7 | §3, **10 minutes**, with N5 at step 3. |
+| 15:00 | **Questions** | 8 | |
 
-**If you run long, cut Results to two numbers.** Don't cut Limitations: saying them
-yourself before you're asked is worth more than one more statistic.
+**If you run long, cut the feature list to the five module names.** Don't cut
+Limitations: saying them yourself before you're asked is worth more than one more
+statistic. The results numbers no longer have a slide: they're in §6 for
+answers.
 
-### Slide outline (the slides are yours; this is a suggestion)
+### The 8 slides (your deck, as edited on 9 November)
 
-1. **The problem.** Three numbers in a row: 62.8% (15–24), 41.8% (25–34), 33.6%
-   (all). Source line: *StatsSA, Quarterly Labour Force Survey, Q2 2026.* Put the
-   title (SAYCEP: South African Youth Career and Employment Platform) as the
-   slide header, so you need no separate title slide.
-2. **The solution.** The route screen (`docs/screenshots/v4/05-route.png`) and
-   one line on each user.
-3. **Architecture.** `docs/uml/a3/01-architecture.png`, or three boxes: *Kaggle
-   O\*NET 29.0 → one FastAPI service + SQLite → React app*.
-4. **Emerging technology.** A picture of two vectors and the words *mean-centred
-   cosine similarity*, plus the measured result.
-5. **Prototype features.** A table: module · what it is · how far it goes.
+1. The problem · 2. From your skills to a named job · 3. One service, one
+database, one app · 4. Matching skills to jobs · 5. What the prototype does ·
+6. Limitations, and what comes next · 7. Live demonstration · 8. Questions.
 
-   | Module | What it is | Built as |
-   |---|---|---|
+Slide 5's table still says "pasted text" for the CV check and "summarised" for
+adverts, as submitted. Say what's been added since rather than editing the
+submitted deck.
+
+---|---|---|
    | Career Pathway Builder | skills → ordered route | full |
    | Skills gap analyser | must-have and desirable gaps | full |
    | CV scanner | skills a CV shows, a measured goal score | reduced: pasted text, rules |
@@ -583,45 +583,60 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | The data | 879 jobs · 35 skills · 27,463 ratings · O\*NET 29.0 | `load_onet.py`; `test_units.py` |
 | Recommendation, as submitted | 59.7% vs 25.8% random, n = 124 | `test_performance.py` PT-01 |
 | Recommendation, stricter | **58.5%** vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b |
+| Closest jobs vs O\*NET's experts | **60.6%** of 879 jobs vs 5.2% random (11.6×); 19.8% of the top five expert-listed | PT-05 (ADR-0025) |
+| Centring, for Thabo | without: every job 0.27–0.58; with: −0.56 to 0.64 | the "How we matched you" panel; TC-I23c |
 | Ranking speed | about 5 ms at p95 (limit 100 ms) | PT-02 |
-| Response time over HTTP | about 98 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
+| Response time over HTTP | about 100 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
 | Rebuild from source | a few seconds (limit 60 s) | PT-04 |
-| CV scanner | r = **0.27** on 172 held-out CVs, vs 0.16 word matching | `benchmark-cv-2026-10-09.txt` |
+| CV scanner | r = **0.27** on 172 held-out CVs, vs 0.16 word matching (unchanged by later work) | `benchmark-cv-2026-10-09.txt` |
 | Employer adverts | 123,849 read · 26,472 linked · 438 jobs with 5+ · Electricians 84 | `adverts-2026-10-05.txt` |
+| Job cards | 7,094 sample listings over 682 jobs; Electricians' route has 26 | ADR-0022; `job-cards-2026-11-17.txt` |
+| Technical interview question | asked for 168 of 879 jobs (where 5+ adverts and 5%+ name a tool) | ADR-0024 |
 | Advert linking precision | 44 of 50 right (my own check) | `job-postings-step0-2026-10-05.txt` |
-| Accessibility | 169 failures to 0 · 23 screens · light, dark, 320 px | `accessibility-2026-10-05.txt` |
-| Automated tests | **161**, plus the accessibility, keyboard and demo walks | §7 |
-| Dependencies | 2 (FastAPI, uvicorn); the app loads React from files in the repo | `requirements.txt` |
+| Accessibility | 169 failures to 0 at first; still 0 on 27 screens · light, dark, 320 px | `accessibility-2026-11-17.txt` |
+| Automated tests | **214**, plus 7 browser suites | §7 |
+| Dependencies | 2 (FastAPI, uvicorn); React, htm and pdf.js load from files in the repo | `requirements.txt` |
 
 ---
 
-## 7. Test counts, checked 5 November on a fresh build
+## 7. Test counts, checked 17 November
 
 | Check | Result |
 |---|---|
-| Unit tests (`backend/tests/test_units.py`) | **56** passed |
-| Integration and system tests over HTTP (`test_api.py`) | **100** passed |
-| Performance and accuracy measurements (`test_performance.py`) | **5** passed |
-| **Automated tests in all** | **161** |
-| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **23** screens, in light mode, dark mode, and at 320 px wide |
-| Keyboard-only walk of the demo | **21** of 21 checks |
+| Unit tests (`backend/tests/test_units.py`) | **82** passed |
+| Integration and system tests over HTTP (`test_api.py`) | **126** passed |
+| Performance and accuracy measurements (`test_performance.py`) | **6** passed (PT-01, 01b, 02, 03, 04, 05) |
+| **Automated tests in all** | **214** |
+| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **27** screens, in light mode, dark mode, and at 320 px wide |
+| Keyboard-only walk of the demo | **22** checks, all passing |
 | Demo walk (this page's script) | **50** checks over all 15 steps; **40** over the 10-minute path |
+| CV upload (`cv_upload.js`) | **33** checks |
+| Jobs for you (`job_cards.js`) | **28** checks |
+| Interview retry and CV advice (`interview_retry.js`) | **18** checks |
+| The model, made visible (`engine_visible.js`) | **21** checks |
 
 Run any of them with `python backend/tests/test_<name>.py` (the server running
 for the API and performance ones), or the `node frontend/tests/...` scripts.
-The accessibility and keyboard scripts need `axe-core` and Playwright; see the
-header of each file.
+The browser scripts need Playwright, and the accessibility one needs
+`axe-core`; see `frontend/README.md`. Transcripts:
+`docs/test-results/*-2026-11-17.txt`.
 
 ---
 
-## 8. Open items before you present
+## 8. Open items before the final (Friday 20 November)
 
-- ◆ **Set up the presenting laptop from a fresh copy** (§4) and run `demo_walk.js` on it. Tonight, then again tomorrow morning.
-- ◆ **Rehearse against a timer:** 5 minutes of slides, then the 10-minute path (§3), twice.
-- ◆ **Record the demo tonight** as the fallback (§4), and keep the screenshots in `docs/screenshots/v4/` to hand.
-- ◆ §5.8: choose your three decisions, and §5.3: be able to explain the recommendation maths in your own words.
-- The live link is **not deployed** (checked 5 November). Either deploy it tonight (`docs/deploy.md`) or rely on the laptop, recording and screenshots.
-- Requirements FR-11 onward (yours), if you're asked about them.
+- ◆ **On the presenting laptop:** `git pull origin main-7rly7s`, then start the
+  app (§4). No database rebuild is needed after 6 November's.
+- ◆ **Rehearse with N5 at step 3:** open "How we matched this" and walk the four
+  steps. This is the answer to "what is the emerging technology?".
+- ◆ **Practise saying "added since the report"** for the features slide 5
+  doesn't show.
+- ◆ §5.3: be ready for "why centring?". It spreads a person's scores (0.27–0.58
+  becomes −0.56 to 0.64), and it doesn't matter job to job (PT-05 is 60.6%
+  either way).
+- Optional, needs your go by Wednesday: more CV skill phrases (re-measured), and
+  the user test.
+- Merge `main-7rly7s` into `main` when you're happy, so `main` matches.
 - Rotate the Kaggle token that was pasted into this project's chat.
 
 ---

@@ -230,6 +230,33 @@ Searched again for module 4. Full results are in
     same licence. For coursework that means attribution, which the screen
     gives.
 
+### The same file, used again for job cards (6 November 2026, ADR-0022)
+
+"Jobs for you" keeps the **20 newest linked adverts per occupation** (7,094
+adverts over 682 occupations) as features only: title, US place, work type,
+experience level, years asked, requirements, and the skills and tools each
+mentions. Never the advert text, company, link or pay. Every card says the
+adverts are from the US, 2024, closed, and used as sample listings.
+
+## Data searched for in November, and not used (15–16 November 2026)
+
+Looked for to improve the CV check and interview practice. Nothing was added:
+
+- **Interview questions:** no Kaggle dataset was found. The nearest are on
+  Hugging Face (`akshatshaw/eddcv`, `anuj6316/Interview_Questions`), which the
+  Kaggle-only rule rules out without the lecturer's approval, and they cover
+  US corporate roles.
+- **More CVs:** the Kaggle LiveCareer resume set (`snehaanbhawal/resume-dataset`)
+  has CV text and category labels but **no match scores**, so it can't improve
+  or measure the CV goal score. Its licence wasn't confirmed on Kaggle.
+- **Course catalogues** (Coursera, Udemy and Udacity sets on Kaggle) could
+  power "how to learn each missing skill". Their licences couldn't be verified,
+  they're scraped from the platforms, and linking courses to O\*NET's skills is
+  the text matching that failed in ADR-0014. Backlogged.
+- **More O\*NET dimensions** (knowledge and abilities, already in the Kaggle
+  download) were measured in October (ADR-0013): 59.7% → 60.5%, which is noise.
+  They'd help only with richer *user* input. Backlogged as "field of study".
+
 ## Background statistics (proposal section 2.1 only)
 
 Cite these in the written background. Do not load them into the system.

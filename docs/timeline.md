@@ -2,10 +2,18 @@
 
 Solo developer. The proposal describes a Feb–Nov 2026 seven-phase plan; that stays in the written document as the project's formal schedule. What follows is the real working plan from today, which is what actually needs executing.
 
-## Fixed point — confirmed 9 October (and again on 19 October)
+## Fixed points
 
-**Prototype presentation: Saturday 24 October 2026.** The plan for the last
-days is at the end of this file. *The paragraph below is the original September estimate, kept
+- **Final presentation: Friday 20 November 2026, 18:00** (moved from 17
+  November). Code freeze Thursday 19 November, 20:00. See the end of this file.
+- **Prototype presentation:** held on Friday 6 November 2026, 18:00, Room 2, on
+  Microsoft Teams. It went well. It was first expected on 24 October, but no
+  timetable had been published then.
+
+*The rest of this section is the earlier plan, kept for the record.*
+
+**Prototype presentation: Saturday 24 October 2026** (as planned on 9 and 19
+October). *The paragraph below is the original September estimate, kept
 for the record.*
 
 **Presentation: beginning of October 2026, with a working demo expected.** From 10 September that is roughly three weeks, worked around a full-time job.
@@ -160,3 +168,18 @@ wouldn't.
 **21 October:** a live link was asked for as a safety net, so a minimal Fly.io
 deploy was built (`deploy.md`, ADR-0021). It changes no application code, so
 the freeze stands. The laptop stays the main path.
+
+---
+
+## To the final presentation — 15 to 20 November *(added 15 November)*
+
+| When | Work | Status |
+|---|---|---|
+| **Sun 15 / Mon 16** | CV "what to add", the technical interview question, interview retry (ADR-0024) | **Done**, green |
+| **Tue 17** | The skill-matching model made visible: the "How we matched you" panel, tags, "Jobs your CV points to", "Jobs with the closest skills", PT-05 (ADR-0025) | **Done**, green |
+| **Wed 18** | Docs brought up to date. Optional, needs a go: more CV skill phrases (re-measured), the 8-slide script | In progress |
+| **Thu 19** | Full regression on a fresh clone; rehearsal with the new demo steps (N5 at step 3). **Freeze 20:00** | — |
+| **Fri 20** | Set-up and rehearsal only. Present at 18:00 | — |
+
+Fallbacks: `git checkout c5d150d` (16 November) or `f8d9d55` (6 November), each
+fully tested.
