@@ -82,6 +82,12 @@ modules kept separate.
 **Anchors:** two lists of 35 → subtract the average → point the same way →
 58.5% against 25.9%.
 
+**In the demo, show it:** at the *For you* step, tap **How we matched this**
+and walk the four steps on screen (demo step N5 in `presentation.md`). Showing
+the numbers beats describing them. A second figure, if asked: the same model
+compares jobs with jobs and agrees with O\*NET's experts for 60.6% of jobs,
+against 5.2% by chance (PT-05).
+
 ## Slide 5: What the prototype does (about 30 s)
 
 > There are five modules. The two at the heart of the project are built in

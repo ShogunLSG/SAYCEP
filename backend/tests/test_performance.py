@@ -9,6 +9,7 @@ Run: python backend/tests/test_performance.py
   PT-01  TR-01  recommendation accuracy (occupational-family agreement)
   PT-01b TR-01  the same with the target removed, over every occupation (stricter)
   PT-02  TR-02  recommendation inference latency
+  PT-05  ADR-0025  job-to-job similarity agrees with O*NET's expert lists (a second, independent check)
   PT-03  NFR-01 end-to-end API response time, over HTTP
   PT-04  NFR-04 full database rebuild time
 """
@@ -100,6 +101,29 @@ def main():
     check("PT-01b", f"target removed, all {len(every)} occupations with must-haves: {acc_b:.1f}% vs random {base_b:.1f}% "
           f"({acc_b / base_b:.1f}x) (target >= 55%)", acc_b >= 55,
           f"95% interval {means_b[25]:.1f} to {means_b[974]:.1f}; the target may not count as a recommendation of itself")
+
+    # PT-05: a second, independent check of the engine (ADR-0025). For each job,
+    # its five closest jobs by centred skill vectors, compared with the related
+    # jobs O*NET's experts list for it (primary tier). No requirement sets a
+    # target for this, so the gate is only "well above chance" (3x); the figure
+    # is reported, not tuned. The random baseline is exact, as in PT-01b.
+    print("\nPT-05  Job-to-job similarity against O*NET's expert lists of related jobs")
+    expert = {}
+    for soc, rel in con.execute("SELECT soc_code, related_soc_code FROM related_occupations WHERE tier LIKE 'Primary%'"):
+        if soc in centred and rel in centred and rel != soc:
+            expert.setdefault(soc, set()).add(rel)
+    hit5, share5, chance5 = [], [], []
+    for soc, rel in expert.items():
+        top = [o for o, _ in recommend.similar(centred, soc, 5)]
+        n_hit = len(set(top) & rel)
+        hit5.append(n_hit > 0)
+        share5.append(n_hit / 5)
+        n_other = len(socs) - 1
+        chance5.append(1 - math.comb(n_other - len(rel), 5) / math.comb(n_other, 5))
+    acc5, base5 = statistics.mean(hit5) * 100, statistics.mean(chance5) * 100
+    check("PT-05", f"top 5 includes an expert-listed related job for {acc5:.1f}% of {len(expert)} jobs, vs random {base5:.1f}% "
+          f"({acc5 / base5:.1f}x)", acc5 >= 3 * base5,
+          f"share of the top 5 the experts list: {statistics.mean(share5) * 100:.1f}%; no requirement sets a target")
 
     print("\nPT-02  TR-02 latency: rank all 879 occupations, top 5")
     lat = []

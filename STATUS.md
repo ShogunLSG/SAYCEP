@@ -2,6 +2,20 @@
 
 ## Final presentation: Friday 20 November 2026, 18:00 (read this first)
 
+**17 November: the skill-matching model is made visible** (ADR-0025,
+`docs/plans/emerging-tech-visible.md`), on `main-7rly7s`:
+- **"How we matched you"**: a four-step panel of the real numbers, opened from
+  every *For you* job (also in the journey) and from job pages. A
+  **"Skill-matching model"** tag wherever the engine runs.
+- **"Jobs your CV points to"** (CV skills → the same engine) and **"Jobs with the
+  closest skills"** on job pages.
+- **PT-05, a second accuracy figure:** 60.6% of jobs' five closest include an
+  expert-listed related job, against 5.2% by chance (11.6×).
+- **Tests:** 82 unit, 126 API, 6 performance; `engine_visible.js` 21; demo walk
+  50/50 (numbers unchanged); all other browser suites and axe (light, dark,
+  320 px) green.
+- **Fallback:** `git checkout c5d150d` (16 November, before this work).
+
 **16 November: CV advice and the interview upgrade are built and green**
 (`docs/plans/cv-interview-upgrade.md` items 1–3, ADR-0024), on `main-7rly7s`:
 - **CV "What to add":** requirements, tools and skills the CV lacks, with how

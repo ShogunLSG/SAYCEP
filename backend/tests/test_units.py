@@ -365,6 +365,42 @@ def main():
           fb_yes["items"][0]["key"] == "tool" and fb_yes["items"][0]["ok"] and not fb_no["items"][0]["ok"] and fb_no["items"][0]["tip"]
           and fb_yes["of"] == fb_no["of"] == 7, str([i["key"] for i in fb_yes["items"]]))
 
+    print("\nTC-U18  The skill-matching model, explained  (ADR-0025)")
+    import math
+    import recommend as rec
+    ids_, vec_ = rec.load_vectors(con)
+    means_ = rec.skill_means(vec_, len(ids_))
+    cen_ = rec.centre_occupations(vec_, means_)
+    thabo = [e for n, e in con.execute("SELECT name, element_id FROM skills") if n in (
+        "Operation and Control", "Operations Monitoring", "Equipment Maintenance", "Active Listening", "Critical Thinking", "Monitoring")]
+    ex = rec.explain(ids_, vec_, means_, thabo, "47-2111.00")
+    pv_ = rec.centre_profile(ids_, thabo, means_)
+    ranked_ = dict(rec.rank(pv_, cen_, 0))
+    check("TC-U18a", "the explained score is exactly the score the engine ranks by",
+          abs(ex["score"] - ranked_["47-2111.00"]) < 1e-12, f"{ex['score']:.4f}")
+    num = sum(r["contribution"] for r in ex["rows"])
+    norm = math.sqrt(sum(r["you_centred"] ** 2 for r in ex["rows"])) * math.sqrt(sum(r["job_centred"] ** 2 for r in ex["rows"]))
+    check("TC-U18b", "the per-skill contributions add up to the score: their sum over the two lengths is the cosine",
+          abs(num / norm - ex["score"]) < 1e-12)
+    check("TC-U18c", "the reasons shown are the engine's own reasons",
+          ex["reasons"] == rec.reasons(ids_, cen_["47-2111.00"], pv_, thabo))
+    raw_you = [1.0 if e in thabo else 0.0 for e in ids_]
+    check("TC-U18d", "the score without centring is the plain cosine of the raw lists, and the spreads cover every job",
+          abs(ex["score_uncentred"] - rec.cosine(raw_you, vec_["47-2111.00"])) < 1e-12
+          and ex["spread"]["jobs"] == len(vec_)
+          and ex["spread"]["centred"]["low"] <= ex["score"] <= ex["spread"]["centred"]["high"]
+          and ex["spread"]["uncentred"]["low"] <= ex["score_uncentred"] <= ex["spread"]["uncentred"]["high"])
+    check("TC-U18e", "centring is what spreads the scores: the centred range is wider and reaches below zero",
+          (ex["spread"]["centred"]["high"] - ex["spread"]["centred"]["low"])
+          > 2 * (ex["spread"]["uncentred"]["high"] - ex["spread"]["uncentred"]["low"]) and ex["spread"]["centred"]["low"] < 0,
+          f"{ex['spread']['uncentred']} vs {ex['spread']['centred']}")
+    sim = rec.similar(cen_, "47-2111.00", 5)
+    back = dict(rec.similar(cen_, sim[0][0], len(cen_)))
+    check("TC-U18f", "closest jobs: never the job itself, best first, and similarity is symmetric",
+          all(s != "47-2111.00" for s, _ in sim) and [x for _, x in sim] == sorted([x for _, x in sim], reverse=True)
+          and abs(back["47-2111.00"] - sim[0][1]) < 1e-12)
+    check("TC-U18g", "an unknown job has no closest jobs, not an error", rec.similar(cen_, "99-9999.99") == [])
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

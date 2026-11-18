@@ -489,6 +489,46 @@ def main():
     s, _ = call("POST", "/interview/feedback", {"answer": "x" * 10, "tool": "t" * 200})
     check("TC-I22i", "an over-long tool name is refused (422), never stored", s == 422, str(s))
 
+    print("\nTC-I23  The skill-matching model, made visible  (ADR-0025)")
+    s, mp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    mpid = mp["profile_id"]
+    s, rec5 = call("GET", f"/recommendations?profile_id={mpid}&limit=5&max_job_zone=3")
+    top = rec5["recommendations"][0]
+    s, mx = call("GET", f"/profiles/{mpid}/match/{top['soc_code']}")
+    check("TC-I23a", "How we matched you: the same score, match words and reasons as the For you list",
+          s == 200 and mx["explained"] and mx["score"] == top["score"] and mx["match"] == top["match"]
+          and mx["because"] == top["because"], f"{top['title']}: {mx.get('score')} vs {top['score']}")
+    check("TC-I23b", "it carries all 35 skills, each with the job's rating, its centred value, yours and the product",
+          len(mx["skills"]) == 35 and all({"importance", "job_centred", "you_centred", "contribution", "held", "group"} <= set(k) for k in mx["skills"])
+          and sum(k["held"] for k in mx["skills"]) == len(held))
+    check("TC-I23c", "with and without centring, and the range across every job",
+          mx["spread"]["jobs"] >= 800 and mx["spread"]["centred"]["low"] < 0 < mx["spread"]["uncentred"]["low"]
+          and "score_uncentred" in mx, str(mx["spread"]))
+    s, e1 = call("GET", f"/profiles/{mpid}/match/99-9999.99")
+    s2, e2 = call("GET", "/profiles/nobody/match/47-2111.00")
+    check("TC-I23d", "an unknown job or profile returns 404", s == 404 and s2 == 404, f"{s}, {s2}")
+    s, ep = call("POST", "/profiles", {"profile_type": "student", "skills": [held[0]]})
+    call("DELETE", f"/profiles/{ep['profile_id']}/skills/{held[0]}")
+    s, em = call("GET", f"/profiles/{ep['profile_id']}/match/47-2111.00")
+    check("TC-I23e", "a profile with no skills gets a message, not an error", s == 200 and em["explained"] is False and em["message"], str(em.get("message")))
+    s, sj = call("GET", "/occupations/47-2111.00/similar")
+    check("TC-I23f", "closest jobs: five, best first, never the job itself, each marked if O*NET's experts also list it",
+          s == 200 and len(sj["similar"]) == 5 and all(x["soc_code"] != "47-2111.00" for x in sj["similar"])
+          and [x["score"] for x in sj["similar"]] == sorted([x["score"] for x in sj["similar"]], reverse=True)
+          and any(x["expert_listed"] for x in sj["similar"]), str([(x["title"][:20], x["expert_listed"]) for x in sj["similar"]]))
+    s, _ = call("GET", "/occupations/99-9999.99/similar")
+    check("TC-I23g", "closest jobs for an unknown job: 404", s == 404, str(s))
+    s, pt = call("POST", "/cv/scan", {"text": "I fixed bicycles and repaired small appliances for neighbours. I installed plug points with my uncle.",
+                                      "profile_id": mpid})
+    _, zones = call("GET", "/occupations?zone=4&limit=1")
+    check("TC-I23h", "Jobs your CV points to: ranked by the same engine, with reasons, within Job Zones 1-3 for a school-leaver",
+          s == 200 and pt["points_to"] and all(x["job_zone"] <= 3 and x["because"] for x in pt["points_to"])
+          and [x["score"] for x in pt["points_to"]] == sorted([x["score"] for x in pt["points_to"]], reverse=True),
+          str([(x["title"][:25], x["job_zone"]) for x in pt["points_to"]]))
+    s, nopt = call("POST", "/cv/scan", {"text": "Hello, my name is Sipho and I am looking for work in Pretoria."})
+    check("TC-I23i", "a CV that shows no skills points to no jobs, and nothing is added to a profile",
+          s == 200 and nopt["points_to"] == [] and nopt["stored"] is False)
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

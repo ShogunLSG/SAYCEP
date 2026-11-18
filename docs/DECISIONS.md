@@ -1300,3 +1300,71 @@ or measure the goal score.
 - **Tests:** TC-U16a–h, TC-U17a–e, TC-I22a–i, a corrected TC-I19a, and
   `frontend/tests/interview_retry.js` (18 checks); the axe audit covers the CV
   result and the retry state.
+
+---
+
+## ADR-0025 — The skill-matching model, made visible and used in two more places
+
+**Date:** 2026-11-17
+**Status:** Accepted. The project owner approved `plans/emerging-tech-visible.md`
+(A, B1, B2) and the on-screen name "Skill-matching model".
+**Relates to:** FR-06, TR-01, ADR-0013, ADR-0014. It takes the next number, so
+the user-data split, if ever built, becomes ADR-0026.
+
+### Context
+
+At the 6 November demo the lecturer was unsure what the emerging technology was.
+The engine (mean-centred cosine similarity over 35 O\*NET skill ratings) ranked
+*For you* and ordered the Pathway, but nothing on screen showed a model at work.
+More data was not the fix: ADR-0013 measured richer job vectors at 59.7% →
+60.5%, which is noise.
+
+### Decision
+
+- **A. "How we matched you".** A panel, opened from every *For you*
+  recommendation, from "How does it work?" on the model's tag, and from a job
+  page, walks the real numbers for one person and one job:
+  1. the job's 35 ratings;
+  2. the person's ticks (with the skills almost every job needs marked as
+     ordinary);
+  3. the job after subtracting the average job;
+  4. the score and the skills that lifted or held it back.
+  It also shows the score without centring, and the range across all 879 jobs.
+  For Thabo, uncentred scores bunch between 0.27 and 0.58; centred ones spread
+  from −0.56 to 0.64. It's built from `recommend.explain()`, which uses the
+  engine's own functions, so it cannot disagree with the list (TC-U18a–c). The
+  panel is rendered at the app's top level, so it works inside the journey.
+- **A "Skill-matching model" tag** wherever the engine runs: *For you*, the
+  Pathway, "Jobs your CV points to", and "Jobs with the closest skills".
+- **B1. "Jobs your CV points to".** The skills a CV seems to show go through the
+  same engine (`_ranked`, now shared with *For you*), limited to Job Zones 1–3
+  for a school-leaver. They're unconfirmed, the screen says so, and nothing is
+  added to the profile. The scanner is untouched (r = 0.27 stands).
+- **B2. "Jobs with the closest skills".** `recommend.similar()` compares one
+  job's centred vector with every other job's. Each result says whether O\*NET's
+  experts also list it as related.
+
+### Measured: PT-05 (a second, independent check)
+
+Over all 879 jobs, the engine's five closest include a job O\*NET's experts list
+as related **60.6%** of the time, against an exact random baseline of **5.2%**
+(**11.6×**). On average **19.8%** of the five are expert-listed. No requirement
+sets a target, so the gate is only "well above chance" (3×). An earlier sampled
+baseline of 4.7%, in the plan, is replaced by the exact figure.
+
+**A finding to say in the Q&A:** job to job, centring changes nothing (plain
+cosine also gives 60.6%), because two jobs' ratings are on the same scale.
+Centring matters when matching a *person*, whose ticks are all 0 or 1, to jobs.
+That's what the panel's "Why step 3 matters" shows.
+
+### Consequences
+
+- No schema change, no new data and no new dependency. The seeds and the
+  scanner are untouched.
+- **A correction made before building:** the plan's first draft said that
+  without centring "every job scores about 0.9 against you". That's the
+  job-to-job figure. Measured for a person, it is 0.27–0.58. Corrected in the
+  plan.
+- **Tests:** TC-U18a–g, TC-I23a–i, PT-05, and `frontend/tests/engine_visible.js`
+  (21 checks); the axe audit covers the panel (with all 35 rows), the job page
+  with closest jobs, and the CV result with "points to".

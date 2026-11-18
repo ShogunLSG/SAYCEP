@@ -1,6 +1,6 @@
 # Plan: make the emerging technology visible, and use it in two more places
 
-*Written 16 November 2026. Status: **plan only, waiting for go.** Final
+*Written 16 November 2026. Status: **built 17 November (ADR-0025).** Go was given with the name "Skill-matching model". Final
 presentation: **Friday 20 November, 18:00.** Code freeze: **Thursday 19
 November, 20:00.** Fallback: commit `c5d150d` (16 November, all tests green).*
 

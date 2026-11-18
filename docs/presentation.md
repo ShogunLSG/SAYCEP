@@ -170,6 +170,17 @@ On `main-7rly7s`. Say "added since the report".
 | **N3** *(at step 7, after the CV check)* | Scroll to **What to add**. | Advice such as "A trade licence or certificate: 7 in 10 of the 84 US adverts for this job (April 2024) mention it. Your CV doesn't", with an example line. | "It doesn't just say what your CV shows: it says what to add, and how common that is in real adverts. They're American, so it says so. The scanner and its score are unchanged." |
 | **N4** *(at step 9, interview practice)* | Open question **4** (the tool). Type *I fixed it.*, then **Get feedback**. Then paste a fuller answer and check again. | The technical question ("Tell me about a time you used Microsoft Excel…"). "2 of 7 → 7 of 7 +5. Now there: …". | "There's a technical question from a tool the job's adverts name. Improve your answer and check again, and it shows what got better. It's guidance, not a score." |
 
+### New since the report, part 3 (17 November): the skill-matching model, shown
+
+**Use N5 at step 3 every time. It answers "what is the emerging technology?"
+on screen.**
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the four steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the score and what lifted it; two ranges: without centring 0.27–0.58, with centring −0.56 to 0.64. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. Without that step every job looks like a fit. With it, they spread out." |
+| **N6** *(on a job page)* | Scroll to **Jobs with the closest skills**. | Five jobs, some marked "also listed by O\*NET's experts". | "The same model compares jobs with jobs. It agrees with O\*NET's experts for 61% of jobs, against 5% by chance: that's PT-05." |
+| **N7** *(step 7, after the CV check)* | Scroll to **Jobs your CV points to**. | Five jobs, each "Because your CV shows: …". | "The CV feeds the same model: the skills it finds go in, and jobs come out." |
+
 ### Add these if you have the time (to the 15-step version)
 
 | # | Do this | What appears ✔ | Say |

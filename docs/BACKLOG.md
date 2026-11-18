@@ -98,6 +98,14 @@ pen so nothing gets lost.
   (ADR-0019), so it needs `load_adverts.py --fresh` and `load_listings.py --fresh`
   (the 517 MB advert file, about 4 minutes) and both seeds committed. (Noted
   2026-11-16; plan item 5.)
+- **Field of study as input** (O\*NET Knowledge, 33 areas): lets a student say
+  what they study and puts it through the same engine. ADR-0013 found that
+  richer *user* input is the real lever for accuracy. Needs a schema change, a
+  new screen and a requirement. (Noted 2026-11-16, plan C.)
+- **Courses for each missing skill** from a Kaggle course catalogue (Coursera,
+  Udemy, Udacity sets exist). The licences were not verifiable on 15 November,
+  and linking courses to O\*NET skills is the text matching that failed in
+  ADR-0014, so it needs measuring first. (Noted 2026-11-16.)
 
 ---
 
