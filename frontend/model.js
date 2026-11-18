@@ -92,8 +92,7 @@ function MatchSheet({ profileId, soc, onClose }) {
               (${d.skills.filter((k) => k.typical).map((k) => k.name).join(", ")}) count as ordinary, so having them doesn't set you apart.`}</p>
 
             <h4 class="sect"><span class="mstep">3</span> What makes this job different</h4>
-            <p class="note">The model subtracts the average job from every job. What's left shows what this job needs
-              <b>more</b> than most jobs (right) or <b>less</b> (left).</p>
+            <p class="note">The model subtracts the average job from every job. What's left shows what this job needs${" "}<b>more</b> than most jobs (right) or <b>less</b> (left).</p>
             <ul class="mrows">${byDiff.slice(0, N).map((k) => html`
               <li key=${k.element_id}><span class="mk" role="img" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>
                 <span class="mn">${k.name}</span><${Diverge} value=${k.job_centred} max=${maxDiff} /><span class="mv">${fmt(k.job_centred)}</span></li>`)}
