@@ -1,0 +1,42 @@
+Experiment: model upgrades. 713 jobs with must-haves, target removed (as PT-01b). Random 25.9%.
+
+method                                                     same family in top 5   95% interval       vs M0
+M0 as shipped: mean-centred cosine                                        58.5%      55.0-62.1       +0/-0
+M1 standardised (z-scores)                                                55.7%      52.0-59.3     +58/-78
+M2 PCA, 6 skill factors                                                   47.8%      44.2-51.6    +41/-117
+M2 PCA, 10 skill factors                                                  55.0%      51.5-58.5     +46/-71
+M2 PCA, 15 skill factors                                                  58.9%      55.4-62.4     +50/-47
+M2 PCA, 20 skill factors                                                  60.7%      57.2-64.2     +48/-32
+M3 LDA, families (cross-validated)                                        50.9%      47.4-54.7    +65/-119
+M4 graph smoothing with O*NET related jobs, beta 0.3                      57.6%      54.0-61.3     +22/-28
+M4 graph smoothing with O*NET related jobs, beta 0.5                      56.0%      52.3-59.5     +33/-51
+M5 LDA on standardised skills (cross-validated)                           51.1%      47.5-55.0    +67/-120
+M2 PCA, 25 skill factors                                                  56.8%      53.2-60.4     +19/-31
+M2 PCA, 30 skill factors                                                  57.6%      54.0-61.4     +14/-20
+M6 learned profile expansion, ridge 1.0 (CV)                              63.7%      60.0-67.0    +125/-88
+M6 learned profile expansion, ridge 5.0 (CV)                              64.1%      60.4-67.5    +124/-84
+M7 ticks against ticks (jobs' must-haves only)                            66.9%      63.3-70.3    +133/-73
+M8 blend: shipped + ticks-vs-ticks                                        67.9%      64.4-71.5    +113/-46
+M8 blend: shipped + PCA 20                                                58.1%      54.4-61.4     +19/-22
+M9 learned per-skill weights (CV)                                         68.0%      64.5-71.2    +102/-34
+
+Round 3: messy users. Same family in top 5, mean of 3 seeds (vs M0 in that condition)
+  keeps 70% of the must-haves, plus 2 random other skills:
+    M0 shipped                          46.8%   (seeds 46.7, 48.1, 45.6)
+    M6 profile expansion (CV)           45.8%   (seeds 45.9, 45.0, 46.4)
+    M7 ticks vs ticks                   54.8%   (seeds 54.8, 54.8, 54.8)
+    M7b ticks vs ticks, top-5 fallback  52.8%   (seeds 53.7, 53.2, 51.5)
+    M8 blend shipped + ticks            53.0%   (seeds 52.7, 54.6, 51.8)
+    M8b blend shipped + M7b (candidate)  53.6%   (seeds 53.7, 54.7, 52.3)
+    M9 learned weights (CV)             48.2%   (seeds 49.5, 50.1, 45.0)
+  keeps 50% of the must-haves, plus 3 random other skills:
+    M0 shipped                          37.9%   (seeds 38.3, 37.6, 37.9)
+    M6 profile expansion (CV)           30.8%   (seeds 31.1, 32.4, 28.9)
+    M7 ticks vs ticks                   42.3%   (seeds 44.3, 39.0, 43.5)
+    M7b ticks vs ticks, top-5 fallback  40.0%   (seeds 40.8, 38.0, 41.1)
+    M8 blend shipped + ticks            41.5%   (seeds 43.2, 40.5, 40.8)
+    M8b blend shipped + M7b (candidate)  40.8%   (seeds 42.1, 40.0, 40.4)
+    M9 learned weights (CV)             40.2%   (seeds 40.4, 40.3, 39.8)
+
+Clean protocol, the candidate: M8b 67.6%
+Job to job against O*NET's expert lists (PT-05): graded centred 60.6%, tick sets 39.5%, tick sets with fallback 38.2%  -> keep graded for job to job
