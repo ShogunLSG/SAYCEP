@@ -273,6 +273,16 @@ def jobs_for_skill(con, element_id, limit=12):
         (element_id, limit)).fetchall()
 
 
+def jobs_for_knowledge(con, element_id, limit=20):
+    """Jobs that most need this knowledge area, by O*NET importance (ADR-0029):
+    "Jobs in your field" for a student."""
+    return con.execute(
+        "SELECT o.soc_code, o.title, o.job_zone, ok.importance FROM occupation_knowledge ok"
+        "  JOIN occupations o ON o.soc_code = ok.soc_code"
+        " WHERE ok.element_id = ? ORDER BY ok.importance DESC, o.title LIMIT ?",
+        (element_id, limit)).fetchall()
+
+
 def count_jobs_needing(con, element_id, threshold):
     return con.execute("SELECT COUNT(*) FROM occupation_skills WHERE element_id = ?"
                        " AND importance >= ?", (element_id, threshold)).fetchone()[0]

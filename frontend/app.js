@@ -325,7 +325,12 @@ function StepSkills({ held, onToggle, type, field, onField }) {
 function StepExplore({ profileId, type, target, onOpen, head }) {
   const leaver = type === "school_leaver";
   const [explain, setExplain] = useState(null);   // a soc: the "How we matched you" panel (ADR-0025)
-  const [tab, setTab] = useState(leaver ? "foryou" : "search");
+  // A student's field of study (ADR-0029) adds "Your field", and opens on it:
+  // they know what they study, not necessarily which job title to search for.
+  const me = useFetch(!leaver && profileId ? `/profiles/${profileId}` : null);
+  const myField = me.data && me.data.field;
+  const [chosenTab, setTab] = useState(null);
+  const tab = chosenTab || (leaver ? "foryou" : myField ? "field" : "search");
   const [zone, setZone] = useState(leaver ? 3 : 4);
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
@@ -333,12 +338,15 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
 
   const recs = useFetch(tab === "foryou"
     ? `/recommendations?profile_id=${profileId}&limit=5${leaver ? "&max_job_zone=3" : ""}` : null);
+  const inField = useFetch(tab === "field" && myField
+    ? `/knowledge-areas/${myField.element_id}/jobs?profile_id=${profileId}&limit=20` : null);
   const browse = useFetch(tab === "browse" ? `/occupations?zone=${zone}&limit=300` : null);
   const search = useFetch(tab === "search" && term.length >= 2
     ? `/occupations?q=${encodeURIComponent(term)}&limit=60` : null);
 
   const isPicked = (o) => target && target.soc_code === o.soc_code;
-  const TABS = [["foryou", "For you"], ["interests", "Interests"], ["browse", "Browse"], ["search", "Search"]];
+  const TABS = [...(myField ? [["field", "Your field"]] : []),
+    ["foryou", "For you"], ["interests", "Interests"], ["browse", "Browse"], ["search", "Search"]];
 
   return html`
     ${head || html`<${Head} kicker="Your options" fr="FR-03 · FR-04 · FR-05 · FR-06"
@@ -368,6 +376,21 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
         </div>`}
         ${explain && html`<${MatchSheet} profileId=${profileId} soc=${explain} onClose=${() => setExplain(null)} />`}
         ${recs.data && recs.data.message && html`<p class="note">${recs.data.message}</p>`}
+      <//>`}
+
+    ${tab === "field" && myField && html`
+      <p class="note">Jobs that most need <b>${myField.name}</b>, by how O*NET rates it for each job, out of 5.
+        Tap one to see what it involves.</p>
+      <${Status} loading=${inField.loading} error=${inField.error}>
+        ${inField.data && html`<div class="list" aria-label=${`Jobs in ${myField.name}`}>
+          ${inField.data.jobs.map((j) => html`
+            <button key=${j.soc_code} class=${"occ" + (isPicked(j) ? " on" : "")} aria-pressed=${isPicked(j)} onClick=${() => onOpen(j)}>
+              <span class="t">${j.title}
+                <span class="meta"><b class="match">${j.need}</b>${" "}<span class="mono">${j.importance.toFixed(2)}</span>${j.skill_match ? ` · skills: ${j.skill_match.toLowerCase()}` : ""}${" · "}${j.preparation.label}<${Figure}> · ${j.soc_code}<//></span></span>
+              <span class="tick">${Icon.check}</span>
+            </button>`)}
+        </div>
+        <${Prov} dataset=${inField.data.dataset} />`}
       <//>`}
 
     ${tab === "interests" && html`<${InterestQuiz} profileId=${profileId} maxZone=${leaver ? 3 : null} onOpen=${onOpen} />`}

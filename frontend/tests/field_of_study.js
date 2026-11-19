@@ -3,7 +3,8 @@
  * The student's skills screen offers "What are you studying?" (optional), one
  * of O*NET's 33 knowledge areas with plain examples. The profile is created
  * with it; For you says it counts; "How we matched this" shows its share and
- * the shares still add up; the Me tab changes and clears it. A school-leaver
+ * the shares still add up; Explore opens on "Jobs in your field"; the Me tab
+ * changes and clears it. A school-leaver
  * never sees the question, and the journey stays five screens (NFR-02).
  *
  * Test-time only; needs Playwright (NODE_PATH) and the server on port 8000:
@@ -54,6 +55,20 @@ const COMP = '2.C.3.a';   // Computers and Electronics
   check('the profile is created with the field, in the same request (no extra screen)',
     created && JSON.parse(created[2]).field_element_id === COMP, created && created[2]);
   check('still step 3 of 5 (NFR-02)', /Step\s*3\s*of 5/.test(await p.textContent('.steplabel')));
+  await p.waitForSelector('.tab:has-text("Your field")');
+  check('Explore opens on "Your field", first of five tabs', (await p.getAttribute('.tabs .tab >> nth=0', 'aria-pressed')) === 'true'
+    && /Your field/.test(await p.textContent('.tabs .tab >> nth=0')) && (await p.locator('.tabs .tab').count()) === 5);
+  await p.waitForSelector('.list[aria-label="Jobs in Computers and Electronics"] .occ');
+  const api = await (await fetch(`${BASE}/knowledge-areas/${COMP}/jobs?limit=20`)).json();
+  const fieldJobs = await p.$$eval('.list[aria-label="Jobs in Computers and Electronics"] .occ .t', (xs) => xs.map((x) => x.firstChild.textContent.trim()));
+  check("Jobs in your field: the API's 20, in order, each with O*NET's rating and a skills match",
+    JSON.stringify(fieldJobs) === JSON.stringify(api.jobs.map((j) => j.title))
+    && /Critical for this job 4\.96 · skills: \w+/.test((await p.textContent('.list .occ .meta')).replace(/\s+/g, ' ')), fieldJobs.slice(0, 3).join(' | '));
+  await p.click('.list .occ >> nth=0');
+  await p.waitForSelector('.sheet-title');
+  check('a job in your field opens its sheet, ready to aim for', (await p.textContent('.sheet-title')) === api.jobs[0].title
+    && (await p.locator('text=Aim for this job').count()) === 1);
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   await p.click('.tabs >> text=For you');
   await p.waitForSelector('.occwrap');
   check('For you says the field counts for a tenth', /Your field, Computers and Electronics, counts for a tenth/.test((await p.textContent('.pane')).replace(/\s+/g, ' ')));
@@ -101,6 +116,10 @@ const COMP = '2.C.3.a';   // Computers and Electronics
   await q.click('text=I left school'); await q.click('.cta');
   await q.waitForSelector('.chip');
   check('never sees the question', (await q.locator('#field-select').count()) === 0);
+  for (const n of ['Repairing', 'Troubleshooting']) await q.click(`.chip[aria-label="${n}"]`);
+  await q.click('.cta'); await q.waitForSelector('.occwrap');
+  check('and has no "Your field" tab, opening on For you as before',
+    (await q.locator('.tab:has-text("Your field")').count()) === 0 && /For you/.test(await q.textContent('.tabs .tab[aria-pressed="true"]')));
   await q.context().close();
 
   console.log('\nScreens');
