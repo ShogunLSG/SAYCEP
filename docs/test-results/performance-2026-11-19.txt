@@ -10,12 +10,12 @@ PT-06  PT-01b with a field of study added (ADR-0029)
   PASS  PT-06  same family in top 5: no field 67.5%, a noisy field 70.1%, the job's own field 71.5% (n=713; gate: a noisy field doesn't lower it)  -- noisy-field gain +2.7 points, 95% interval +1.0 to +4.5; simulated students
 
 PT-02  TR-02 latency: rank all 879 occupations, top 5
-  PASS  PT-02  p95 7.3 ms, median 6.9 ms, n=49 (target <= 100 ms)  -- max 8.3 ms
+  PASS  PT-02  p95 8.0 ms, median 7.8 ms, n=49 (target <= 100 ms)  -- max 8.9 ms
 
 PT-03  NFR-01 response time over HTTP, every demo-path endpoint
-  PASS  PT-03  60 requests: p95 126 ms, max 213 ms (target: 95% under 2000 ms)  -- median 16 ms
+  PASS  PT-03  60 requests: p95 123 ms, max 127 ms (target: 95% under 2000 ms)  -- median 20 ms
 
 PT-04  NFR-04 full rebuild of saycep.db from the O*NET files
-  PASS  PT-04  rebuild took 2.21 s (target <= 60 s)  -- Built saycep.db from O*NET 29.0 (August 2024 release)
+  PASS  PT-04  rebuild took 2.66 s (target <= 60 s)  -- Built saycep.db from O*NET 29.0 (August 2024 release)
 
 7 passed, 0 failed, 7 total

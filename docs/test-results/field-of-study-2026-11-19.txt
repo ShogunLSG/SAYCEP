@@ -6,6 +6,9 @@ The student journey
   PASS  choosing an area shows O*NET's description of it
   PASS  the profile is created with the field, in the same request (no extra screen)  -- {"profile_type":"student","skills":["2.B.3.e","2.A.2.a","2.A.1.e","2.B.2.i"],"display_name":null,"field_element_id":"2.C.3.a"}
   PASS  still step 3 of 5 (NFR-02)
+  PASS  Explore opens on "Your field", first of five tabs
+  PASS  Jobs in your field: the API's 20, in order, each with O*NET's rating and a skills match  -- Computer Network Support Specialists | Special Effects Artists and Animators | Computer User Support Specialists
+  PASS  a job in your field opens its sheet, ready to aim for
   PASS  For you says the field counts for a tenth
   PASS  the panel explains the field: skills score, field score, and 0.9 and 0.1 of them make the match score  -- The model measures how closely your skills match the job both ways, and averages them: its ratings 0.40, its must-have list 0.67, so your skills score 0.53. Your field of study, Computers and Electron
   PASS  the panel text has its spaces (no "it4.87")  -- rates it 4.87 out of
@@ -19,10 +22,11 @@ The Me tab
 
 A school-leaver
   PASS  never sees the question
+  PASS  and has no "Your field" tab, opening on For you as before
 
 Screens
   PASS  dark mode: the picker fits, with no sideways scrolling  -- {"x":20,"y":1171.375,"width":420,"height":47}
   PASS  a 320 px phone: the picker fits, with no sideways scrolling  -- {"x":20,"y":1507.375,"width":280,"height":47}
   PASS  no page or console errors anywhere
 
-18 passed. FIELD OF STUDY OK
+22 passed. FIELD OF STUDY OK

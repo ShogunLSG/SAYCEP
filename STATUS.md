@@ -19,6 +19,16 @@ of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 - `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
   (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
 
+**19 November, evening, done:**
+- **"Jobs in your field"** (ADR-0031): a student who gave a field opens Explore
+  on the jobs that most need it, by O\*NET's rating, each with a skills match.
+- **CV tool false alarms fixed** (ADR-0030). "Entry level", "balance sheet",
+  "financial controller", Flask and nine more no longer name tools. That's 84
+  false matches gone from 72 of 344 CVs. The list was chosen on the tuning
+  half only, and the held-out r is unchanged (0.2655 → 0.2651).
+- **Tests:** 92 unit, 137 API, 7 performance (**236**); all 8 browser suites
+  green; axe 0 on 31 screens. Merged to `main`.
+
 **19 November, done: a student can give their field of study** (ADR-0029).
 It's one optional question at the bottom of the student's skills screen ("What are
 you studying?", O\*NET's 33 knowledge areas with plain examples), so the journey
