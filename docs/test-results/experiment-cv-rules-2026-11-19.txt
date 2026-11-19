@@ -1,0 +1,59 @@
+Shipped rules: tuning r = 0.3112, test r = 0.2655
+
+Each candidate on the TUNING half (kept if r does not fall):
+  keep  Writing                        tuning r 0.3130 (+0.0018)
+  keep  Monitoring                     tuning r 0.3138 (+0.0008)
+  keep  Operations Monitoring          tuning r 0.3138 (+0.0000)
+  drop  Systems Analysis               tuning r 0.3115 (-0.0023)
+  drop  Operations Analysis            tuning r 0.3138 (-0.0000)
+  keep  Judgment and Decision Making   tuning r 0.3138 (+0.0000)
+  keep  Active Learning                tuning r 0.3139 (+0.0001)
+  keep  Reading Comprehension          tuning r 0.3177 (+0.0039)
+  keep  Technology Design              tuning r 0.3177 (+0.0000)
+  drop  Science                        tuning r 0.3157 (-0.0021)
+  keep  Learning Strategies            tuning r 0.3177 (+0.0000)
+  keep  Social Perceptiveness          tuning r 0.3180 (+0.0002)
+  drop  Active Listening               tuning r 0.3161 (-0.0018)
+  keep  Operation and Control          tuning r 0.3180 (+0.0000)
+  drop  Quality Control Analysis       tuning r 0.3174 (-0.0005)
+  keep  Complex Problem Solving        tuning r 0.3181 (+0.0002)
+
+Kept 11 of 16. Tuning r 0.3112 -> 0.3181; TEST r 0.2655 -> 0.2613 (-0.0042)
+95% interval for the change in test r: -0.0146 to +0.0054
+
+Skills suggested per CV: 3.79 -> 4.55
+Skills that now fire more often (CVs): Writing 2->82, Technology Design 0->75, Reading Comprehension 1->59, Social Perceptiveness 2->19, Operations Monitoring 0->10, Monitoring 0->9, Complex Problem Solving 35->42, Active Learning 2->7
+
+Sample new evidence lines, for hand-checking:
+  Technology Design            "Software Development"
+  Social Perceptiveness        "To obtain a position in a fast-paced business office environment, demanding a strong organ"
+  Writing                      "sales reports"
+  Writing                      "documentation"
+  Reading Comprehension        "Research"
+  Technology Design            "To secure an IT specialist, desktop support, network administration, database administrato"
+  Writing                      "Documentation"
+  Operations Monitoring        "Process Control"
+  Technology Design            "Software development"
+  Writing                      "Outstanding problem-solving skills, as proven through implementation of accounting softwar"
+  Monitoring                   "Performance Monitoring"
+  Technology Design            "AutoCad"
+  Reading Comprehension        "research"
+  Social Perceptiveness        "Interpersonal Communication"
+  Social Perceptiveness        "interpersonal skills"
+  Reading Comprehension        "Research Intern"
+  Reading Comprehension        "Research & Data Gathering"
+  Monitoring                   "Diagnostic monitoring"
+  Social Perceptiveness        "interpersonal and communication"
+  Complex Problem Solving      "Under the guidance of company's professionals I can contribute to company's success using "
+  Operations Monitoring        "Statistical process control"
+  Active Learning              "I ensure to contribute with my knowledge, logical thinking and analytical skills towards t"
+  Complex Problem Solving      "I ensure to contribute with my knowledge, logical thinking and analytical skills towards t"
+  Operations Monitoring        "Statistical Process Control"
+  Operations Monitoring        "Statistical Process Control"
+  Complex Problem Solving      "Superior analytical skills"
+  Active Learning              "Hungry for growth and continuous learning"
+  Monitoring                   "Monitoring and evaluation skills"
+  Active Learning              "Fast learner"
+  Complex Problem Solving      "Seeking to leverage my technical and analytical skills to drive growth of the organization"
+  Monitoring                   "fixed assets monitoring"
+  Active Learning              "Fast Learner"

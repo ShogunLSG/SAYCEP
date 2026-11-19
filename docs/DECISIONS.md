@@ -1504,3 +1504,55 @@ folds), so no job was scored by a model that saw its own label. Transcript:
   Pathway are unchanged, and the demo walk passes unchanged.
 - **Caveat:** the realistic users are simulated. The gain shrinks as input gets
   messier (+9, +7, +3 points) but stays positive.
+
+## ADR-0028 — More CV skill phrasings tested and not adopted
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for the CV scanner to catch more
+of what a CV shows (plan item 5 in `docs/plans/cv-interview-upgrade.md`). The
+app is unchanged.
+**Relates to:** ADR-0014 (the CV benchmark), ADR-0026 (the same kind of
+negative result). It takes the next number, so the user-data split, if ever
+built, becomes ADR-0029.
+
+### Context
+
+The CV scanner finds skills with one hand-written rule per skill. On the 344
+distinct CVs in the Kaggle Resume Dataset, five skills never fire, and common
+CV words such as "documentation", "research", "AutoCAD", "monitoring" and
+"interpersonal" fall through. The rule set before measuring was: the goal score's
+test-half r must not fall below 0.265, the figure the presentation quotes.
+
+### What was tried
+
+`backend/tests/experiment_cv_rules.py`, with the benchmark's own split:
+
+- 16 candidate phrasings, one group per skill, kept only if the **tuning**
+  half's r did not fall. 11 kept, tuning r 0.311 → 0.318.
+- **Round 1, test half:** r 0.2655 → 0.2605 (change −0.016 to +0.005).
+- **Round 2:** the three loosest phrasings ("decisions", "designed",
+  "wrote …") removed on precision grounds from a hand-check of matched lines,
+  not from the score. Test half, the second look: r → **0.2613** (change
+  −0.015 to +0.005).
+- The extra rules find more skills: 3.79 → 4.55 per CV. Writing now fires on
+  82 CVs (was 2), Technology Design on 75 (was 0), Reading Comprehension on 59
+  (was 1). Most matched lines read correctly by hand ("sales reports",
+  "AutoCAD", "Statistical process control", "Fast learner").
+
+### Decision
+
+**Don't ship.** The drop is within noise, but it isn't a gain, and it misses the
+bar that was set beforehand. A third try at the test half would be tuning on
+it. The scanner stays as it was; r stays 0.265.
+
+### Consequences
+
+- The quoted CV figure is unchanged, and so are the caches (no fingerprint
+  change).
+- **Why more correct skills don't raise r:** the benchmark's labels score how a
+  CV fits one advert, mostly by its tech stack. Broad skills such as Writing and
+  Research appear on CVs for every kind of job, so they add evidence without
+  separating good fits from poor ones. That's the same lesson as ADR-0026.
+- If asked in the presentation: "I tried, it found more skills, it didn't
+  improve the measured score, so I didn't ship it." Transcript:
+  `docs/test-results/experiment-cv-rules-2026-11-19.txt`.
