@@ -52,9 +52,12 @@ const THABO = ['Operation and Control', 'Operations Monitoring', 'Equipment Main
   check('the panel opens for that job, with the same score as the list', sheetScore === rowScore
     && (await p.textContent('.sheet.match .sheet-title')).includes(rowTitle), `${rowTitle}: ${rowScore} vs ${sheetScore}`);
   const steps = await p.$$eval('.sheet.match h4.sect', (xs) => xs.map((x) => x.textContent.replace(/\s+/g, ' ').trim()));
-  check('it walks the four steps, then why step 3 matters',
-    ['The job, as 35 numbers', 'You, as 35 numbers', 'What makes this job different', 'The score', 'Why step 3 matters'].every((s, i) => steps[i] && steps[i].includes(s)),
+  check('it walks the five steps (ADR-0027 added the must-have list), then why step 3 matters',
+    ['The job, as 35 numbers', 'You, as 35 numbers', 'What makes this job different', "The job's must-have list", 'The score', 'Why step 3 matters'].every((s, i) => steps[i] && steps[i].includes(s)),
     steps.join(' | '));
+  const sc = (await p.textContent('.sheet.match h4.sect:has-text("The score") + p')).replace(/\s+/g, ' ');
+  const [r_, m_, s_] = (sc.match(/ratings (-?\d+\.\d+), its must-have list (-?\d+\.\d+), so the match score is (-?\d+\.\d+)/) || []).slice(1).map(Number);
+  check('the score is the average of the two views, as the panel says', Math.abs((r_ + m_) / 2 - s_) <= 0.006, sc.slice(0, 140));
   const visible = await p.locator('.sheet.match .mrows').first().locator('li').count();
   await p.click('.sheet.match >> text=Show all 35 skills');
   check('it shows the top 8, and all 35 on request', visible === 8 && (await p.locator('.sheet.match .mrows').first().locator('li').count()) === 35);

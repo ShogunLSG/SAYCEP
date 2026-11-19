@@ -174,14 +174,12 @@ def _rank_by_closeness(con, held_ids, candidates):
     if not held_ids:
         return list(candidates), {}
 
-    skill_ids, vectors = recommend.load_vectors(con)
-    means = recommend.skill_means(vectors, len(skill_ids))
-    centred = recommend.centre_occupations(vectors, means)
-    profile_vec = recommend.centre_profile(skill_ids, held_ids, means)
+    model = recommend.Model.load(con)          # the same model as For you (ADR-0027)
+    prof = model.profile(held_ids)
 
     def score(row):
-        vec = centred.get(row["related_soc_code"])
-        return recommend.cosine(profile_vec, vec) if vec else -1.0
+        soc = row["related_soc_code"]
+        return model.score(prof, soc) if soc in model.centred else -1.0
 
     scores = {row["related_soc_code"]: score(row) for row in candidates}
     return sorted(candidates, key=lambda row: scores[row["related_soc_code"]], reverse=True), scores

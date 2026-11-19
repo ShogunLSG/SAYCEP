@@ -742,11 +742,9 @@ def interest_match(
         _require_profile(con, profile_id)
         held = repository.profile_skill_ids(con, profile_id)
         if held:
-            ids, vectors = recommendation_engine.load_vectors(con)
-            means = recommendation_engine.skill_means(vectors, len(ids))
-            centred = recommendation_engine.centre_occupations(vectors, means)
-            pv = recommendation_engine.centre_profile(ids, held, means)
-            skill_score = lambda soc: recommendation_engine.cosine(pv, centred[soc])
+            model = recommendation_engine.Model.load(con)
+            prof = model.profile(held)
+            skill_score = lambda soc: model.score(prof, soc)
     return {
         "your_areas": [{"area": x, "name": interest_matcher.AREA_NAMES[x]}
                        for x in interest_matcher.top_areas(scores) if scores[x] > 0],
@@ -868,26 +866,25 @@ def get_recommendations(
     }
 
 
-METHOD = "mean-centred cosine similarity over 35-dimensional O*NET skill-importance vectors"
+METHOD = ("the skill-matching model: mean-centred cosine similarity over 35 O*NET skills, "
+          "averaging two views of each job, its importance ratings and its must-have list (ADR-0027)")
 
 
 def _ranked(con, held, limit, max_job_zone=None):
     """The engine's ranked jobs for a set of held skills, each with its score,
     plain match words and the held skills that lifted it most (FR-06). Shared
     by For you and the CV's "Jobs your CV points to" (ADR-0025)."""
-    results = recommendation_engine.recommend(con, held, limit, max_job_zone)
+    model = recommendation_engine.Model.load(con)
+    results = recommendation_engine.recommend(con, held, limit, max_job_zone, model=model)
     if not results:
         return []
     zones = repository.occupation_zones(con)
-    ids, vectors = recommendation_engine.load_vectors(con)
-    means = recommendation_engine.skill_means(vectors, len(ids))
-    centred = recommendation_engine.centre_occupations(vectors, means)
-    pv = recommendation_engine.centre_profile(ids, held, means)
+    prof = model.profile(held)
     names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
     return [{"soc_code": soc, "title": title, "score": round(score, 3),
              "match": plain.match_level(score), "job_zone": zones.get(soc),
-             # FR-06: the held skills that lifted this job most (recommend.reasons).
-             "because": [names[e] for e in recommendation_engine.reasons(ids, centred[soc], pv, held)],
+             # FR-06: the held skills that lifted this job most (Model.reasons).
+             "because": [names[e] for e in model.reasons(prof, held, soc)],
              "preparation": plain.preparation(zones.get(soc))}
             for soc, title, score in results]
 
@@ -903,16 +900,16 @@ def match_explained(profile_id: str, soc_code: str, con=Depends(db)):
     occ = _require_occupation(con, soc_code)
     held = repository.profile_skill_ids(con, profile_id)
     out = {"profile_id": profile_id, "soc_code": soc_code, "title": occ["title"], "method": METHOD}
-    ids, vectors = recommendation_engine.load_vectors(con)
-    if not held or soc_code not in vectors:
+    model = recommendation_engine.Model.load(con)
+    if not held or soc_code not in model.vectors:
         return {**out, "explained": False,
                 "message": "Tick at least one skill first." if not held else "This job has no skill ratings to compare."}
-    means = recommendation_engine.skill_means(vectors, len(ids))
-    ex = recommendation_engine.explain(ids, vectors, means, held, soc_code)
+    ex = model.explain(held, soc_code)
     names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
     r3 = lambda x: round(x, 3)
     return {**out, "explained": True,
             "score": r3(ex["score"]), "match": plain.match_level(ex["score"]),
+            "score_ratings": r3(ex["score_ratings"]), "score_must_haves": r3(ex["score_must_haves"]),
             "score_uncentred": r3(ex["score_uncentred"]),
             "spread": {k: ({kk: r3(vv) for kk, vv in v.items()} if isinstance(v, dict) else v)
                        for k, v in ex["spread"].items()},
@@ -921,7 +918,9 @@ def match_explained(profile_id: str, soc_code: str, con=Depends(db)):
                         "group": plain.skill_group(r["element_id"]),
                         "importance": r3(r["importance"]), "average": r3(r["average"]),
                         "job_centred": r3(r["job_centred"]), "typical": r["typical"], "held": r["held"],
-                        "you_centred": r["you_centred"], "contribution": r3(r["contribution"])}
+                        "must_have": r["must_have"], "must_have_share": r3(r["must_have_share"]),
+                        "you_centred": r["you_centred"], "part_ratings": r3(r["part_ratings"]),
+                        "part_must_haves": r3(r["part_must_haves"]), "contribution": round(r["contribution"], 4)}
                        for r in ex["rows"]],
             "dataset": occ["source_dataset"]}
 

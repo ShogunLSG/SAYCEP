@@ -365,7 +365,7 @@ def main():
           fb_yes["items"][0]["key"] == "tool" and fb_yes["items"][0]["ok"] and not fb_no["items"][0]["ok"] and fb_no["items"][0]["tip"]
           and fb_yes["of"] == fb_no["of"] == 7, str([i["key"] for i in fb_yes["items"]]))
 
-    print("\nTC-U18  The skill-matching model, explained  (ADR-0025)")
+    print("\nTC-U18  The skill-matching model, explained  (ADR-0025, ADR-0027)")
     import math
     import recommend as rec
     ids_, vec_ = rec.load_vectors(con)
@@ -373,27 +373,38 @@ def main():
     cen_ = rec.centre_occupations(vec_, means_)
     thabo = [e for n, e in con.execute("SELECT name, element_id FROM skills") if n in (
         "Operation and Control", "Operations Monitoring", "Equipment Maintenance", "Active Listening", "Critical Thinking", "Monitoring")]
-    ex = rec.explain(ids_, vec_, means_, thabo, "47-2111.00")
-    pv_ = rec.centre_profile(ids_, thabo, means_)
-    ranked_ = dict(rec.rank(pv_, cen_, 0))
-    check("TC-U18a", "the explained score is exactly the score the engine ranks by",
+    model_ = rec.Model(ids_, vec_)
+    ex = model_.explain(thabo, "47-2111.00")
+    prof_ = model_.profile(thabo)
+    ranked_ = dict(model_.rank(prof_, 0))
+    check("TC-U18a", "the explained score is exactly the score the model ranks by",
           abs(ex["score"] - ranked_["47-2111.00"]) < 1e-12, f"{ex['score']:.4f}")
-    num = sum(r["contribution"] for r in ex["rows"])
-    norm = math.sqrt(sum(r["you_centred"] ** 2 for r in ex["rows"])) * math.sqrt(sum(r["job_centred"] ** 2 for r in ex["rows"]))
-    check("TC-U18b", "the per-skill contributions add up to the score: their sum over the two lengths is the cosine",
-          abs(num / norm - ex["score"]) < 1e-12)
-    check("TC-U18c", "the reasons shown are the engine's own reasons",
-          ex["reasons"] == rec.reasons(ids_, cen_["47-2111.00"], pv_, thabo))
+    check("TC-U18b", "the per-skill contributions add up to the score, and each view's parts to that view's score",
+          abs(sum(r["contribution"] for r in ex["rows"]) - ex["score"]) < 1e-9
+          and abs(sum(r["part_ratings"] for r in ex["rows"]) - ex["score_ratings"]) < 1e-9
+          and abs(sum(r["part_must_haves"] for r in ex["rows"]) - ex["score_must_haves"]) < 1e-9)
+    check("TC-U18c", "the reasons shown are the model's own reasons, and the score is the average of the two views",
+          ex["reasons"] == model_.reasons(prof_, thabo, "47-2111.00")
+          and abs(ex["score"] - (ex["score_ratings"] + ex["score_must_haves"]) / 2) < 1e-12
+          and abs(ex["score_ratings"] - rec.cosine(rec.centre_profile(ids_, thabo, means_), cen_["47-2111.00"])) < 1e-12)
     raw_you = [1.0 if e in thabo else 0.0 for e in ids_]
     check("TC-U18d", "the score without centring is the plain cosine of the raw lists, and the spreads cover every job",
           abs(ex["score_uncentred"] - rec.cosine(raw_you, vec_["47-2111.00"])) < 1e-12
           and ex["spread"]["jobs"] == len(vec_)
           and ex["spread"]["centred"]["low"] <= ex["score"] <= ex["spread"]["centred"]["high"]
           and ex["spread"]["uncentred"]["low"] <= ex["score_uncentred"] <= ex["spread"]["uncentred"]["high"])
-    check("TC-U18e", "centring is what spreads the scores: the centred range is wider and reaches below zero",
+    check("TC-U18e", "centring is what spreads the scores: the model's range is wider and reaches below zero",
           (ex["spread"]["centred"]["high"] - ex["spread"]["centred"]["low"])
           > 2 * (ex["spread"]["uncentred"]["high"] - ex["spread"]["uncentred"]["low"]) and ex["spread"]["centred"]["low"] < 0,
           f"{ex['spread']['uncentred']} vs {ex['spread']['centred']}")
+    ticks_ = rec.tick_vectors(vec_)
+    no_must = [s for s, v in vec_.items() if max(v) < 3.5]
+    check("TC-U18h", "must-have lists: skills rated 3.5+, or the top 5 for the jobs with none, so no job is left out",
+          all(sum(t_) >= 1 for t_ in ticks_.values()) and all(sum(ticks_[s]) == 5 for s in no_must)
+          and all(ticks_["47-2111.00"][i] == (1.0 if vec_["47-2111.00"][i] >= 3.5 else 0.0) for i in range(len(ids_))),
+          f"{len(no_must)} jobs use the top-5 fallback")
+    check("TC-U18i", "the recommendation entry point uses this model: same jobs, same order, same scores",
+          [(s, round(x, 9)) for s, _, x in rec.recommend(con, thabo, 5)] == [(s, round(x, 9)) for s, x in model_.rank(prof_, 5)])
     sim = rec.similar(cen_, "47-2111.00", 5)
     back = dict(rec.similar(cen_, sim[0][0], len(cen_)))
     check("TC-U18f", "closest jobs: never the job itself, best first, and similarity is symmetric",

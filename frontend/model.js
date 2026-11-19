@@ -4,8 +4,9 @@
  * similarity over 35 O*NET skill ratings (backend/recommend.py). It ranks For
  * you, orders the Pathway, turns a CV into job suggestions and finds the jobs
  * closest to a job. ModelTag marks each of those places; MatchSheet walks the
- * real numbers for one person and one job, in the four steps the
- * presentation uses. Every figure comes from GET /profiles/{id}/match/{soc}.
+ * real numbers for one person and one job, in the five steps the
+ * presentation uses, plus the must-have view added on 19 November (ADR-0027).
+ * Every figure comes from GET /profiles/{id}/match/{soc}.
  */
 
 function ModelTag({ onExplain }) {
@@ -77,7 +78,7 @@ function MatchSheet({ profileId, soc, onClose }) {
             <h3 class="sheet-title">How we matched you to ${d.title}</h3>
             <p class="mscore"><b>${d.score.toFixed(2)}</b> <span>${d.match}</span></p>
             <p class="about">The model turns the job and you into lists of 35 numbers, one per skill,
-              and measures how closely the two lists point the same way. Here are the real numbers.</p>
+              and measures how closely they point the same way, in two views of the job. Here are the real numbers.</p>
 
             <h4 class="sect"><span class="mstep">1</span> The job, as 35 numbers</h4>
             <p class="note">How much ${d.title.toLowerCase()} need each skill, out of 5 (O*NET's ratings). Ticked: skills you have.</p>
@@ -99,9 +100,20 @@ function MatchSheet({ profileId, soc, onClose }) {
             </ul>
             <button class="more" onClick=${() => setAll(!all)}>${all ? "Show the top 8" : "Show all 35 skills"}</button>
 
-            <h4 class="sect"><span class="mstep">4</span> The score</h4>
-            <p class="note">For each skill you have, the model multiplies your number by the job's. Adding them up,
-              scaled to between −1 and 1, gives the match score: <b>${d.score.toFixed(2)}</b>.</p>
+            <h4 class="sect"><span class="mstep">4</span> The job's must-have list</h4>
+            <p class="note">Your answers are yes or no, so the model also compares them with the job's must-haves, which are
+              yes or no too: the skills it rates 3.5 or more${d.skills.some((k) => k.must_have && k.importance < 3.5) ? " (this job has none, so its top 5)" : ""}.
+              Ticked: ones you have.</p>
+            <ul class="mrows">${d.skills.filter((k) => k.must_have).map((k) => html`
+              <li key=${k.element_id}><span class="mk" role="img" aria-label=${k.held ? "You have this" : "Not yet"}>${k.held ? Icon.check : null}</span>
+                <span class="mn">${k.name}</span><${Bar} value=${1 - k.must_have_share} max=${1} /><span class="mv">${Math.round(100 * k.must_have_share)}%</span></li>`)}
+            </ul>
+            <p class="note">The bar is how unusual each must-have is: the figure is the share of all jobs that also have it as a must-have.</p>
+
+            <h4 class="sect"><span class="mstep">5</span> The score</h4>
+            <p class="note">The model measures how closely you match the job both ways, and averages them:
+              its ratings <b>${d.score_ratings.toFixed(2)}</b>, its must-have list <b>${d.score_must_haves.toFixed(2)}</b>,
+              so the match score is <b>${d.score.toFixed(2)}</b>. Each skill's share is below; they add up to the score.</p>
             ${lifts.length > 0 && html`<p class="msub">What lifted it</p>
               <ul class="mrows">${lifts.map((k) => html`
                 <li key=${k.element_id}><span class="mn">${k.name}</span><${Bar} value=${k.contribution} max=${maxC} tone="pos" /><span class="mv">${fmt(k.contribution)}</span></li>`)}</ul>`}
@@ -110,9 +122,9 @@ function MatchSheet({ profileId, soc, onClose }) {
                 <li key=${k.element_id}><span class="mn">${k.name}</span><${Bar} value=${k.contribution} max=${maxC} tone="neg" /><span class="mv">${fmt(k.contribution)}</span></li>`)}</ul>`}
 
             <h4 class="sect">Why step 3 matters</h4>
-            <${Range} label="Without step 3" low=${d.spread.uncentred.low} high=${d.spread.uncentred.high} at=${d.score_uncentred} />
-            <${Range} label="With step 3" low=${d.spread.centred.low} high=${d.spread.centred.high} at=${d.score} />
-            <p class="note">Without it, all ${d.spread.jobs} jobs bunch together and every one looks like a fit, because nearly
+            <${Range} label="Without step 3 (raw ratings against your ticks)" low=${d.spread.uncentred.low} high=${d.spread.uncentred.high} at=${d.score_uncentred} />
+            <${Range} label="The model (steps 3 to 5)" low=${d.spread.centred.low} high=${d.spread.centred.high} at=${d.score} />
+            <p class="note">Without step 3, all ${d.spread.jobs} jobs bunch together and every one looks like a fit, because nearly
               every job needs reading, listening and thinking. With it, they spread out, and jobs that don't suit you go below zero.</p>
             <p class="prov">${d.method} · ${d.dataset}</p>`}
         <//>

@@ -41,7 +41,8 @@ def main():
     con = repository.connect()
     skill_ids, vectors = recommend.load_vectors(con)
     means = recommend.skill_means(vectors, len(skill_ids))
-    centred = recommend.centre_occupations(vectors, means)
+    centred = recommend.centre_occupations(vectors, means)     # the ratings view: PT-05 (job to job)
+    model = recommend.Model(skill_ids, vectors)                # the shipped model (ADR-0027): PT-01, 01b, 02
     socs = list(vectors)
     rng = random.Random(42)  # fixed seed: the same sample every run
 
@@ -54,7 +55,7 @@ def main():
     targets = [soc for soc in rng.sample(socs, 150) if essential(soc)]
     any_hit, share = [], []
     for soc in targets:
-        top = [s for s, _ in recommend.rank(recommend.centre_profile(skill_ids, essential(soc), means), centred, 5)]
+        top = [s for s, _ in model.rank(model.profile(essential(soc)), 5)]
         same = sum(s[:2] == soc[:2] for s in top)
         any_hit.append(same > 0)
         share.append(same / 5)
@@ -71,7 +72,10 @@ def main():
             r_any.append(same > 0)
             r_share.append(same / 5)
     acc = statistics.mean(any_hit) * 100
-    check("PT-01", f"at least one of top 5 in family: {acc:.1f}% vs random {statistics.mean(r_any)*100:.1f}% "
+    # Since ADR-0027 the must-have view finds the target job itself almost every
+    # time, so PT-01 (which lets the target count) is flattering by design.
+    # Quote PT-01b, which removes the target.
+    check("PT-01", f"(target may count, so flattering: quote PT-01b) at least one of top 5 in family: {acc:.1f}% vs random {statistics.mean(r_any)*100:.1f}% "
           f"({statistics.mean(any_hit)/statistics.mean(r_any):.1f}x), n={len(targets)} (target >= 55%)",
           acc >= 55,
           f"mean family share {statistics.mean(share)*100:.1f}% vs random {statistics.mean(r_share)*100:.1f}% "
@@ -91,7 +95,7 @@ def main():
         family[soc[:2]] = family.get(soc[:2], 0) + 1
     hits, chance = [], []
     for soc, held in every.items():
-        ranked = recommend.rank(recommend.centre_profile(skill_ids, held, means), centred, 0)
+        ranked = model.rank(model.profile(held), 0)
         hits.append(any(x[:2] == soc[:2] for x, _ in [r for r in ranked if r[0] != soc][:5]))
         k, n_other = family[soc[:2]] - 1, len(socs) - 1
         chance.append(1 - math.comb(n_other - k, 5) / math.comb(n_other, 5))
@@ -131,9 +135,8 @@ def main():
         held = essential(soc)
         if not held:
             continue
-        pv = recommend.centre_profile(skill_ids, held, means)
         t = time.perf_counter()
-        recommend.rank(pv, centred, 5)
+        model.rank(model.profile(held), 5)
         lat.append((time.perf_counter() - t) * 1000)
     lat.sort()
     p95 = lat[int(len(lat) * 0.95) - 1]
