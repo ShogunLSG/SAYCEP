@@ -1631,3 +1631,73 @@ half the jobs and reported on the other half.
   each request now also builds the knowledge view. That's still far inside
   the 2,000 ms limit.
 - **Fallback without this change:** `git checkout 36a4b4e`.
+
+## ADR-0030 — CV scanner: twelve everyday words no longer name a tool
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for it (from the backlog item
+"one-word tools that are everyday words in CVs").
+**Relates to:** ADR-0014 and ADR-0018 (the CV benchmark), ADR-0028 (the same
+method). The user-data split, if ever built, now becomes ADR-0032 (ADR-0031
+is taken below).
+
+### Context
+
+O\*NET's tool list includes "Balances", "Levels", "Controllers", "Flasks" and
+"Explorers". So a CV saying "entry level", "balance sheet", "financial
+controller", Flask (the Python framework) or Internet Explorer was told it
+named those tools. A stop-list was the obvious fix. The backlog warned that
+the words had been spotted by reading every benchmark CV, including the
+held-out half, so a list chosen that way would inflate the reported r.
+
+### Decision
+
+- **The list was chosen on the tuning half only.**
+  `backend/tests/experiment_cv_tool_words.py list` prints every one-word tool
+  match in the 172 tuning-half CVs, with context. I judged each word by hand.
+- **Twelve words go on the list (`cvscan.TOOL_EVERYDAY`):** level, controller,
+  flask, balance, explorer, platform, scale, transformer, range, guide, hone
+  and pick. In every context seen, each was an office or everyday sense, not
+  the tool.
+- **Words kept on purpose:** ladder, filter, laser, scanner and generator. A
+  trades CV would name them as real tools, even though some contexts here
+  weren't the tool.
+- **Only the bare word is stopped.** Multi-word tools still match: "analytical
+  balance", "bench scale", "erlenmeyer flask" (TC-U20b).
+
+### Consequences
+
+- **84 false tool matches gone**, from 72 of the 344 CVs (21%).
+- **The test half, measured once:** r 0.2655 → 0.2651. The change is −0.0004
+  (interval −0.0007 to −0.0001): measurable but negligible. It stays above the
+  0.265 bar, so the quoted figure (r = 0.27, interval 0.20–0.33) is unchanged.
+  The fix is about not telling users something false, not about the score.
+- **The advert caches were regenerated,** because `cvscan.py` is in their
+  fingerprint. Only the fingerprint changed; the counts are identical.
+
+## ADR-0031 — "Jobs in your field": a student's Explore opens on their field
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for it after ADR-0029.
+**Relates to:** ADR-0029. It completes the backlog item "search by field of
+study for the enrolled student".
+
+### Decision
+
+- **`GET /knowledge-areas/{id}/jobs`** lists the jobs O\*NET rates as needing
+  that knowledge area most, by its 1–5 importance, with the same labels as
+  skills ("Critical for this job"). With a profile, each job also gets the
+  model's skills match.
+- **A "Your field" tab,** first in Explore, shown only to a student who gave a
+  field. It's where Explore opens for them: they know what they study, but not
+  necessarily which job title to search for.
+- **Ranked by O\*NET's own rating, not the model,** so every position can be
+  explained in one sentence ("O\*NET rates Computers and Electronics 4.96 out
+  of 5 for this job"). The model's view is in the skills-match label, and in
+  *For you*.
+
+### Consequences
+
+- School-leavers and students without a field see no change, and the journey
+  is still five screens.
+- **Tests:** TC-I24j–k; `field_of_study.js` (22 checks); axe on the new tab.

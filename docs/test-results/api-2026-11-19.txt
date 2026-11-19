@@ -35,7 +35,7 @@ TC-I06  Role sheet: an occupation read against a profile  (FR-04, FR-09)
 
 TC-I05  Recommendation engine  (FR-06, TR-02, TR-03)
   PASS  TC-I05a  GET recommendations returns 5 results
-  PASS  TC-I05b  single request completed in 110 ms (NFR-01: under 2000 ms)  -- 110 ms
+  PASS  TC-I05b  single request completed in 123 ms (NFR-01: under 2000 ms)  -- 123 ms
   PASS  TC-I05c  every recommendation carries its job zone
   PASS  TC-I05d  an empty skill set returns no recommendations with a message (TR-03)
 
@@ -60,8 +60,8 @@ TC-I09  Job page: related jobs, software and tools  (ADR-0009)
   PASS  TC-I09c  tools are grouped by category, largest first, with a total  -- 164
 
 TC-I10  Sign in with a plan code  (ADR-0008)
-  PASS  TC-I10a  a new profile gets a plan code like K7M-2QX and a trimmed first name  -- C92-6Q7 'Thabo'
-  PASS  TC-I10b  the code reopens the same plan, however it is typed  -- {'profile_id': '8e3f62b49619', 'display_name': 'Thabo', 'has_target': False}
+  PASS  TC-I10a  a new profile gets a plan code like K7M-2QX and a trimmed first name  -- MFV-5XW 'Thabo'
+  PASS  TC-I10b  the code reopens the same plan, however it is typed  -- {'profile_id': 'c64419307e7f', 'display_name': 'Thabo', 'has_target': False}
   PASS  TC-I10c  an unknown code returns 404 with a plain message  -- 404
   PASS  TC-I10d  the first name can be cleared -- it is optional
   PASS  TC-I10e  a name over 40 characters is rejected  -- 422
@@ -178,6 +178,8 @@ TC-I24  A student's field of study  (ADR-0029)
   PASS  TC-I24g  clearing the field puts the scores back exactly as without one
   PASS  TC-I24h  the Pathway still builds with a field (its order uses the same model)  -- 200
   PASS  TC-I24i  setting the field of an unknown profile: 404  -- 404
+  PASS  TC-I24j  jobs in your field: 20, most-needed first, each with O*NET's rating, its label and a skills match  -- Computer Network Support Specialists 4.96
+  PASS  TC-I24k  without a profile there's no skills match; an unknown area is refused (422)  -- 200, 422
 
 TC-S01  System test: the rehearsed demo path, start to finish
   PASS  TC-S01a  fresh run of the demo profile reproduces 6/2/26
@@ -186,4 +188,4 @@ TC-S01  System test: the rehearsed demo path, start to finish
 TC-N01  Concurrency (NFR-01, the connection-per-request fix)
   PASS  TC-N01a  20 concurrent requests, 20 succeeded  -- [200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]
 
-135 passed, 0 failed, 135 total
+137 passed, 0 failed, 137 total

@@ -81,6 +81,14 @@ SKILL_RULES = {
 
 TOOL_MIN_LEN = 4          # a one-word tool name shorter than this is too often a common word
 
+# One-word tool names that, in CVs, are everyday or office words: "entry
+# level", "financial controller", "balance sheet", Python's Flask, Internet
+# Explorer. Judged on the benchmark's tuning half only, then measured once on
+# the test half: 84 false matches gone, r 0.2655 -> 0.2651 (ADR-0030). The
+# multi-word tools ("analytical balance", "bench scale") still match.
+TOOL_EVERYDAY = {"level", "controller", "flask", "balance", "explorer", "platform",
+                 "scale", "transformer", "range", "guide", "hone", "pick"}
+
 
 def _words(text):
     """Lower-case word sequence with plurals folded, for naming software/tools.
@@ -165,7 +173,7 @@ def skill_evidence(index, text):
     return found
 
 
-def named(table, text, common=None, min_len=3):
+def named(table, text, common=None, min_len=3, everyday=frozenset()):
     """Which known software/tools the text names (as O*NET writes them).
     Pass common= for software, so a one-word name that is ordinary English
     ("Teams", "Windows") needs its vendor ("Microsoft Teams") to count.
@@ -175,7 +183,7 @@ def named(table, text, common=None, min_len=3):
     for n in (4, 3, 2, 1):
         for i in range(len(ws) - n + 1):
             hit = table.get(tuple(ws[i:i + n]))
-            if hit and not (n == 1 and (len(ws[i]) < min_len or ws[i] in AMBIGUOUS
+            if hit and not (n == 1 and (len(ws[i]) < min_len or ws[i] in AMBIGUOUS or ws[i] in everyday
                                         or (common and ws[i] in common))):
                 found.add(hit)
     return found
@@ -188,8 +196,9 @@ def software_named(index, text):
 
 def tools_named(index, text):
     """Tools named in the text. A one-word tool needs 4+ letters: "I saw" is
-    not the tool Saws, nor "tap" Taps (ADR-0018)."""
-    return named(index.tools, text, min_len=TOOL_MIN_LEN)
+    not the tool Saws, nor "tap" Taps (ADR-0018). Nor is "entry level" the
+    tool Levels (TOOL_EVERYDAY, ADR-0030)."""
+    return named(index.tools, text, min_len=TOOL_MIN_LEN, everyday=TOOL_EVERYDAY)
 
 
 def suggestions(index, evidence):

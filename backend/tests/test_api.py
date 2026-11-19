@@ -570,6 +570,16 @@ def main():
           s == 200 and pw["target"]["soc_code"] == "15-1251.00", str(s))
     s, nope = call("PUT", "/profiles/nobody/field", {"element_id": comp})
     check("TC-I24i", "setting the field of an unknown profile: 404", s == 404, str(s))
+    s, jf = call("GET", f"/knowledge-areas/{comp}/jobs?profile_id={fpid}&limit=20")
+    imps = [j["importance"] for j in jf["jobs"]]
+    check("TC-I24j", "jobs in your field: 20, most-needed first, each with O*NET's rating, its label and a skills match",
+          s == 200 and len(jf["jobs"]) == 20 and imps == sorted(imps, reverse=True)
+          and all(j["need"] and j["preparation"]["label"] and j["skill_match"] for j in jf["jobs"])
+          and jf["field"]["name"] == "Computers and Electronics", f"{jf['jobs'][0]['title']} {imps[0]}")
+    s, jn = call("GET", f"/knowledge-areas/{comp}/jobs?limit=5")
+    s2, _ = call("GET", "/knowledge-areas/9.Z.9/jobs")
+    check("TC-I24k", "without a profile there's no skills match; an unknown area is refused (422)",
+          s == 200 and len(jn["jobs"]) == 5 and all(j["skill_match"] is None for j in jn["jobs"]) and s2 == 422, f"{s}, {s2}")
 
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})

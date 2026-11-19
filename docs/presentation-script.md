@@ -105,11 +105,11 @@ against 5.2% by chance (PT-05).
 > real adverts appear as **job cards ranked by how well you fit**, clearly
 > labelled as samples; interview practice has a **technical question** and lets
 > you **retry**; there's a panel that shows **how the model matched you**;
-> and a student can give their **field of study**, which the model uses too.
-> All of it is covered by **232 automated tests**.
+> and a student can give their **field of study**, which the model uses, and
+> see the **jobs in their field**. All of it is covered by **236 automated tests**.
 
 **Anchors:** two full, three reduced, and why; then "since the report"; then
-232 tests.
+236 tests.
 
 ## Slide 6: Limitations, and what comes next (about 50 s)
 

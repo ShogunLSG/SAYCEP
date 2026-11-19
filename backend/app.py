@@ -377,6 +377,36 @@ def knowledge_areas(con=Depends(db)):
             "dataset": "O*NET 29.0 (August 2024 release)"}
 
 
+@app.get("/knowledge-areas/{element_id}/jobs", tags=["profile"])
+def jobs_in_field(element_id: str, profile_id: str | None = None,
+                  limit: int = Query(20, ge=1, le=50), con=Depends(db)):
+    """Jobs in your field (ADR-0029): the jobs that most need this knowledge
+    area, by O*NET's importance rating, for a student who knows what they
+    study but not which job title to search for. With a profile, each also
+    says how well the student's skills match it (the same model as For you)."""
+    _require_field(con, element_id)
+    if not element_id:
+        raise HTTPException(422, "Give a knowledge area.")
+    area = _field_view(con, element_id)
+    rows = repository.jobs_for_knowledge(con, element_id, limit)
+    skill_match = None
+    if profile_id:
+        _require_profile(con, profile_id)
+        held = repository.profile_skill_ids(con, profile_id)
+        if held:
+            model = recommendation_engine.Model.load(con)
+            prof = model.profile(held, repository.profile_field(con, profile_id))
+            skill_match = lambda soc: plain.match_level(model.score(prof, soc))
+    return {"field": area,
+            "jobs": [{"soc_code": r["soc_code"], "title": r["title"], "job_zone": r["job_zone"],
+                      "preparation": plain.preparation(r["job_zone"]),
+                      "importance": round(r["importance"], 2), "need": plain.importance_level(r["importance"]),
+                      "skill_match": skill_match(r["soc_code"]) if skill_match else None}
+                     for r in rows],
+            "basis": f"Jobs O*NET rates as needing {area['name']} most, out of 5.",
+            "dataset": "O*NET 29.0 (August 2024 release)"}
+
+
 @app.put("/profiles/{profile_id}/field", tags=["profile"])
 def set_field(profile_id: str, body: FieldIn, con=Depends(db)):
     """Set or clear the field of study (ADR-0029). Recommendations, the

@@ -1,0 +1,7 @@
+Stop-list of 12 words: balance, controller, explorer, flask, guide, hone, level, pick, platform, range, scale, transformer
+
+Tuning half: r 0.3119 -> 0.3119 (+0.0000)
+TEST half (once): r 0.2651 -> 0.2651 (+0.0000)
+95% interval for the change in test r: +0.0000 to +0.0000
+
+False tool matches removed: 0, from 0 of 344 CVs (both halves).

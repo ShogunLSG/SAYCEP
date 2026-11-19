@@ -79,8 +79,8 @@ TC-U13  Advert fixes after code review  (ADR-0017, 8 October)
 TC-U14  The advert cache  (NFR-04, ADR-0017)
 Adverts: from cache (c.json); inputs unchanged.
 Adverts: 1 read, 1 linked to one O*NET occupation (100.0%); 1 occupations, 1 with 5+ adverts.
-Adverts: skipped (the cache is out of date). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp6850lonc/no-postings.csv)
-Adverts: skipped (no cache). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp6850lonc/no-postings.csv)
+Adverts: skipped (the cache is out of date). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp220a4k_b/no-postings.csv)
+Adverts: skipped (no cache). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp220a4k_b/no-postings.csv)
   PASS  TC-U14d  the committed advert counts match the current code and O*NET rows (if not: python backend/load_adverts.py --fresh, then commit backend/seed/)
   PASS  TC-U14e  the fingerprint ignores line endings (a Windows checkout must not look stale)
   PASS  TC-U14a  a valid cache loads without the 517 MB advert file
@@ -131,4 +131,8 @@ TC-U19  The field of study in the model  (ADR-0029)
   PASS  TC-U19e  an unknown field is ignored, not an error
   PASS  TC-U19f  the field's reasons are still skills, in the same order as without it
 
-90 passed, 0 failed, 90 total
+TC-U20  CV tools: everyday words are not tools  (ADR-0030)
+  PASS  TC-U20a  'entry level', 'balance sheet', Flask, 'financial controller', 'large-scale' and Internet Explorer name no tool
+  PASS  TC-U20b  the real tools still match: a multi-word 'analytical balance', and a one-word multimeter
+
+92 passed, 0 failed, 92 total

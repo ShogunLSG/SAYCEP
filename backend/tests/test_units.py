@@ -433,6 +433,15 @@ def main():
     check("TC-U19f", "the field's reasons are still skills, in the same order as without it",
           full_.reasons(pf, thabo, "47-2111.00") == model_.reasons(p0, thabo, "47-2111.00"))
 
+    print("\nTC-U20  CV tools: everyday words are not tools  (ADR-0030)")
+    ix_ = cvscan.Index(con)
+    office = cvscan.tools_named(ix_, "Entry level accountant. Prepared the balance sheet. Built a Flask API. "
+                                     "Financial controller. Large-scale projects. Internet Explorer.")
+    check("TC-U20a", "'entry level', 'balance sheet', Flask, 'financial controller', 'large-scale' and Internet Explorer name no tool",
+          not office, str(sorted(office)))
+    trade = cvscan.tools_named(ix_, "Weighed samples on an analytical balance and checked readings with a multimeter.")
+    check("TC-U20b", "the real tools still match: a multi-word 'analytical balance', and a one-word multimeter",
+          len(trade) == 2, str(sorted(trade)))
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

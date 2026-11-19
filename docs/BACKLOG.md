@@ -65,7 +65,7 @@ pen so nothing gets lost.
 - **Measure the CV scanner on trades CVs.** Its tool evidence is built but
   unmeasured, because the benchmark has no trades CVs. A Kaggle dataset of
   trades or South African CVs would fix that. (Noticed 2026-10-05.)
-- **CV scanner: one-word tools that are everyday words in CVs.** "Trial
+- **Done 19 November (ADR-0030):** a stop-list of 12 words, chosen on the tuning half only. *Original note:* **CV scanner: one-word tools that are everyday words in CVs.** "Trial
   balance" names the tool Balances (30 of 344 benchmark CVs), "entry level"
   names Levels (16), and "financial controller" names Controllers. Python's
   Flask names Flasks, and "Internet Explorer" names Explorers. A stop-list
@@ -84,7 +84,7 @@ pen so nothing gets lost.
   tools (ADR-0018). What still differs is the vendor policy and longest
   match. Merging them is a re-measure away. Raised by code review,
   2026-10-08.
-- **Search by field of study for the enrolled student.** Today the student
+- **Done 19 November (ADR-0029, ADR-0031)** for the field-of-study part; high-school learners as a third starting point are still open. *Original note:* **Search by field of study for the enrolled student.** Today the student
   starts on title search. O\*NET has no qualification names and no
   qualification-to-job link, but `Knowledge.txt` rates 33 knowledge areas
   (Engineering and Technology, Economics and Accounting, ...) per occupation,
@@ -92,13 +92,13 @@ pen so nothing gets lost.
   (schema change), a requirement and a plan. Also: high-school learners as a
   third starting point. Both deferred past the Assignment 4 submission so the
   report matches the prototype. (Noted 2026-10-24.)
-- **CV skill rules: catch more of what a CV shows.** Run the 9,544 Kaggle CVs
+- **Tried 19 November, not adopted (ADR-0028).** *Original note:* **CV skill rules: catch more of what a CV shows.** Run the 9,544 Kaggle CVs
   through `SKILL_RULES`, find clear phrases they miss, add rules, and re-measure
   (r = 0.27 must not fall). `cvscan.py` is in the advert-cache fingerprint
   (ADR-0019), so it needs `load_adverts.py --fresh` and `load_listings.py --fresh`
   (the 517 MB advert file, about 4 minutes) and both seeds committed. (Noted
   2026-11-16; plan item 5.)
-- **Field of study as input** (O\*NET Knowledge, 33 areas): lets a student say
+- **Done 19 November (ADR-0029).** *Original note:* **Field of study as input** (O\*NET Knowledge, 33 areas): lets a student say
   what they study and puts it through the same engine. ADR-0013 found that
   richer *user* input is the real lever for accuracy. Needs a schema change, a
   new screen and a requirement. (Noted 2026-11-16, plan C.)
