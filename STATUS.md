@@ -6,14 +6,24 @@
 Q&A, the numbers in §6) and `docs/presentation-script.md` (what to say over each
 of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 
-**Still open** (as of 18 November):
+**Still open** (as of 19 November, evening):
 - Rehearse with N5 ("How we matched this") at step 3.
-- Optional, needs a go: more CV skill phrases (re-measured; plan item 5 in
-  `docs/plans/cv-interview-upgrade.md`), and the five-person user test.
+- **Field of study: waiting for your go.** The experiment shows +3 to +4
+  points for students who give one (`docs/plans/field-of-study.md`). It's a
+  schema change and needs an FR, which is yours to write.
+- **User test: the pack is ready**, in `docs/user-test/` (consent, task sheet
+  with SUS, facilitator notes, results table). Running it is yours: four
+  adults, two per profile. Check whether ethics clearance is needed first.
 - Merge `main-7rly7s` into `main`.
 - Rotate the Kaggle token that was pasted into chat.
 - `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
   (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
+
+**19 November, done: more CV skill phrases were measured, and not adopted**
+(ADR-0028). They found more skills (3.79 → 4.55 per CV) but didn't raise the
+held-out score (r 0.2655 → 0.2613, within noise). The scanner is unchanged, and
+the quoted CV figure stays r = 0.265. If asked: "I tried it, measured it, and
+didn't ship it."
 
 **19 November: the model is more accurate: 67.5%, up from 58.5%** (ADR-0027).
 It now compares your ticks with each job's must-have list as well as its
@@ -59,8 +69,8 @@ counts) and the script.
   18; axe 0 failures in light, dark and 320 px.
 - **Fallback if anything goes wrong:** `git checkout f8d9d55` (6 November's
   tested state, with job cards and CV upload but without these three items).
-- **Code freeze: Thursday 19 November, 20:00.** Not done: adding CV skill rules
-  (plan item 5, optional, needs a go) and the user test.
+- CV skill rules: measured, not adopted (ADR-0028). The user-test pack is
+  ready (`docs/user-test/`), but the test hasn't been run.
 
 ## History (everything below this line is earlier state, kept for the record)
 

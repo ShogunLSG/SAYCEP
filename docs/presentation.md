@@ -323,8 +323,10 @@ the least guidance. Written work used Q1 (60.9%); Q2 is the latest.
 **Q1.2 Who is the user, and did you test it with one?**
 Two: the school-leaver (15–24) and the enrolled student. **No, not with a real
 first-time user yet**, so NFR-02 (a first-time user reaches a route in five
-screens, unassisted) is reported as *partial*. ◆ *If you run the ten-minute
-test before the presentation, say what happened, in your own words.*
+screens, unassisted) is reported as *partial*. The test is ready to run, with
+consent, a task sheet, the SUS and a results table, in `docs/user-test/`.
+◆ *If you run it before the presentation, say what happened, in your own
+words.*
 
 **Q1.3 Does it help anyone get a job?**
 Not measured, and I don't claim it. It's a guidance tool: it makes the gap and
@@ -438,6 +440,9 @@ scores at **r = 0.27** (95% interval 0.20–0.33), against 0.16 for word
 matching. That's modest, and it's from tech and office CVs, not South African
 ones. The skill suggestions are rules I wrote and quote back for the user to
 confirm, and I make no accuracy claim for them (ADR-0014, ADR-0018).
+*If asked whether you tried to improve it:* yes. Eleven more phrasings found
+more skills per CV (3.8 → 4.6) but didn't raise the held-out score (0.266 →
+0.261, within noise), so I didn't ship them (ADR-0028).
 
 **Q4.4 What happens to a CV pasted in?**
 It's read and forgotten. It's never stored, and the server doesn't log request
