@@ -15,6 +15,14 @@ of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 - `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
   (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
 
+**19 November: the model is more accurate: 67.5%, up from 58.5%** (ADR-0027).
+It now compares your ticks with each job's must-have list as well as its
+ratings, and averages the two. It was chosen from ten techniques, with
+cross-validation and a realistic-user re-test. Thabo's *For you* list changes;
+his gap and Pathway don't, and the demo walk passes unchanged. The report says
+58.5%, so say "improved since the report". **Fallback without this change:**
+`git checkout 3360633`.
+
 **18 November: two improvements tested and not adopted** (ADR-0026): graded
 skill ratings (worse than ticks: 54.8% against 58.5%), and the Kaggle course
 catalogues (usable licences, but no hands-on skills covered). These are evidence

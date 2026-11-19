@@ -1,0 +1,44 @@
+
+Jobs for you on Home  (ADR-0022)
+  PASS  three cards, best fit first
+  PASS  labelled every time: sample listings, US, demo data, closed, not openings  -- Sample listingsReal job adverts from the United States, April 2024, used as demo data. They have closed, so they show the kind of jobs you'd fit, not openings to apply to.
+  PASS  the order is the API ranking  -- Control Technician-Jr. | Electrician - HVAC | SCADA Technician
+  PASS  fit counts are the API counts  -- 3 of 8
+  PASS  each card has a fit word, a date, a place and a progress bar
+  PASS  no company, link or pay on any card
+  PASS  "See all" gives the true total
+
+Apply
+  PASS  closed by default
+  PASS  opens a note that says it is a demo listing
+  PASS  the keyboard closes it again (Enter)
+  PASS  the note is tied to its button (aria-controls)
+
+The Jobs page
+  PASS  it lists every listing for the goal and the route  -- 26 of 26
+  PASS  cards come from the goal and the jobs on the route  -- Electrical and Electronics Repairers, Commercial and Industrial Equipment | Electricians | Boilermakers
+  PASS  Back returns to Home, and focus to the button that opened it
+
+From a card to its job, and the job page section
+  PASS  the job link on a card opens that job  -- Electrical and Electronics Repairers, Commercial and Industrial Equipment
+  PASS  a job page has its own sample listings, labelled
+  PASS  "Show more" shows the rest (up to 10)  -- 10
+  PASS  "Show fewer" goes back to three
+  PASS  job-page cards are all for this job
+
+Live updates
+  PASS  "I can do this now" on Home updates the cards straight away, with no reload  -- ui 3 of the 6 / 5 of the 13 / 3 of the 8 vs api 3 of the 6 / 5 of the 13 / 3 of the 8
+  PASS  marking a skill held raises that advert's fit by one, and Home shows the new ranking  -- Service Orientation: 3 -> 4; top card 4 of 6
+  PASS  a new goal brings listings for the new goal and its route  -- Plumbers, Pipefitters, and Steamfitters | Plumbers, Pipefitters, and Steamfitters | Heating, Air Conditioning, and Refrigeration Mechanics and Installers
+
+Other users and states
+  PASS  a goal with no adverts of its own: Home shows only its route's listings, or nothing  -- 13 listings
+  PASS  a job with no adverts has no listings section, and no error
+  PASS  the enrolled student gets job cards too
+
+Screens
+  PASS  dark mode: no sideways scrolling, and the card text is not the background colour  -- rgb(231, 236, 241) on rgb(23, 30, 38)
+  PASS  a 320 px phone: no sideways scrolling, and the card text is not the background colour  -- rgb(22, 29, 37) on rgb(255, 255, 255)
+  PASS  no page or console errors anywhere
+
+28 passed. JOB CARDS OK

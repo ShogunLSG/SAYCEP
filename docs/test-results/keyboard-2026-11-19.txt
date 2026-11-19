@@ -1,0 +1,23 @@
+PASS journey step 1: focus on heading "Where are you starting from?"
+PASS step 2: focus on heading "What can you already do?"
+PASS step 3: focus on heading "Pick something to aim for"
+PASS search result count is in a status region
+PASS job sheet: focus moved into the dialog
+PASS job sheet: 40 Tabs never leave the dialog (focus trap)
+PASS job sheet: Shift+Tab also stays inside
+PASS Escape closes the sheet and focus returns to "ElectriciansVocational trainin"
+PASS step 4: focus on heading "What's missing?"
+PASS step 5: focus on heading "How do you get there?"
+PASS home: focus on greeting "Hi Thabo"
+PASS unlock card: focus moved into the dialog
+PASS unlock card: Escape closes it
+PASS job page: focus on heading "Farm Equipment Mechanics and Service Technicians"
+PASS job page: 60 Tabs never reach the tab hidden underneath (inert)
+PASS Back returns focus to the row that opened the page ("Farm Equipment Mechanics and S")
+PASS practice: focus on the question
+PASS practice: the answer box is labelled by the question
+PASS practice: feedback appears inside a polite live region
+PASS employers: focus on the section heading ("What employers ask for")
+PASS employers, request failed: focus still moves into the page ("Electricians")
+no page errors
+ALL PASSED

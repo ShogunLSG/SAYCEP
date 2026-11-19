@@ -51,7 +51,7 @@ says why (NFR-03).
 ones):
 
 ```bash
-python backend/tests/test_units.py         # 82
+python backend/tests/test_units.py         # 84
 python backend/tests/test_api.py           # 126
 python backend/tests/test_performance.py   # 6, including PT-01b and PT-05
 node frontend/tests/demo_walk.js           # the presentation demo; see frontend/README.md for the rest
@@ -417,7 +417,7 @@ into `backend/data/linkedin/`, and run `python backend/load_onet.py`.
 At the 6 November demo the lecturer was unsure what the emerging technology was.
 It worked, but nothing on screen showed a model at work. So (ADR-0025):
 - **"How we matched you"** walks one person's and one job's real numbers through
-  the four steps. It shows how centring spreads the scores: for Thabo, 0.27–0.58
+  the four steps (five since ADR-0027). It shows how centring spreads the scores: for Thabo, 0.27–0.58
   without it, −0.56 to 0.64 with it.
 - **A "Skill-matching model" tag** wherever the engine runs.
 - **Two new uses:** "Jobs your CV points to", and "Jobs with the closest skills".
@@ -428,6 +428,21 @@ It worked, but nothing on screen showed a model at work. So (ADR-0025):
   ticks are 0 or 1.
 - **A claim was corrected before it was built on:** the plan said "about 0.9
   without centring", which was the job-to-job figure, not the person-to-job one.
+
+### 19 November: the model, improved (ADR-0027)
+
+- **The lecturer found the accuracy unconvincing.** So ten techniques were
+  tested on PT-01b's measure, with the learning ones cross-validated, and the
+  best re-tested on simulated, messy users.
+- **The winner:** compare the person's yes/no ticks with each job's yes/no
+  must-have list (top 5 for jobs with none), as well as its ratings, and
+  average the two cosines. **58.5% → 67.5%**; with messy users 46.8% → 53.6%.
+- **What didn't help:** z-scores, LDA, related-job smoothing and PCA. Learned
+  weights looked best on the clean test and fell apart on messy users: a
+  textbook overfit, caught by testing beyond the training set's shape.
+- **The structure:** `recommend.Model` holds both views; every person-to-job
+  match goes through it. Job to job stays on ratings, which are better there
+  (PT-05). The panel shows the must-have list and the average.
 
 ---
 

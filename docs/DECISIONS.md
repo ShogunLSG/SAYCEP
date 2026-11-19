@@ -1427,3 +1427,80 @@ curation, and the GPL-2.0 set is scraped from Coursera. The source that would
 cover hands-on training is South African (TVET courses, SETA learnerships). It
 isn't on Kaggle, so it needs the lecturer's approval: limitation 2 of the
 report.
+
+---
+
+## ADR-0027 — The skill-matching model compares a person with two views of each job
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for accuracy improvements "any
+way we can, within our restrictions", and approved this change after the
+experiment.
+**Supersedes:** the scoring part of FR-06's implementation (ADR-0025's
+explanation panel is extended, not replaced).
+**Relates to:** ADR-0013, ADR-0020, ADR-0026. It takes the next number, so the
+user-data split, if ever built, becomes ADR-0028.
+
+### Context
+
+The lecturer found the model's accuracy unconvincing: 58.5% against 25.9% by
+chance (PT-01b). ADR-0013 and ADR-0026 had ruled out more job data and graded
+user input.
+
+### What was measured (`backend/tests/experiment_model_upgrades.py`)
+
+Ten techniques were scored as PT-01b; the learned ones were cross-validated (5
+folds), so no job was scored by a model that saw its own label. Transcript:
+`test-results/experiment-model-upgrades-2026-11-19.txt`.
+- **No help:**
+  - z-score standardising (55.7%);
+  - LDA by occupational family (50.9%);
+  - smoothing with O\*NET's related jobs (57.6%);
+  - PCA latent factors (60.7% at 20 factors, within the noise);
+  - learned profile expansion (64.1% clean, but worse than the baseline with
+    messy users).
+- **Learned per-skill weights** scored 68.0% on the clean test, **but most of
+  the gain vanished with realistic users**: they were overfitting to how the
+  test builds its profiles. Rejected.
+- **Comparing ticks with each job's must-have list** (yes/no against yes/no)
+  won, and kept its lead with realistic users. Each test profile keeps 70% or
+  50% of a job's must-haves plus 2–3 random other skills, over three seeds:
+
+| | Clean | 70% + 2 random | 50% + 3 random |
+|---|---|---|---|
+| Before: the ratings view only | 58.5% | 46.8% | 37.9% |
+| **Now: ratings and must-have list, averaged** | **67.6%** | **53.6%** | **40.8%** |
+
+### Decision
+
+- **`recommend.Model` scores a person against each job in two views,
+  averaged:**
+  - the job's 35 importance ratings, mean-centred (as before);
+  - its **must-have list** (skills rated 3.5+, or its top 5 for the 166 jobs
+    with none, the readiness rule), as yes/no, mean-centred the same way.
+- **Why it works:** the user's ticks are yes/no, so the second view compares
+  like with like. Ratings alone let many middling skills dilute what makes a
+  job distinctive, the same lesson as ADR-0026.
+- **One model for every person-to-job match:** *For you*, the Pathway's order,
+  "Jobs your CV points to" and the quiz's skill match.
+- **Job to job keeps the ratings view.** "Jobs with the closest skills" and
+  PT-05 are unchanged, because there the must-have view is worse (39.5% against
+  60.6% expert agreement).
+- **The "How we matched you" panel** gains a step for the must-have list and
+  shows the two scores averaged. Each skill's contribution still adds up to
+  the score exactly (TC-U18b).
+
+### Consequences
+
+- **PT-01b: 67.5% (95% interval 64.0–70.8)** against 25.9% by chance. 0.1
+  points off the experiment, from ordering ties.
+- **PT-01 (95.2%) is now flattering by design.** It lets the target job count,
+  and the must-have view almost always finds the target itself. It's labelled
+  in the test; quote PT-01b.
+- **The submitted report says 58.5%.** In the presentation, say "improved since
+  the report", with this ADR as the evidence.
+- **Thabo's *For you* list changes:** Gas Plant Operators stays top; others now
+  include Hydroelectric Plant Technicians and Explosives Workers. His gap and
+  Pathway are unchanged, and the demo walk passes unchanged.
+- **Caveat:** the realistic users are simulated. The gain shrinks as input gets
+  messier (+9, +7, +3 points) but stays positive.

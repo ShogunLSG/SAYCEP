@@ -1,0 +1,30 @@
+
+In the journey: For you  (ADR-0025)
+  PASS  For you carries the "Skill-matching model" tag with "How does it work?"
+  PASS  every recommendation has its own "How we matched this"
+  PASS  the panel opens for that job, with the same score as the list  -- Hydroelectric Plant Technicians: 0.68 vs 0.68
+  PASS  it walks the five steps (ADR-0027 added the must-have list), then why step 3 matters  -- 1 The job, as 35 numbers | 2 You, as 35 numbers | 3 What makes this job different | 4 The job's must-have list | 5 The score | Why step 3 matters
+  PASS  the score is the average of the two views, as the panel says  -- The model measures how closely you match the job both ways, and averages them: its ratings 0.55, its must-have list 0.81, so the match score
+  PASS  it shows the top 8, and all 35 on request
+  PASS  with and without centring: two ranges, the centred one reaching below zero  -- All jobs score from 0.27 to 0.58; this job 0.53. | All jobs score from -0.47 to 0.70; this job 0.68.
+  PASS  every bar is decoration; its number is text (screen readers get the numbers)
+  PASS  the panel is a labelled dialog that holds focus
+  PASS  Tab stays inside the panel
+  PASS  Escape closes it and focus returns to the button that opened it
+  PASS  "How does it work?" opens the panel for the top recommendation
+  PASS  the Pathway says the model orders its steps
+
+In the app: the job page, closest jobs and the CV
+  PASS  "Jobs with the closest skills": the API's five, in order, tagged  -- Manufactured Building and Mobile Home Installers | Plumbers, Pipefitters, and Steamfitters | Electrical Power-Line Installers and Repairers | Heating, Air Conditioning, and Refrigeration Mechanics and Installers | Weatherization Installers and Technicians
+  PASS  O*NET's expert marks match the API
+  PASS  "How well do my skills match this job?" opens the panel with the API's score  -- 0.20
+  PASS  a closest job opens its own page  -- Plumbers, Pipefitters, and Steamfitters
+  PASS  "Jobs your CV points to": tagged, five jobs with reasons, and says nothing is added  -- Solar Thermal Installers and Technicians | Photonics Technicians | Radio, Cellular, and Tower Equipment Installers and Repairers | Electricians | Coin, Vending, and Amusement Machine Servicers and Repairers
+  PASS  a job the CV points to opens its page  -- Solar Thermal Installers and Technicians
+
+Screens
+  PASS  dark mode: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.14571380615234,"width":460,"height":791.9999771118164}
+  PASS  a 320 px phone: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.17117309570312,"width":320,"height":791.9999694824219}
+  PASS  no page or console errors anywhere
+
+22 passed. MODEL VISIBLE OK

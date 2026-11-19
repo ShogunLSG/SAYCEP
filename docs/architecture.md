@@ -11,7 +11,7 @@ One service. One database file. One frontend.
 | Backend | Python (FastAPI) — single service |
 | Database | SQLite (file-based, no server to run) |
 | Frontend | React with `htm`, vendored, no build step |
-| Emerging technology | The **skill-matching model**: mean-centred cosine similarity over 35 O\*NET skill ratings (`backend/recommend.py`), measured by PT-01b and PT-05. **No LLM** |
+| Emerging technology | The **skill-matching model** (`backend/recommend.py`): mean-centred cosine similarity over 35 O\*NET skills, averaging two views of each job, its ratings and its must-have list (ADR-0027). PT-01b 67.5% against 25.9% by chance. **No LLM** |
 | Data | O*NET 29.0 text files, loaded into SQLite by `backend/load_onet.py`; LinkedIn advert counts and sample listings from committed caches (see `data-sources.md`) |
 
 **Why this and not the original stack.** The proposal named Node.js plus a separate Python ML microservice plus React. That's three deployable services to wire, configure and debug. With a working demo due in roughly three weeks and one developer, three services is where the time goes — into plumbing rather than into anything demonstrable. Python is the better single choice because the Kaggle data work (loading CSVs, similarity scoring) is native to it, and SQLite removes a whole class of setup problems.

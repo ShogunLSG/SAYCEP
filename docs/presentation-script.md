@@ -72,18 +72,19 @@ modules kept separate.
 > job**, because nearly every job needs skills like reading and listening, and
 > those would make every job look the same. What's left is how each job
 > *differs*. Then it ranks jobs by **cosine similarity**: how closely your list
-> points the same way as each job's. And it tells you which of your skills
-> lifted each job.
+> points the same way as each job's. Because your answers are yes or no, it
+> also compares them with each **job's must-have list**, and averages the two.
 >
 > I measured it. Given a job's must-have skills, with the job itself removed,
-> the engine puts a job from the **same field** in its top five **58.5%** of the
-> time, against **25.9%** by chance.
+> it puts a job from the **same field** in its top five **67.5%** of the time,
+> against **25.9%** by chance. The slide says 58.5%: that was before I improved
+> it this week, by testing ten techniques and keeping the one that worked.
 
 **Anchors:** two lists of 35 → subtract the average → point the same way →
-58.5% against 25.9%.
+plus the must-have list → 67.5% (58.5% on the slide, improved since).
 
 **In the demo, show it:** at the *For you* step, tap **How we matched this**
-and walk the four steps on screen (demo step N5 in `presentation.md`). Showing
+and walk the five steps on screen (demo step N5 in `presentation.md`). Showing
 the numbers beats describing them. A second figure, if asked: the same model
 compares jobs with jobs and agrees with O\*NET's experts for 60.6% of jobs,
 against 5.2% by chance (PT-05).
@@ -104,10 +105,10 @@ against 5.2% by chance (PT-05).
 > real adverts appear as **job cards ranked by how well you fit**, clearly
 > labelled as samples; interview practice has a **technical question** and lets
 > you **retry**; and there's a panel that shows **how the model matched you**.
-> All of it is covered by **214 automated tests**.
+> All of it is covered by **216 automated tests**.
 
 **Anchors:** two full, three reduced, and why; then "since the report"; then
-214 tests.
+216 tests.
 
 ## Slide 6: Limitations, and what comes next (about 50 s)
 
@@ -136,7 +137,7 @@ yourself is worth more than any statistic.
 
 Then follow the 10-minute demo path in `docs/presentation.md` §3. What to say at
 each step is in the right-hand column there. **At step 3 (For you), open "How we
-matched this" and walk the four steps (N5).** That is where the lecturer sees the
+matched this" and walk the five steps (N5).** That is where the lecturer sees the
 emerging technology working. Then the new steps N1–N4, N6 and N7, as time allows.
 
 ## Slide 8: Questions

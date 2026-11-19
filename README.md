@@ -20,7 +20,7 @@ All five proposal modules exist. Two are built in full, and three in reduced for
 | **Opportunity matching** | What employers ask for, plus "Jobs for you" cards ranked by fit | Reduced: real US adverts from 2024, labelled as sample listings |
 | **Interview practice** | Skill, tool and task questions; checklist feedback; retry | Reduced: guidance, not a chatbot |
 
-**The emerging technology** is a content-based recommender, the **skill-matching model**: mean-centred cosine similarity over 35 O\*NET skill ratings. It ranks *For you*, orders the Pathway, turns a CV into job suggestions and finds each job's closest jobs. A "How we matched you" panel shows its numbers step by step. Measured: 58.5% against 25.9% by chance (PT-01b), and 60.6% agreement with O\*NET's experts against 5.2% (PT-05). There is no LLM. See [docs/architecture.md](docs/architecture.md).
+**The emerging technology** is a content-based recommender, the **skill-matching model**: mean-centred cosine similarity over 35 O\*NET skills, comparing a person with each job's ratings and its must-have list. It ranks *For you*, orders the Pathway, turns a CV into job suggestions and finds each job's closest jobs. A "How we matched you" panel shows its numbers step by step. Measured: 67.5% against 25.9% by chance (PT-01b; 58.5% before the 19 November improvement, ADR-0027), and 60.6% agreement with O\*NET's experts against 5.2% (PT-05). There is no LLM. See [docs/architecture.md](docs/architecture.md).
 
 ## Data
 

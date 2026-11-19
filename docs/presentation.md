@@ -47,6 +47,12 @@ added this as a test (PT-01b). **Say the strict figure if asked.** It's in the
 Q&A (Q3.2). The submitted document is accurate for what it measured, and
 nothing in it needs withdrawing.
 
+**Since 19 November the model is better: 67.5% (95% interval 64.0–70.8)**,
+measured the same strict way (ADR-0027). The report and slides say 58.5%. Say:
+"58.5% in the report; I've improved it since to 67.5%, and here's how I tested
+it." Don't quote PT-01's new 95%: it lets the target count, and the new model
+almost always finds the target itself.
+
 **3. Use the newer unemployment figures.** Assignment 2 quotes Q1 2026 (60.9%
 for ages 15–24). StatsSA has since published Q2 2026 (released 11 August):
 **62.8%** for 15–24, **41.8%** for 25–34, **33.6%** overall, and **47.4%** for
@@ -84,8 +90,8 @@ seconds. That's tight: **one idea per slide, and practise it against a timer.**
 | 0:00 | **Problem** | 1 | 62.8% of 15–24-year-olds are unemployed, against 33.6% overall (StatsSA, Q2 2026). The worst-hit group has the least guidance. |
 | 0:40 | **Solution and users** | 2 | Skills → gap → Pathway → progress. Two users: the school-leaver and the enrolled student. |
 | 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
-| 2:00 | **Emerging technology** | 4 | The **skill-matching model**: each job is 35 numbers, you're 35 numbers; subtract the average job, then cosine similarity. Measured: **58.5% against 25.9% by chance**, and it agrees with O\*NET's experts for **60.6% of jobs against 5.2%** (PT-05). "I'll show you its numbers in the demo." |
-| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, and the model panel. 214 automated tests pass. |
+| 2:00 | **Emerging technology** | 4 | The **skill-matching model**: each job is 35 numbers, you're 35 numbers; subtract the average job, then cosine similarity. Measured: **67.5% against 25.9% by chance** (58.5% in the report; improved since by comparing your ticks with each job's must-have list too), and job to job it agrees with O\*NET's experts for **60.6% against 5.2%** (PT-05). "I'll show you its numbers in the demo." |
+| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, and the model panel. 216 automated tests pass. |
 | 3:50 | **Limitations** | 6 | The data isn't South African (the course required Kaggle). Too little for students mid-study. Next: the OFO with approval, SETA learnerships and TVET courses, a user test. |
 | **5:00** | **Live demo** | 7 | §3, **10 minutes**, with N5 at step 3. |
 | 15:00 | **Questions** | 8 | |
@@ -134,7 +140,7 @@ Use a first name of your choice at step 1. The walk uses *Thabo*.
 |---|---|---|---|
 | **1** *(about 50 s)* | Open the app. Tap **I have a plan code**: the button stays greyed. Type *ZZZZZZ* and tap it. Then tap **I'm new**, type a first name, tap *Start my plan*. | "Find a career you can actually reach." "No email, no password." The wrong code gets: **"No plan matches that code. Check it and try again."** | "Bad input gets a plain message, and the button won't work until a full code is typed. There's no account: a plan code brings you back, and nothing personal is held." *(This is brief 2.1 and 2.4: validation, error feedback, protection of personal data.)* |
 | **2** | Tap **I left school**, then tick six skills: *Operation and Control, Operations Monitoring, Equipment Maintenance, Active Listening, Critical Thinking, Monitoring*. | Six skills ticked. | "This is self-reported, the same as a CV: you say what you can do." |
-| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Chemical Equipment Operators… each "Because you have: Operation and Control, Equipment Maintenance…". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
+| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Hydroelectric Plant Technicians, Service Unit Operators (oil and gas), Explosives Workers, CNC Tool Programmers (since 19 November), each "Because you have: Operation and Control, Operations Monitoring, Equipment Maintenance". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
 | **4** | Continue. **The gap.** | "You already have **6 of the 34** skills." **2 must-haves**: Troubleshooting and Repairing. | "Two skills stand between this person and the job. Not a long list: the two that the job depends on." |
 | **5** | Continue. **The route.** Then *Save as my plan*. | Boilermakers → Electrical Power-Line Installers and Repairers → Electrical and Electronics Repairers → **Electricians**. Each says how close it is to you now. | "This is the Pathway: nearby jobs that need nearly the same skills, ordered so the next step is the most achievable." |
 | **6** | **Home.** On *Troubleshooting* tap **Start learning**; then **I can do this now**. | Learning changes nothing. Then the card: **1 of 2** must-haves; *Electrical Power-Line Installers* now ready; "every must-have for **106 jobs**, 4 more than before". | "Only 'I can do this now' closes a gap. 'Learning' doesn't. That's a deliberate rule, so progress isn't flattering." |
@@ -177,7 +183,7 @@ on screen.**
 
 | # | Do this | What appears | Say |
 |---|---|---|---|
-| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the four steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the score and what lifted it; two ranges: without centring 0.27–0.58, with centring −0.56 to 0.64. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. Without that step every job looks like a fit. With it, they spread out." |
+| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the five steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the job's must-have list; the score as two views averaged (ratings 0.64, must-have list 0.76, score 0.70); two ranges: without centring 0.27–0.58, the model −0.47 to 0.70. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. And because your answers are yes or no, it also compares them with the job's must-have list, and averages the two. That second view is what took it from 58.5% to 67.5%." |
 | **N6** *(on a job page)* | Scroll to **Jobs with the closest skills**. | Five jobs, some marked "also listed by O\*NET's experts". | "The same model compares jobs with jobs. It agrees with O\*NET's experts for 61% of jobs, against 5% by chance: that's PT-05." |
 | **N7** *(step 7, after the CV check)* | Scroll to **Jobs your CV points to**. | Five jobs, each "Because your CV shows: …". | "The CV feeds the same model: the skills it finds go in, and jobs come out." |
 
@@ -377,14 +383,20 @@ see whether any of its top five recommendations is in the **same occupational
 family**. Against a random baseline of 25.9%, it gets **58.5%** over all 713
 jobs that have must-haves (95% interval 54.6–62.1) with the job itself *not*
 allowed to count. Assignment 3's 59.7% was a sample of 124 that did allow the
-job itself, and it still passes the 55% threshold. Honest reading: about twice
+job itself, and it still passes the 55% threshold. **Since 19 November: 67.5%
+(64.0–70.8)** on the same strict test, after the improvement in Q3.3. Honest reading: about twice
 chance, on a generous measure of "right". It's a proxy, not proof that people
 would take the advice.
 
 **Q3.3 That's only a few points above your threshold. Can you improve it?**
-I tried. Adding O\*NET's Knowledge and Abilities to the vectors moves it from
-59.7% to 60.5%, which is noise, because users don't record those. It would only
-help if users did, and that's a new capture step (ADR-0013).
+I did, on 19 November (ADR-0027): **58.5% → 67.5%** on the same strict test. I
+tried ten techniques, cross-validating the ones that learn, then re-tested the
+best with realistic, messy users. Standardising, LDA, smoothing with related
+jobs and PCA didn't help. Learned weights looked good (68%) but fell apart with
+messy users: overfitting. What worked was comparing your yes/no ticks with each
+job's yes/no must-have list as well as its ratings, and averaging. It keeps its
+lead with messy users (53.6% against 46.8%). Earlier, adding O\*NET's knowledge
+and abilities (ADR-0013) and graded ratings (ADR-0026) didn't help.
 
 **Q3.4 Why mean-centred? Why not plain cosine?**
 O\*NET's 35 skills are generic, and nearly every job needs most of them, so the
@@ -573,15 +585,17 @@ using an AI assistant. Know which of the decisions above you made yourself.
 
 ---
 
-### 5.9 "How would you improve it?": two things I tested on 18 November (ADR-0026)
+### 5.9 "How did you improve it?" (ADR-0026, ADR-0027)
 
-> "I tested two obvious ideas, and neither helped, so I didn't build them.
-> Letting users rate each skill as 'a bit' or 'well' made the model *less*
-> accurate: 58.5% with ticks against 54.8% graded. And the Kaggle course
-> catalogues with a usable licence cover office skills, but none of the
-> hands-on skills school-leavers' jobs need. What would help is a different
-> kind of input, like a field of study, and South African training data from
-> TVET colleges and SETAs, which needs approval because it isn't on Kaggle."
+> "After the prototype demo I tested ten techniques and kept the one that
+> genuinely helped: the model now compares your yes/no ticks with each job's
+> must-have list as well as its ratings, and averages the two. That took it
+> from 58.5% to 67.5%, and it stays ahead when I simulate messy, realistic
+> users. Some obvious ideas didn't help, so I didn't use them: rating skills as
+> 'a bit' or 'well' made it *worse*, learned weights overfitted, and the Kaggle
+> course data covers office skills, not the hands-on ones. Next would be a
+> field-of-study input, and South African TVET and SETA data, which needs
+> approval because it isn't on Kaggle."
 
 That answer shows you measured rather than guessed. The numbers are in
 `test-results/experiment-skill-ratings-2026-11-18.txt` and
@@ -596,9 +610,10 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Youth unemployment, Q2 2026 | 62.8% (15–24) · 41.8% (25–34) · 33.6% (all) · 47.4% (15–34) | StatsSA QLFS Q2 2026, released 11 Aug 2026 |
 | The data | 879 jobs · 35 skills · 27,463 ratings · O\*NET 29.0 | `load_onet.py`; `test_units.py` |
 | Recommendation, as submitted | 59.7% vs 25.8% random, n = 124 | `test_performance.py` PT-01 |
-| Recommendation, stricter | **58.5%** vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b |
+| Recommendation, stricter, in the report | 58.5% vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b, before 19 Nov |
+| **Recommendation now** (ADR-0027) | **67.5%** vs 25.9% random, interval 64.0–70.8; realistic users 53.6% vs 46.8% before | PT-01b; `experiment-model-upgrades-2026-11-19.txt` |
 | Closest jobs vs O\*NET's experts | **60.6%** of 879 jobs vs 5.2% random (11.6×); 19.8% of the top five expert-listed | PT-05 (ADR-0025) |
-| Centring, for Thabo | without: every job 0.27–0.58; with: −0.56 to 0.64 | the "How we matched you" panel; TC-I23c |
+| Centring, for Thabo | without: every job 0.27–0.58; the model: −0.47 to 0.70 | the "How we matched you" panel; TC-I23c |
 | Ranking speed | about 5 ms at p95 (limit 100 ms) | PT-02 |
 | Response time over HTTP | about 100 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
 | Rebuild from source | a few seconds (limit 60 s) | PT-04 |
@@ -608,26 +623,26 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Technical interview question | asked for 168 of 879 jobs (where 5+ adverts and 5%+ name a tool) | ADR-0024 |
 | Advert linking precision | 44 of 50 right (my own check) | `job-postings-step0-2026-10-05.txt` |
 | Accessibility | 169 failures to 0 at first; still 0 on 27 screens · light, dark, 320 px | `accessibility-2026-11-17.txt` |
-| Automated tests | **214**, plus 7 browser suites | §7 |
+| Automated tests | **216**, plus 7 browser suites | §7 |
 | Dependencies | 2 (FastAPI, uvicorn); React, htm and pdf.js load from files in the repo | `requirements.txt` |
 
 ---
 
-## 7. Test counts, checked 17 November
+## 7. Test counts, checked 19 November
 
 | Check | Result |
 |---|---|
-| Unit tests (`backend/tests/test_units.py`) | **82** passed |
+| Unit tests (`backend/tests/test_units.py`) | **84** passed |
 | Integration and system tests over HTTP (`test_api.py`) | **126** passed |
 | Performance and accuracy measurements (`test_performance.py`) | **6** passed (PT-01, 01b, 02, 03, 04, 05) |
-| **Automated tests in all** | **214** |
+| **Automated tests in all** | **216** |
 | Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **27** screens, in light mode, dark mode, and at 320 px wide |
 | Keyboard-only walk of the demo | **22** checks, all passing |
 | Demo walk (this page's script) | **50** checks over all 15 steps; **40** over the 10-minute path |
 | CV upload (`cv_upload.js`) | **33** checks |
 | Jobs for you (`job_cards.js`) | **28** checks |
 | Interview retry and CV advice (`interview_retry.js`) | **18** checks |
-| The model, made visible (`engine_visible.js`) | **21** checks |
+| The model, made visible (`engine_visible.js`) | **22** checks |
 
 Run any of them with `python backend/tests/test_<name>.py` (the server running
 for the API and performance ones), or the `node frontend/tests/...` scripts.
