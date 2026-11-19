@@ -8,9 +8,9 @@ of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 
 **Still open** (as of 19 November, evening):
 - Rehearse with N5 ("How we matched this") at step 3.
-- **Field of study: waiting for your go.** The experiment shows +3 to +4
-  points for students who give one (`docs/plans/field-of-study.md`). It's a
-  schema change and needs an FR, which is yours to write.
+- **Field of study: built. It needs an FR worded by you** (ADR-0029), for
+  example "a student can give their field of study, and recommendations take it
+  into account".
 - **User test: the pack is ready**, in `docs/user-test/` (consent, task sheet
   with SUS, facilitator notes, results table). Running it is yours: four
   adults, two per profile. Check whether ethics clearance is needed first.
@@ -18,6 +18,17 @@ of the **8** slides). **Code freeze: Thursday 19 November, 20:00.**
 - Rotate the Kaggle token that was pasted into chat.
 - `CLAUDE.md` still says the only front-end libraries are React and htm. pdf.js
   (ADR-0023) is now vendored too. It's your file, so it's left for you to update.
+
+**19 November, done: a student can give their field of study** (ADR-0029).
+It's one optional question at the bottom of the student's skills screen ("What are
+you studying?", O\*NET's 33 knowledge areas with plain examples), so the journey
+stays five screens. The model blends it in at a tenth: **PT-06: 67.5% → 70.1%**
+with a noisy field (+2.7 points, interval +1.0 to +4.5), on simulated
+students. With no field, every score is exactly as before, so Thabo's walk is
+unchanged. The Me tab changes or clears it, and "How we matched this" shows its
+share. Tests: 90 unit, 135 API, 7 performance (**232**); `field_of_study.js`
+18; demo walk 50/50; all browser suites green; axe 0 on 30 screens in light,
+dark and 320 px. **Fallback without it:** `git checkout 36a4b4e`.
 
 **19 November, done: more CV skill phrases were measured, and not adopted**
 (ADR-0028). They found more skills (3.79 → 4.55 per CV) but didn't raise the

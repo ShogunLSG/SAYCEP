@@ -79,8 +79,8 @@ TC-U13  Advert fixes after code review  (ADR-0017, 8 October)
 TC-U14  The advert cache  (NFR-04, ADR-0017)
 Adverts: from cache (c.json); inputs unchanged.
 Adverts: 1 read, 1 linked to one O*NET occupation (100.0%); 1 occupations, 1 with 5+ adverts.
-Adverts: skipped (the cache is out of date). Run: python backend/load_adverts.py  (needs ../../../tmp/tmpbkezssbv/no-postings.csv)
-Adverts: skipped (no cache). Run: python backend/load_adverts.py  (needs ../../../tmp/tmpbkezssbv/no-postings.csv)
+Adverts: skipped (the cache is out of date). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp6850lonc/no-postings.csv)
+Adverts: skipped (no cache). Run: python backend/load_adverts.py  (needs ../../../tmp/tmp6850lonc/no-postings.csv)
   PASS  TC-U14d  the committed advert counts match the current code and O*NET rows (if not: python backend/load_adverts.py --fresh, then commit backend/seed/)
   PASS  TC-U14e  the fingerprint ignores line endings (a Windows checkout must not look stale)
   PASS  TC-U14a  a valid cache loads without the 517 MB advert file
@@ -123,4 +123,12 @@ TC-U18  The skill-matching model, explained  (ADR-0025, ADR-0027)
   PASS  TC-U18f  closest jobs: never the job itself, best first, and similarity is symmetric
   PASS  TC-U18g  an unknown job has no closest jobs, not an error
 
-84 passed, 0 failed, 84 total
+TC-U19  The field of study in the model  (ADR-0029)
+  PASS  TC-U19a  33 knowledge areas, rated for every job in the catalogue
+  PASS  TC-U19b  with no field, every score is exactly the skills-only model's
+  PASS  TC-U19c  with a field, the score is 0.9 x the skills' score + 0.1 x the field's
+  PASS  TC-U19d  the skills' shares plus the field's add up to the score exactly
+  PASS  TC-U19e  an unknown field is ignored, not an error
+  PASS  TC-U19f  the field's reasons are still skills, in the same order as without it
+
+90 passed, 0 failed, 90 total

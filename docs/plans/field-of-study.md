@@ -1,6 +1,8 @@
 # Plan: a field-of-study input for the skill-matching model
 
-*19 November 2026. Status: **waiting for go.** This changes the schema, adds a
+*19 November 2026. Status: **built** (go given the same day; see ADR-0029,
+which records two choices: no new screen, and O\*NET's names with our
+examples rather than a mapped South African list). Was: **waiting for go.** This changes the schema, adds a
 question to the journey and needs a new functional requirement, which is
 yours to write (CLAUDE.md: FR-5 onward are yours).*
 

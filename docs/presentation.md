@@ -91,7 +91,7 @@ seconds. That's tight: **one idea per slide, and practise it against a timer.**
 | 0:40 | **Solution and users** | 2 | Skills → gap → Pathway → progress. Two users: the school-leaver and the enrolled student. |
 | 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
 | 2:00 | **Emerging technology** | 4 | The **skill-matching model**: each job is 35 numbers, you're 35 numbers; subtract the average job, then cosine similarity. Measured: **67.5% against 25.9% by chance** (58.5% in the report; improved since by comparing your ticks with each job's must-have list too), and job to job it agrees with O\*NET's experts for **60.6% against 5.2%** (PT-05). "I'll show you its numbers in the demo." |
-| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, and the model panel. 216 automated tests pass. |
+| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, the model panel, and a field of study for students. 232 automated tests pass. |
 | 3:50 | **Limitations** | 6 | The data isn't South African (the course required Kaggle). Too little for students mid-study. Next: the OFO with approval, SETA learnerships and TVET courses, a user test. |
 | **5:00** | **Live demo** | 7 | §3, **10 minutes**, with N5 at step 3. |
 | 15:00 | **Questions** | 8 | |
@@ -400,6 +400,18 @@ job's yes/no must-have list as well as its ratings, and averaging. It keeps its
 lead with messy users (53.6% against 46.8%). Earlier, adding O\*NET's knowledge
 and abilities (ADR-0013) and graded ratings (ADR-0026) didn't help.
 
+**Q3.3b Why didn't adding knowledge help in ADR-0013, but the field of study does?**
+In ADR-0013 the knowledge ratings were added to every job's vector, but the
+person still only ticked skills, so there was nothing to compare them with. Now
+a student says what they study, one of O\*NET's 33 knowledge areas, and the
+model compares that with each job's knowledge must-haves. It counts for a
+tenth. On simulated students it's **67.5% → 70.1%** (PT-06, ADR-0029).
+School-leavers aren't asked, so their results don't change. Be honest about the
+caveat: the students are simulated from the jobs themselves.
+◆ *To show it: start as "I'm studying", tick a few skills, pick a field at the
+bottom of the skills screen, then open "How we matched this". Step 5 shows
+the field's share.*
+
 **Q3.4 Why mean-centred? Why not plain cosine?**
 O\*NET's 35 skills are generic, and nearly every job needs most of them, so the
 raw vectors all point the same way: a job's nearest neighbour has cosine 0.994.
@@ -598,9 +610,10 @@ using an AI assistant. Know which of the decisions above you made yourself.
 > from 58.5% to 67.5%, and it stays ahead when I simulate messy, realistic
 > users. Some obvious ideas didn't help, so I didn't use them: rating skills as
 > 'a bit' or 'well' made it *worse*, learned weights overfitted, and the Kaggle
-> course data covers office skills, not the hands-on ones. Next would be a
-> field-of-study input, and South African TVET and SETA data, which needs
-> approval because it isn't on Kaggle."
+> course data covers office skills, not the hands-on ones. Then I added a
+> field-of-study input for students, which did help: 67.5% to 70.1% on
+> simulated students. Next would be South African TVET and SETA data, which
+> needs approval because it isn't on Kaggle."
 
 That answer shows you measured rather than guessed. The numbers are in
 `test-results/experiment-skill-ratings-2026-11-18.txt` and
@@ -617,6 +630,7 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Recommendation, as submitted | 59.7% vs 25.8% random, n = 124 | `test_performance.py` PT-01 |
 | Recommendation, stricter, in the report | 58.5% vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b, before 19 Nov |
 | **Recommendation now** (ADR-0027) | **67.5%** vs 25.9% random, interval 64.0–70.8; realistic users 53.6% vs 46.8% before | PT-01b; `experiment-model-upgrades-2026-11-19.txt` |
+| With a field of study (ADR-0029) | **70.1%** with a noisy field (+2.7 points, interval +1.0 to +4.5); 71.5% with the job's own; simulated students | PT-06 |
 | Closest jobs vs O\*NET's experts | **60.6%** of 879 jobs vs 5.2% random (11.6×); 19.8% of the top five expert-listed | PT-05 (ADR-0025) |
 | Centring, for Thabo | without: every job 0.27–0.58; the model: −0.47 to 0.70 | the "How we matched you" panel; TC-I23c |
 | Ranking speed | about 5 ms at p95 (limit 100 ms) | PT-02 |
@@ -627,8 +641,8 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Job cards | 7,094 sample listings over 682 jobs; Electricians' route has 26 | ADR-0022; `job-cards-2026-11-17.txt` |
 | Technical interview question | asked for 168 of 879 jobs (where 5+ adverts and 5%+ name a tool) | ADR-0024 |
 | Advert linking precision | 44 of 50 right (my own check) | `job-postings-step0-2026-10-05.txt` |
-| Accessibility | 169 failures to 0 at first; still 0 on 27 screens · light, dark, 320 px | `accessibility-2026-11-17.txt` |
-| Automated tests | **216**, plus 7 browser suites | §7 |
+| Accessibility | 169 failures to 0 at first; still 0 on 30 screens · light, dark, 320 px | `accessibility-2026-11-19.txt` |
+| Automated tests | **232**, plus 8 browser suites | §7 |
 | Dependencies | 2 (FastAPI, uvicorn); React, htm and pdf.js load from files in the repo | `requirements.txt` |
 
 ---
@@ -637,23 +651,24 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 
 | Check | Result |
 |---|---|
-| Unit tests (`backend/tests/test_units.py`) | **84** passed |
-| Integration and system tests over HTTP (`test_api.py`) | **126** passed |
-| Performance and accuracy measurements (`test_performance.py`) | **6** passed (PT-01, 01b, 02, 03, 04, 05) |
-| **Automated tests in all** | **216** |
-| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **27** screens, in light mode, dark mode, and at 320 px wide |
+| Unit tests (`backend/tests/test_units.py`) | **90** passed |
+| Integration and system tests over HTTP (`test_api.py`) | **135** passed |
+| Performance and accuracy measurements (`test_performance.py`) | **7** passed (PT-01, 01b, 02, 03, 04, 05, 06) |
+| **Automated tests in all** | **232** |
+| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **30** screens, in light mode, dark mode, and at 320 px wide |
 | Keyboard-only walk of the demo | **22** checks, all passing |
 | Demo walk (this page's script) | **50** checks over all 15 steps; **40** over the 10-minute path |
 | CV upload (`cv_upload.js`) | **33** checks |
 | Jobs for you (`job_cards.js`) | **28** checks |
 | Interview retry and CV advice (`interview_retry.js`) | **18** checks |
 | The model, made visible (`engine_visible.js`) | **22** checks |
+| Field of study (`field_of_study.js`) | **18** checks |
 
 Run any of them with `python backend/tests/test_<name>.py` (the server running
 for the API and performance ones), or the `node frontend/tests/...` scripts.
 The browser scripts need Playwright, and the accessibility one needs
 `axe-core`; see `frontend/README.md`. Transcripts:
-`docs/test-results/*-2026-11-17.txt`.
+`docs/test-results/*-2026-11-19.txt`.
 
 ---
 

@@ -10,12 +10,17 @@ function MeTab({ profileId, rev, onNameSaved, onPrint, onJourney, onSignOut, onS
   const [name, setName] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [fieldSaved, setFieldSaved] = useState(null);   // the area just saved, for the "Saved" note
   if (!data) return html`<div class="pane tabpane"><p class="loading">Loading…</p></div>`;
   const value = name ?? (data.display_name || "");
   async function save(e) {
     e.preventDefault(); setSaving(true);
     try { await api.put(`/profiles/${profileId}/name`, { display_name: value }); setSaved(true); onNameSaved(); }
     finally { setSaving(false); }
+  }
+  async function saveField(id) {
+    const r = await api.put(`/profiles/${profileId}/field`, { element_id: id });
+    setFieldSaved(r.field ? r.field.name : "none"); onNameSaved();
   }
   return html`
     <div class="pane tabpane">
@@ -26,12 +31,22 @@ function MeTab({ profileId, rev, onNameSaved, onPrint, onJourney, onSignOut, onS
                  onInput=${(e) => { setName(e.target.value); setSaved(false); }} />
         </label>
         <button class="btn" type="submit" disabled=${saving}>${saved ? html`${Icon.check} Saved` : "Save name"}</button>
-        <p class="note">It's only used to greet you. SAYCEP asks for nothing else about you.</p>
+        <p class="note">It's only used to greet you. Apart from a field of study, if you give one,
+          SAYCEP asks for nothing else about you.</p>
       </form>
+
+      ${data.profile_type === "student" && html`
+        <section class="card">
+          <${FieldPicker} id="me-field" value=${data.field ? data.field.element_id : null} onChange=${saveField} />
+          <p class="note" aria-live="polite">${fieldSaved
+            ? (fieldSaved === "none" ? "Saved: no field. Your matches use your skills only." : html`${Icon.check} Saved. Your matches now include ${fieldSaved}.`)
+            : ""}</p>
+        </section>`}
 
       <section class="card">
         <h3 class="ch">Your plan</h3>
         <div class="kv"><span>Starting point</span><b>${data.profile_type === "student" ? "I'm studying" : "I left school"}</b></div>
+        ${data.profile_type === "student" && html`<div class="kv"><span>Field of study</span><b>${data.field ? data.field.name : "Not given"}</b></div>`}
         <div class="kv"><span>Goal</span><b>${data.target ? data.target.title : "Not set"}</b></div>
         <div class="kv"><span>Skills you have</span><b>${data.held_count}</b></div>
         <div class="kv"><span>Working on</span><b>${data.learning_count}</b></div>

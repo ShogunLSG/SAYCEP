@@ -412,6 +412,27 @@ def main():
           and abs(back["47-2111.00"] - sim[0][1]) < 1e-12)
     check("TC-U18g", "an unknown job has no closest jobs, not an error", rec.similar(cen_, "99-9999.99") == [])
 
+    print("\nTC-U19  The field of study in the model  (ADR-0029)")
+    know_ = rec.load_knowledge(con)
+    full_ = rec.Model(ids_, vec_, knowledge=know_)
+    check("TC-U19a", "33 knowledge areas, rated for every job in the catalogue",
+          know_ is not None and len(know_[0]) == 33 and set(know_[1]) == set(vec_), f"{len(know_[1])} jobs")
+    p0, p_none = model_.profile(thabo), full_.profile(thabo)
+    check("TC-U19b", "with no field, every score is exactly the skills-only model's",
+          all(full_.score(p_none, s_) == model_.score(p0, s_) for s_ in vec_))
+    pf = full_.profile(thabo, "2.C.3.e")   # Mechanical
+    a_, b_ = full_.parts(pf, "47-2111.00")
+    f_ = full_.field_part(pf, "47-2111.00")
+    check("TC-U19c", "with a field, the score is 0.9 x the skills' score + 0.1 x the field's",
+          abs(full_.score(pf, "47-2111.00") - (0.9 * (a_ + b_) / 2 + 0.1 * f_)) < 1e-12, f"field part {f_:.3f}")
+    exf = full_.explain(thabo, "47-2111.00", "2.C.3.e")
+    check("TC-U19d", "the skills' shares plus the field's add up to the score exactly",
+          abs(sum(r["contribution"] for r in exf["rows"]) + exf["field"]["contribution"] - exf["score"]) < 1e-12)
+    check("TC-U19e", "an unknown field is ignored, not an error", full_.profile(thabo, "9.Z.9")[2] is None
+          and full_.profile(thabo, "2.A.1.a")[2] is None)
+    check("TC-U19f", "the field's reasons are still skills, in the same order as without it",
+          full_.reasons(pf, thabo, "47-2111.00") == model_.reasons(p0, thabo, "47-2111.00"))
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

@@ -1556,3 +1556,78 @@ it. The scanner stays as it was; r stays 0.265.
 - If asked in the presentation: "I tried, it found more skills, it didn't
   improve the measured score, so I didn't ship it." Transcript:
   `docs/test-results/experiment-cv-rules-2026-11-19.txt`.
+
+## ADR-0029 — A student can give their field of study, and the model uses it
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner said go after reading
+`docs/plans/field-of-study.md`. **The functional requirement for it is still
+to be worded by the project owner** (CLAUDE.md: FR-5 onward are theirs).
+**Relates to:** ADR-0027 (the model it extends), ADR-0002 (Kaggle only: the
+data is the same O\*NET 29.0 release), ADR-0008 (what a profile holds). It
+takes the next number, so the user-data split, if ever built, becomes
+ADR-0030.
+
+### Context
+
+The model's only evidence about a person is the skills they tick, which are
+self-reported and yes/no. A student knows something firmer, which is what they're
+studying. O\*NET rates every job on 33 knowledge areas ("Economics and
+Accounting", "Biology", "Mechanical" and so on), in `Knowledge.txt`, part of
+the same Kaggle release.
+`backend/tests/experiment_field_of_study.py` measured the gain before anything
+was built: +3 to +4 points on PT-01b's protocol, with the weight chosen on
+half the jobs and reported on the other half.
+
+### Decision
+
+- **Data:** `load_onet.py` loads `Knowledge.txt` into `knowledge_areas` (33)
+  and `occupation_knowledge` (23,067 importance ratings), with the same
+  exclusions as skills (suppressed and not-relevant ratings dropped).
+- **Profile:** `users.field_element_id`, nullable, is added in place for older
+  databases. `PUT /profiles/{id}/field` sets or clears it, `POST /profiles`
+  accepts it, and `GET /knowledge-areas` lists the 33 with O\*NET's
+  descriptions and **our plain examples** ("BCom, accounting, economics,
+  banking"). The examples are UI wording to help someone find their area. The
+  model never uses them.
+- **Model:** `recommend.Model` builds the same two views (ratings and
+  must-haves, centred) over knowledge areas. The score is **0.9 × the skills
+  score + 0.1 × the field score**. **With no field, every score is exactly
+  the skills-only score** (TC-U19b), so school-leavers, Thabo and every
+  existing figure are unchanged.
+- **One model everywhere:** the field reaches *For you*, the Pathway's order,
+  the interest quiz's skill match, and the CV's "points to" when a profile is
+  attached.
+- **Journey:** students see one optional question, "What are you studying?",
+  at the bottom of the skills screen, as a native select of the 33 areas.
+  It's **not a new screen**, so the journey stays at five (NFR-02).
+  School-leavers never see it. The Me tab can change or clear it.
+- **Panel:** step 5 of "How we matched you" shows the skills score, the field
+  score and the blend. "Your field" is a row among what lifted or held back
+  the score, and the shares still add up exactly (TC-U19d).
+
+### Alternatives rejected
+
+- **A new journey screen.** It would make six screens, against NFR-02.
+- **A list of South African qualifications mapped onto the areas.** It reads
+  better, but the mapping would be our own invention presented as data.
+  Examples under O\*NET's names give most of the benefit without that.
+- **A larger weight.** In the experiment, 0.1 to 0.33 scored within 0.3 points
+  of each other, and 0.5 was clearly worse (67.4% against 73.3% on the tuning
+  half). The smallest weight keeps skills in charge.
+
+### Consequences
+
+- **PT-06** (every job with must-haves, n = 713):
+  - no field: 67.5%;
+  - a noisy field (one of the job's top 3 areas): **70.1%**, +2.7 points,
+    95% interval +1.0 to +4.5;
+  - the job's own top area: 71.5%.
+- **The caveat to say aloud:** the field is simulated from the job itself,
+  which is favourable, and no real students have been tested.
+- **Schema change:** two reference tables and one profile column.
+  `docs/architecture.md` is updated.
+- **PT-03** is a little slower (p95 about 130 ms against about 100 ms), because
+  each request now also builds the knowledge view. That's still far inside
+  the 2,000 ms limit.
+- **Fallback without this change:** `git checkout 36a4b4e`.

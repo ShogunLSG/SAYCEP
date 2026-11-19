@@ -66,7 +66,7 @@ Dated transcripts of every full run are in `docs/test-results/`.
 | Component | File | Diagram name |
 |---|---|---|
 | Loaders | `backend/load_onet.py`, `load_adverts.py`, `load_listings.py` | — |
-| API: routes only (29 endpoints) | `backend/app.py` | SAYCEP API |
+| API: routes only (31 endpoints) | `backend/app.py` | SAYCEP API |
 | Database access | `backend/repository.py` | Occupation Repository |
 | Gap analysis | `backend/gap.py` | Gap Analyser |
 | Pathway generation | `backend/pathway.py` | Pathway Service |

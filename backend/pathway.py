@@ -56,7 +56,8 @@ def generate_pathway(con, profile_id, soc_code):
 
     candidates = [r for r in repository.related_occupations(con, soc_code)
                   if r["related_soc_code"] != soc_code]
-    ordered, closeness = _rank_by_closeness(con, held, candidates + [{"related_soc_code": soc_code}])
+    ordered, closeness = _rank_by_closeness(con, held, candidates + [{"related_soc_code": soc_code}],
+                                            repository.profile_field(con, profile_id))
     ordered = [r for r in ordered if r["related_soc_code"] != soc_code]
     route = [r["related_soc_code"] for r in ordered[:PATHWAY_INTERMEDIATE_STEPS]]
 
@@ -166,7 +167,7 @@ def _step_focus(con, soc_code, held_ids, previous_soc, top_n=6):
     return out[:top_n]
 
 
-def _rank_by_closeness(con, held_ids, candidates):
+def _rank_by_closeness(con, held_ids, candidates, field=None):
     """Most similar to the user's current profile first. Returns the ordered
     candidates and {soc: score}, so each step can say how close it is."""
     if not candidates:
@@ -175,7 +176,7 @@ def _rank_by_closeness(con, held_ids, candidates):
         return list(candidates), {}
 
     model = recommend.Model.load(con)          # the same model as For you (ADR-0027)
-    prof = model.profile(held_ids)
+    prof = model.profile(held_ids, field)      # with the field of study, if given (ADR-0029)
 
     def score(row):
         soc = row["related_soc_code"]

@@ -26,6 +26,9 @@ employers section       0 rules   0 nodes
 jobs for you card       0 rules   0 nodes  
 jobs for you page       0 rules   0 nodes  
 me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
 TOTAL failing elements 0 · no page errors
 == SCHEME=dark
 welcome                 0 rules   0 nodes  
@@ -55,6 +58,9 @@ employers section       0 rules   0 nodes
 jobs for you card       0 rules   0 nodes  
 jobs for you page       0 rules   0 nodes  
 me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
 TOTAL failing elements 0 · no page errors
 == WIDTH=320
 welcome                 0 rules   0 nodes  
@@ -84,4 +90,7 @@ employers section       0 rules   0 nodes
 jobs for you card       0 rules   0 nodes  
 jobs for you page       0 rules   0 nodes  
 me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
 TOTAL failing elements 0 · no page errors

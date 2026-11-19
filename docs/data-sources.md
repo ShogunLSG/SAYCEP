@@ -43,6 +43,7 @@ from the Kaggle copy.
 | `Technology Skills.txt` | 32,470 | Software used in each job, with O*NET's "hot technology" flag |
 | `Tools Used.txt` | 41,650 | Physical tools used in each job, grouped by category |
 | `Interests.txt` | — | RIASEC inventory, for school-leaver intake |
+| `Knowledge.txt` | 58,014 | Importance of 33 knowledge areas per job: a student's field of study is matched against them. Loaded 19 November (ADR-0029), with the same two flags respected |
 
 Two flags in `Skills.txt` must be respected on load: `Recommend Suppress` marks
 low-precision ratings and `Not Relevant` marks skills that don't apply. Rows

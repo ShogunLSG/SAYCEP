@@ -14,6 +14,11 @@ each skill matters. Measured: 67.6% against 58.5% for the ratings alone
 (backend/tests/experiment_model_upgrades.py). Job to job, where both sides
 have ratings, the ratings view alone is better (PT-05), so similar() keeps it.
 
+A student may also give a field of study, one of O*NET's 33 knowledge areas
+(ADR-0029). The same two views are then built over knowledge instead of
+skills, and blended in with weight FIELD_WEIGHT (0.1). With no field, every
+score is exactly the skills-only score.
+
 The rest of this note is about the ratings view (the model until 19 November).
 
 Why mean-centred rather than plain cosine. O*NET's 35 skills are generic --
@@ -130,6 +135,29 @@ def tick_vectors(vectors, threshold=ESSENTIAL_THRESHOLD, fallback=5):
     return out
 
 
+# How much a student's field of study counts (ADR-0029): chosen on half the
+# jobs in experiment_field_of_study.py (0.1 to 0.33 scored within 0.3 points of
+# each other), so the skills still decide. PT-06 measures it.
+FIELD_WEIGHT = 0.1
+
+
+def load_knowledge(con):
+    """(area_ids, {soc: importance vector}) over the 33 O*NET knowledge areas,
+    or None on a database built before they were loaded (ADR-0029)."""
+    try:
+        ids = [r[0] for r in con.execute("SELECT element_id FROM knowledge_areas ORDER BY element_id")]
+        rows = con.execute("SELECT soc_code, element_id, importance FROM occupation_knowledge").fetchall()
+    except Exception:
+        return None
+    if not ids:
+        return None
+    index = {e: i for i, e in enumerate(ids)}
+    vectors = {}
+    for soc, eid, imp in rows:
+        vectors.setdefault(soc, [0.0] * len(ids))[index[eid]] = imp
+    return ids, vectors
+
+
 class Model:
     """The skill-matching model (ADR-0027): two views of every job, averaged.
 
@@ -138,7 +166,7 @@ class Model:
     score into one number per skill, which add up to it exactly (the "How we
     matched you" panel and the reasons both come from it)."""
 
-    def __init__(self, skill_ids, vectors):
+    def __init__(self, skill_ids, vectors, knowledge=None):
         self.ids = skill_ids
         self.vectors = vectors
         self.means = skill_means(vectors, len(skill_ids))
@@ -146,24 +174,41 @@ class Model:
         self.ticks = tick_vectors(vectors)
         self.tick_means = skill_means(self.ticks, len(skill_ids))
         self.tick_centred = centre_occupations(self.ticks, self.tick_means)
+        # The field of study (ADR-0029): the same two views, over the 33
+        # knowledge areas instead of the 35 skills.
+        self.know = Model(*knowledge) if knowledge else None
 
     @classmethod
     def load(cls, con):
-        return cls(*load_vectors(con))
+        return cls(*load_vectors(con), knowledge=load_knowledge(con))
 
-    def profile(self, held_skill_ids):
+    def profile(self, held_skill_ids, field=None):
+        """The person, centred: (ratings view, must-have view, field). The field
+        is the knowledge model's own profile of the one area, or None, in which
+        case every score is exactly the skills-only score."""
         held = set(held_skill_ids)
         ratings = centre_profile(self.ids, held, self.means)
         ticks = [(1.0 if e in held else 0.0) - self.tick_means[i] for i, e in enumerate(self.ids)]
-        return ratings, ticks
+        kprof = self.know.profile([field]) if field and self.know and field in self.know.ids else None
+        return ratings, ticks, kprof
 
     def parts(self, prof, soc):
         """(score from the ratings view, score from the must-have view)."""
         return cosine(prof[0], self.centred[soc]), cosine(prof[1], self.tick_centred[soc])
 
+    def field_part(self, prof, soc):
+        """How closely the field matches this job's knowledge, or None."""
+        if len(prof) < 3 or prof[2] is None or soc not in self.know.centred:
+            return None
+        return self.know.score(prof[2], soc)
+
+    def skill_weight(self, prof, soc):
+        return 1.0 if self.field_part(prof, soc) is None else 1.0 - FIELD_WEIGHT
+
     def score(self, prof, soc):
         a, b = self.parts(prof, soc)
-        return (a + b) / 2
+        f = self.field_part(prof, soc)
+        return (a + b) / 2 if f is None else (1 - FIELD_WEIGHT) * (a + b) / 2 + FIELD_WEIGHT * f
 
     def rank(self, prof, limit=5, restrict_to=None):
         scored = [(soc, self.score(prof, soc)) for soc in self.centred
@@ -174,13 +219,16 @@ class Model:
     def contributions(self, prof, soc):
         """Per skill: (ratings part, must-have part, the two averaged). Each
         part is the skill's product over the cosine's denominator, so a part's
-        sum is that view's score, and the averaged column sums to score()."""
+        sum is that view's score, and the averaged column sums to score().
+        With a field, the averaged column is scaled by the skills' weight and
+        sums to score() less the field's contribution (explain() gives it)."""
+        w = self.skill_weight(prof, soc)
         out = []
         for view, job in ((prof[0], self.centred[soc]), (prof[1], self.tick_centred[soc])):
             dot = sum(x * y for x, y in zip(view, job))
             den = math.sqrt(sum(x * x for x in view)) * math.sqrt(sum(y * y for y in job))
             out.append([x * y / den if den and dot else 0.0 for x, y in zip(view, job)])
-        return [(a, b, (a + b) / 2) for a, b in zip(*out)]
+        return [(a, b, w * (a + b) / 2) for a, b in zip(*out)]
 
     def reasons(self, prof, held_skill_ids, soc, top_n=3):
         """The held skills that lifted this job's score most (FR-06): positive
@@ -190,13 +238,13 @@ class Model:
         parts = [(c[i][2], e) for i, e in enumerate(self.ids) if e in held]
         return [e for v, e in sorted(parts, key=lambda p: (-p[0], p[1])) if v > 1e-9][:top_n]
 
-    def explain(self, held_skill_ids, soc):
+    def explain(self, held_skill_ids, soc, field=None):
         """Every number behind one job's score for one person (ADR-0025,
         ADR-0027), from the same methods as rank(), so it cannot disagree with
         the list. Also the score with no centring (ratings against ticks, raw),
         and how both spread across every job: what centring is for."""
         held = set(held_skill_ids)
-        prof = self.profile(held)
+        prof = self.profile(held, field)
         job = self.vectors[soc]
         c = self.contributions(prof, soc)
         rows = [{"element_id": e, "importance": job[i], "average": self.means[i],
@@ -210,13 +258,19 @@ class Model:
         model_all = sorted(self.score(prof, s) for s in self.vectors)
         span = lambda v: {"low": v[0], "high": v[-1], "median": v[len(v) // 2]}
         a, b = self.parts(prof, soc)
-        return {"rows": rows, "score": (a + b) / 2, "score_ratings": a, "score_must_haves": b,
+        f = self.field_part(prof, soc)
+        field_out = None if f is None else {
+            "element_id": field, "score": f, "weight": FIELD_WEIGHT, "contribution": FIELD_WEIGHT * f,
+            "importance": self.know.vectors[soc][self.know.ids.index(field)],
+            "must_have": bool(self.know.ticks[soc][self.know.ids.index(field)])}
+        return {"rows": rows, "score": self.score(prof, soc), "score_ratings": a, "score_must_haves": b,
+                "score_skills": (a + b) / 2, "field": field_out,
                 "score_uncentred": cosine(you_raw, job),
                 "spread": {"uncentred": span(raw_all), "centred": span(model_all), "jobs": len(self.vectors)},
                 "reasons": self.reasons(prof, held, soc)}
 
 
-def recommend(con, held_skill_ids, limit=5, max_job_zone=None, model=None):
+def recommend(con, held_skill_ids, limit=5, max_job_zone=None, model=None, field=None):
     """Public entry point. Returns [(soc_code, title, score), ...].
 
     An empty profile returns an empty list rather than an arbitrary ranking --
@@ -234,7 +288,7 @@ def recommend(con, held_skill_ids, limit=5, max_job_zone=None, model=None):
             "SELECT soc_code FROM occupations WHERE job_zone <= ?",
             (max_job_zone,))}
 
-    ranked = model.rank(model.profile(held_skill_ids), limit, restrict)
+    ranked = model.rank(model.profile(held_skill_ids, field), limit, restrict)
     titles = dict(con.execute("SELECT soc_code, title FROM occupations"))
     return [(soc, titles.get(soc, "?"), score) for soc, score in ranked]
 

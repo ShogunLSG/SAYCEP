@@ -35,7 +35,7 @@ TC-I06  Role sheet: an occupation read against a profile  (FR-04, FR-09)
 
 TC-I05  Recommendation engine  (FR-06, TR-02, TR-03)
   PASS  TC-I05a  GET recommendations returns 5 results
-  PASS  TC-I05b  single request completed in 51 ms (NFR-01: under 2000 ms)  -- 51 ms
+  PASS  TC-I05b  single request completed in 110 ms (NFR-01: under 2000 ms)  -- 110 ms
   PASS  TC-I05c  every recommendation carries its job zone
   PASS  TC-I05d  an empty skill set returns no recommendations with a message (TR-03)
 
@@ -60,8 +60,8 @@ TC-I09  Job page: related jobs, software and tools  (ADR-0009)
   PASS  TC-I09c  tools are grouped by category, largest first, with a total  -- 164
 
 TC-I10  Sign in with a plan code  (ADR-0008)
-  PASS  TC-I10a  a new profile gets a plan code like K7M-2QX and a trimmed first name  -- BHJ-RNY 'Thabo'
-  PASS  TC-I10b  the code reopens the same plan, however it is typed  -- {'profile_id': '36ef0ec6c973', 'display_name': 'Thabo', 'has_target': False}
+  PASS  TC-I10a  a new profile gets a plan code like K7M-2QX and a trimmed first name  -- C92-6Q7 'Thabo'
+  PASS  TC-I10b  the code reopens the same plan, however it is typed  -- {'profile_id': '8e3f62b49619', 'display_name': 'Thabo', 'has_target': False}
   PASS  TC-I10c  an unknown code returns 404 with a plain message  -- 404
   PASS  TC-I10d  the first name can be cleared -- it is optional
   PASS  TC-I10e  a name over 40 characters is rejected  -- 422
@@ -168,6 +168,17 @@ TC-I23  The skill-matching model, made visible  (ADR-0025)
   PASS  TC-I23h  Jobs your CV points to: ranked by the same engine, with reasons, within Job Zones 1-3 for a school-leaver  -- [('Solar Thermal Installers ', 3), ('Coin, Vending, and Amusem', 2), ('Radio, Cellular, and Towe', 3), ('Locksmiths and Safe Repai', 2), ('Watch and Clock Repairers', 3)]
   PASS  TC-I23i  a CV that shows no skills points to no jobs, and nothing is added to a profile
 
+TC-I24  A student's field of study  (ADR-0029)
+  PASS  TC-I24a  the 33 O*NET knowledge areas, each with O*NET's description and plain examples  -- 33 areas
+  PASS  TC-I24b  a profile can be created with a field, and reads it back with its name  -- {'element_id': '2.C.3.a', 'name': 'Computers and Electronics'}
+  PASS  TC-I24c  an unknown field is refused (422), whether at creation or later  -- 422, 422
+  PASS  TC-I24d  recommendations say which field they used, and the field changes the scores
+  PASS  TC-I24e  How we matched you: the same score as the list, and the skills' shares plus the field's add up to it  -- {'element_id': '2.C.3.a', 'name': 'Computers and Electronics', 'score': 0.024, 'weight': 0.1, 'contribution': 0.0024, 'importance': 3.4, 'must_have': False}
+  PASS  TC-I24f  without a field the explanation has none, and the score is the skills' score
+  PASS  TC-I24g  clearing the field puts the scores back exactly as without one
+  PASS  TC-I24h  the Pathway still builds with a field (its order uses the same model)  -- 200
+  PASS  TC-I24i  setting the field of an unknown profile: 404  -- 404
+
 TC-S01  System test: the rehearsed demo path, start to finish
   PASS  TC-S01a  fresh run of the demo profile reproduces 6/2/26
   PASS  TC-S01b  fresh run reproduces a 3-step pathway to Electricians
@@ -175,4 +186,4 @@ TC-S01  System test: the rehearsed demo path, start to finish
 TC-N01  Concurrency (NFR-01, the connection-per-request fix)
   PASS  TC-N01a  20 concurrent requests, 20 succeeded  -- [200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]
 
-126 passed, 0 failed, 126 total
+135 passed, 0 failed, 135 total

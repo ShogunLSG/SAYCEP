@@ -79,6 +79,17 @@ const results = [];
     await p.click('text=/See all .* jobs for you/'); await p.waitForSelector('.page .jc'); await audit('jobs for you page'); await p.click('.back');
   } else console.log('jobs for you           skipped: listings not loaded');
   await p.click('.tb >> text="Me"'); await p.waitForSelector('#me-name'); await audit('me');
+  // A student with a field of study (ADR-0029): the question, its panel row, and Me.
+  await p.evaluate(() => localStorage.clear()); await p.goto('http://127.0.0.1:8000/'); await p.waitForSelector('.hero');
+  await p.click('.door .cta'); await p.click("text=I'm studying"); await cta();
+  for (const k of ['Programming', 'Critical Thinking', 'Mathematics']) await p.click(`button.chip[aria-label="${k}"]`);
+  await p.waitForSelector('#field-select option[value="2.C.3.a"]', { state: 'attached' }); await p.selectOption('#field-select', '2.C.3.a');
+  await audit('student skills + field'); await cta(); await p.click('.tabs >> text=For you'); await p.waitForSelector('.occwrap');
+  await p.click('.occwrap .how >> nth=0'); await p.waitForSelector('.sheet.match .mscore'); await audit('model panel + field');
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+  await p.click('button.occ >> nth=0'); await p.click('.sheet-foot .cta'); await cta(); await p.waitForSelector('.headline'); await cta();
+  await p.waitForSelector('.steps'); await cta(); await p.waitForSelector('.hello');
+  await p.click('.tb >> text="Me"'); await p.waitForSelector('#me-field'); await audit('me (student)');
   if (process.env.OUT) fs.writeFileSync(process.env.OUT, JSON.stringify(results, null, 1));
   const tot = results.reduce((a, s) => a + s.r.reduce((b, v) => b + v.nodes.length, 0), 0);
   console.log('TOTAL failing elements', tot, '·', errs.length ? 'PAGE ERRORS: ' + errs.join(' | ') : 'no page errors');

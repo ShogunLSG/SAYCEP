@@ -10,6 +10,7 @@ Run: python backend/tests/test_performance.py
   PT-01b TR-01  the same with the target removed, over every occupation (stricter)
   PT-02  TR-02  recommendation inference latency
   PT-05  ADR-0025  job-to-job similarity agrees with O*NET's expert lists (a second, independent check)
+  PT-06  ADR-0029  PT-01b with a field of study added (simulated), against the same people without one
   PT-03  NFR-01 end-to-end API response time, over HTTP
   PT-04  NFR-04 full database rebuild time
 """
@@ -128,6 +129,34 @@ def main():
     check("PT-05", f"top 5 includes an expert-listed related job for {acc5:.1f}% of {len(expert)} jobs, vs random {base5:.1f}% "
           f"({acc5 / base5:.1f}x)", acc5 >= 3 * base5,
           f"share of the top 5 the experts list: {statistics.mean(share5) * 100:.1f}%; no requirement sets a target")
+
+    # PT-06: the field of study (ADR-0029). PT-01b's people again, now also
+    # giving a field: either the job's top knowledge area, or (noisier) one of
+    # its top three at random. Same metric, same people, so the difference is
+    # the field's alone. The field is simulated from the job itself, which is
+    # favourable; real students haven't been tested. The gate is only that a
+    # noisy field doesn't make matching worse.
+    print("\nPT-06  PT-01b with a field of study added (ADR-0029)")
+    full = recommend.Model.load(con)
+    kids, kvec = full.know.ids, full.know.vectors
+    pick = random.Random(6)
+    def top_area(soc, n):
+        return [kids[i] for i in sorted(range(len(kids)), key=lambda i: (-kvec[soc][i], i))[:n]]
+    def hit(prof, soc):
+        return any(x[:2] == soc[:2] for x, _ in [r for r in full.rank(prof, 6) if r[0] != soc][:5])
+    res = {"none": [], "noisy": [], "own": []}
+    for soc, held in every.items():
+        res["none"].append(hit(full.profile(held), soc))
+        res["noisy"].append(hit(full.profile(held, pick.choice(top_area(soc, 3))), soc))
+        res["own"].append(hit(full.profile(held, top_area(soc, 1)[0]), soc))
+    pct = {k: statistics.mean(v) * 100 for k, v in res.items()}
+    bo = random.Random(4)
+    idx = range(len(res["none"]))
+    gains = sorted(statistics.mean(res["noisy"][i] - res["none"][i] for i in bo.choices(idx, k=len(idx))) * 100 for _ in range(1000))
+    check("PT-06", f"same family in top 5: no field {pct['none']:.1f}%, a noisy field {pct['noisy']:.1f}%, "
+          f"the job's own field {pct['own']:.1f}% (n={len(res['none'])}; gate: a noisy field doesn't lower it)",
+          pct["noisy"] >= pct["none"],
+          f"noisy-field gain {pct['noisy'] - pct['none']:+.1f} points, 95% interval {gains[25]:+.1f} to {gains[974]:+.1f}; simulated students")
 
     print("\nPT-02  TR-02 latency: rank all 879 occupations, top 5")
     lat = []

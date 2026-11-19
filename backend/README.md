@@ -9,9 +9,9 @@ Schema: `../docs/architecture.md`.
 |---|---|
 | `load_onet.py` | Builds `saycep.db` from the O*NET 29.0 files (about 5 s), then loads the two advert caches |
 | `load_adverts.py`, `load_listings.py` | Advert counts and sample listings from the Kaggle LinkedIn postings, cached and fingerprinted in `seed/` (ADR-0017, 0019, 0022) |
-| `app.py` | Routes only (29 endpoints) |
+| `app.py` | Routes only (31 endpoints) |
 | `repository.py` | Every SQL query |
-| `recommend.py` | **The skill-matching model** (FR-06): ranking, reasons, the step-by-step explanation, job-to-job similarity (ADR-0025) |
+| `recommend.py` | **The skill-matching model** (FR-06): ranking, reasons, the step-by-step explanation, job-to-job similarity (ADR-0025), the field of study (ADR-0029) |
 | `gap.py`, `pathway.py` | The skills gap (FR-07) and the Pathway (FR-08) |
 | `cvscan.py`, `cvadvice.py` | The CV check (ADR-0014, measured r = 0.27) and its "what to add" advice (ADR-0024) |
 | `interview.py` | Interview questions and checklist feedback (ADR-0015, ADR-0024) |

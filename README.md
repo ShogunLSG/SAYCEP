@@ -43,7 +43,7 @@ saycep/
 │   ├── load_onet.py            # builds saycep.db from the O*NET files (then loads the two advert caches)
 │   ├── load_adverts.py         # advert counts (Kaggle LinkedIn postings), cached in seed/
 │   ├── load_listings.py        # sample listings for "Jobs for you", cached in seed/
-│   ├── app.py                  # the API (29 endpoints), and serves the app
+│   ├── app.py                  # the API (31 endpoints), and serves the app
 │   ├── gap.py, pathway.py      # the two core modules
 │   ├── recommend.py            # the emerging technology: the skill-matching model
 │   ├── cvscan.py, cvadvice.py  # CV check: reading, and what to add

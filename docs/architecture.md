@@ -11,7 +11,7 @@ One service. One database file. One frontend.
 | Backend | Python (FastAPI) — single service |
 | Database | SQLite (file-based, no server to run) |
 | Frontend | React with `htm`, vendored, no build step |
-| Emerging technology | The **skill-matching model** (`backend/recommend.py`): mean-centred cosine similarity over 35 O\*NET skills, averaging two views of each job, its ratings and its must-have list (ADR-0027). PT-01b 67.5% against 25.9% by chance. **No LLM** |
+| Emerging technology | The **skill-matching model** (`backend/recommend.py`): mean-centred cosine similarity over 35 O\*NET skills, averaging two views of each job, its ratings and its must-have list (ADR-0027); a student's field of study counts for a tenth (ADR-0029). PT-01b 67.5% against 25.9% by chance; 70.1% with a (simulated) field, PT-06. **No LLM** |
 | Data | O*NET 29.0 text files, loaded into SQLite by `backend/load_onet.py`; LinkedIn advert counts and sample listings from committed caches (see `data-sources.md`) |
 
 **Why this and not the original stack.** The proposal named Node.js plus a separate Python ML microservice plus React. That's three deployable services to wire, configure and debug. With a working demo due in roughly three weeks and one developer, three services is where the time goes — into plumbing rather than into anything demonstrable. Python is the better single choice because the Kaggle data work (loading CSVs, similarity scoring) is native to it, and SQLite removes a whole class of setup problems.
@@ -59,9 +59,13 @@ advert_listings     (advert_id PK, soc_code, title, location, work_type, level, 
 
 occupation_interests (soc_code, area, score, source_date, PK(soc_code, area))
                      -- the six RIASEC interest scores per job, for the quiz (ADR-0011)
+knowledge_areas     (element_id PK, name, description, source_dataset)   -- the 33, ADR-0029
+occupation_knowledge (soc_code, element_id, importance, PK(soc_code, element_id))
+                     -- a student's field of study is matched against these (ADR-0029)
 
 users               (profile_id PK, profile_type, target_soc_code, created_at,
-                     display_name, plan_code UNIQUE)   -- ADR-0008
+                     display_name, plan_code UNIQUE,   -- ADR-0008
+                     field_element_id)   -- a student's field of study, or NULL (ADR-0029)
 user_skills         (profile_id, element_id, status, updated_at,
                      PK(profile_id, element_id))  -- status: 'held' | 'learning'
 saved_occupations   (profile_id, soc_code, saved_at, PK(profile_id, soc_code))  -- ADR-0010
@@ -69,7 +73,7 @@ progress_events     (profile_id, at, kind, element_id, status, soc_code,
                      skill_count, goal_have, goal_total)   -- dated progress, ADR-0012
 ```
 
-*Checked against the built database on 18 November.* The advert tables and
+*Checked against the built database on 19 November* (the field of study added). The advert tables and
 `advert_listings` are optional: without them, those screens hide or say the data
 isn't loaded.
 

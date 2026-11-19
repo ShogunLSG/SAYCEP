@@ -205,6 +205,9 @@ the proposal does not list, `PUT /profiles/{id}/target`. And the three modules
 outside the demo — CV scorer, opportunity matching, interview chatbot — are
 specified, not built.
 
+*19 November:* a student's field of study (ADR-0029) is built, but **has no
+FR yet**. Its wording is the project owner's to write.
+
 ## Keep in sync
 
 These must agree with the UML diagrams in `docs/uml/`, with proposal section 2.3,

@@ -23,8 +23,8 @@ In the app: the job page, closest jobs and the CV
   PASS  a job the CV points to opens its page  -- Solar Thermal Installers and Technicians
 
 Screens
-  PASS  dark mode: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.14571380615234,"width":460,"height":791.9999771118164}
-  PASS  a 320 px phone: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.17117309570312,"width":320,"height":791.9999694824219}
+  PASS  dark mode: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.28828430175781,"width":460,"height":791.9999847412109}
+  PASS  a 320 px phone: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":107.90011596679688,"width":320,"height":792.0000305175781}
   PASS  no page or console errors anywhere
 
 22 passed. MODEL VISIBLE OK

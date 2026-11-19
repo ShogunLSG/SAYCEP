@@ -1,0 +1,28 @@
+
+The student journey
+  PASS  the skills screen asks "What are you studying?", optional, with 33 areas and a "not studying" choice  -- 34 options
+  PASS  each area carries plain examples
+  PASS  the select has a label a screen reader announces
+  PASS  choosing an area shows O*NET's description of it
+  PASS  the profile is created with the field, in the same request (no extra screen)  -- {"profile_type":"student","skills":["2.B.3.e","2.A.2.a","2.A.1.e","2.B.2.i"],"display_name":null,"field_element_id":"2.C.3.a"}
+  PASS  still step 3 of 5 (NFR-02)
+  PASS  For you says the field counts for a tenth
+  PASS  the panel explains the field: skills score, field score, and 0.9 and 0.1 of them make the match score  -- The model measures how closely your skills match the job both ways, and averages them: its ratings 0.40, its must-have list 0.67, so your skills score 0.53. Your field of study, Computers and Electron
+  PASS  the panel text has its spaces (no "it4.87")  -- rates it 4.87 out of
+  PASS  "Your field" is one of the rows in what lifted or held back the score
+  PASS  the Pathway builds with the field
+
+The Me tab
+  PASS  Me shows the field of study, and the picker holds it
+  PASS  changing it saves straight away  -- {"element_id":"2.C.4.a","name":"Mathematics"}
+  PASS  it can be cleared
+
+A school-leaver
+  PASS  never sees the question
+
+Screens
+  PASS  dark mode: the picker fits, with no sideways scrolling  -- {"x":20,"y":1171.375,"width":420,"height":47}
+  PASS  a 320 px phone: the picker fits, with no sideways scrolling  -- {"x":20,"y":1507.375,"width":280,"height":47}
+  PASS  no page or console errors anywhere
+
+18 passed. FIELD OF STUDY OK

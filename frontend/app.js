@@ -255,7 +255,30 @@ function StepStart({ type, onPick }) {
 
 // ---------- step 2 : skills ----------
 
-function StepSkills({ held, onToggle }) {
+/** A student's field of study (ADR-0029): one of O*NET's 33 knowledge areas,
+ *  each with our plain examples so a student can find theirs. A native select,
+ *  so the keyboard and screen readers work without extra code. Optional. */
+function FieldPicker({ value, onChange, id = "field-select" }) {
+  const { data } = useFetch("/knowledge-areas");
+  const areas = data ? data.areas : [];
+  const chosen = areas.find((a) => a.element_id === value);
+  return html`
+    <div class="fieldq">
+      <label class="field" for=${id}>
+        <span>What are you studying? <i>(optional)</i></span>
+      </label>
+      <select id=${id} class="select" value=${value || ""} disabled=${!data}
+              onChange=${(e) => onChange(e.target.value || null)}>
+        <option value="">${data ? "Not studying, or I'd rather not say" : "Loading…"}</option>
+        ${areas.map((a) => html`<option key=${a.element_id} value=${a.element_id}>${a.name}${a.examples ? ` (${a.examples})` : ""}</option>`)}
+      </select>
+      <p class="note">${chosen
+        ? html`<b>${chosen.name}</b>: ${chosen.description}`
+        : "If you give your field, jobs that use what you're studying rank a little higher. Your skills still count most."}</p>
+    </div>`;
+}
+
+function StepSkills({ held, onToggle, type, field, onField }) {
   const { data, error, loading } = useFetch("/skills");
   const [q, setQ] = useState("");
   const [last, setLast] = useState(null); // the skill last tapped, explained below
@@ -288,6 +311,7 @@ function StepSkills({ held, onToggle }) {
       })}
       ${data && shown.length === 0 && html`<p class="note">No skills match “${q}”.</p>`}
     <//>
+    ${type === "student" && html`<${FieldPicker} value=${field} onChange=${onField} />`}
     <div class="hint" aria-live="polite">
       ${last
         ? html`<b>${last.name}</b> — ${last.description}`
@@ -330,7 +354,8 @@ function StepExplore({ profileId, type, target, onOpen, head }) {
       <p class="note">${leaver
         ? "Ranked by how closely your skills match — only roles that don't need a degree."
         : "Ranked by how closely your skills match, across every preparation level."}
-        ${" "}The number is the match score: 1.00 would be identical.</p>
+        ${" "}The number is the match score: 1.00 would be identical.
+        ${recs.data && recs.data.field && html`${" "}Your field, <b>${recs.data.field.name}</b>, counts for a tenth.`}</p>
       <${Status} loading=${recs.loading} error=${recs.error}>
         ${recs.data && recs.data.recommendations.length > 0 && html`<${ModelTag}
           onExplain=${() => setExplain(recs.data.recommendations[0].soc_code)} />`}

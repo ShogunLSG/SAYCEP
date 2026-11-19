@@ -5,7 +5,8 @@
  * you, orders the Pathway, turns a CV into job suggestions and finds the jobs
  * closest to a job. ModelTag marks each of those places; MatchSheet walks the
  * real numbers for one person and one job, in the five steps the
- * presentation uses, plus the must-have view added on 19 November (ADR-0027).
+ * presentation uses, plus the must-have view added on 19 November (ADR-0027)
+ * and, for a student who gives one, their field of study (ADR-0029).
  * Every figure comes from GET /profiles/{id}/match/{soc}.
  */
 
@@ -57,10 +58,13 @@ function MatchSheet({ profileId, soc, onClose }) {
   const byNeed = d ? [...d.skills].sort((a, b) => b.importance - a.importance) : [];
   const byDiff = d ? [...d.skills].sort((a, b) => Math.abs(b.job_centred) - Math.abs(a.job_centred)) : [];
   const held = d ? d.skills.filter((k) => k.held) : [];
-  const lifts = held.filter((k) => k.contribution > 0).sort((a, b) => b.contribution - a.contribution);
-  const drags = held.filter((k) => k.contribution < 0).sort((a, b) => a.contribution - b.contribution);
+  // A field of study (ADR-0029) is one more row in what lifted or held back the score.
+  const fieldRow = d && d.field ? { element_id: "field", name: `Your field: ${d.field.name}`, contribution: d.field.contribution } : null;
+  const rowsC = fieldRow ? [...held, fieldRow] : held;
+  const lifts = rowsC.filter((k) => k.contribution > 0).sort((a, b) => b.contribution - a.contribution);
+  const drags = rowsC.filter((k) => k.contribution < 0).sort((a, b) => a.contribution - b.contribution);
   const maxDiff = d ? Math.max(...d.skills.map((k) => Math.abs(k.job_centred))) : 1;
-  const maxC = d ? Math.max(0.01, ...held.map((k) => Math.abs(k.contribution))) : 1;
+  const maxC = d ? Math.max(0.01, ...rowsC.map((k) => Math.abs(k.contribution))) : 1;
   const N = all ? 35 : 8;
   // Rendered at the app's top level, not inside the page that opened it: in the
   // journey that page scrolls, and a panel inside it would be cut off.
@@ -111,9 +115,15 @@ function MatchSheet({ profileId, soc, onClose }) {
             <p class="note">The bar is how unusual each must-have is: the figure is the share of all jobs that also have it as a must-have.</p>
 
             <h4 class="sect"><span class="mstep">5</span> The score</h4>
-            <p class="note">The model measures how closely you match the job both ways, and averages them:
-              its ratings <b>${d.score_ratings.toFixed(2)}</b>, its must-have list <b>${d.score_must_haves.toFixed(2)}</b>,
-              so the match score is <b>${d.score.toFixed(2)}</b>. Each skill's share is below; they add up to the score.</p>
+            ${d.field
+              ? html`<p class="note">The model measures how closely your skills match the job both ways, and averages them:
+                  its ratings <b>${d.score_ratings.toFixed(2)}</b>, its must-have list <b>${d.score_must_haves.toFixed(2)}</b>,
+                  so your skills score <b>${d.score_skills.toFixed(2)}</b>. Your field of study, <b>${d.field.name}</b>,
+                  matches what this job needs to know at <b>${d.field.score.toFixed(2)}</b>${" "}(O*NET rates it${" "}${d.field.importance.toFixed(2)} out of 5 for this job). Your field counts for a tenth, so the match score is${" "}
+                  <b>${d.score.toFixed(2)}</b>. Each share is below; they add up to the score.</p>`
+              : html`<p class="note">The model measures how closely you match the job both ways, and averages them:
+                  its ratings <b>${d.score_ratings.toFixed(2)}</b>, its must-have list <b>${d.score_must_haves.toFixed(2)}</b>,
+                  so the match score is <b>${d.score.toFixed(2)}</b>. Each skill's share is below; they add up to the score.</p>`}
             ${lifts.length > 0 && html`<p class="msub">What lifted it</p>
               <ul class="mrows">${lifts.map((k) => html`
                 <li key=${k.element_id}><span class="mn">${k.name}</span><${Bar} value=${k.contribution} max=${maxC} tone="pos" /><span class="mv">${fmt(k.contribution)}</span></li>`)}</ul>`}

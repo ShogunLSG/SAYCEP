@@ -529,6 +529,48 @@ def main():
     check("TC-I23i", "a CV that shows no skills points to no jobs, and nothing is added to a profile",
           s == 200 and nopt["points_to"] == [] and nopt["stored"] is False)
 
+    print("\nTC-I24  A student's field of study  (ADR-0029)")
+    s, ka = call("GET", "/knowledge-areas")
+    check("TC-I24a", "the 33 O*NET knowledge areas, each with O*NET's description and plain examples",
+          s == 200 and len(ka["areas"]) == 33 and all(a["description"] and a["examples"] for a in ka["areas"])
+          and ka["weight"] == 0.1, f"{len(ka.get('areas', []))} areas")
+    comp = "2.C.3.a"   # Computers and Electronics
+    s, fp = call("POST", "/profiles", {"profile_type": "student", "skills": held, "field_element_id": comp})
+    fpid = fp["profile_id"]
+    s, nf = call("POST", "/profiles", {"profile_type": "student", "skills": held})
+    s, g = call("GET", f"/profiles/{fpid}")
+    check("TC-I24b", "a profile can be created with a field, and reads it back with its name",
+          s == 200 and g["field"] == {"element_id": comp, "name": "Computers and Electronics"}, str(g.get("field")))
+    s, bad = call("POST", "/profiles", {"profile_type": "student", "skills": held, "field_element_id": "9.Z.9"})
+    s2, _ = call("PUT", f"/profiles/{fpid}/field", {"element_id": "2.A.1.a"})   # a skill, not a knowledge area
+    check("TC-I24c", "an unknown field is refused (422), whether at creation or later", s == 422 and s2 == 422, f"{s}, {s2}")
+    s, rf = call("GET", f"/recommendations?profile_id={fpid}&limit=10")
+    s, rn = call("GET", f"/recommendations?profile_id={nf['profile_id']}&limit=10")
+    check("TC-I24d", "recommendations say which field they used, and the field changes the scores",
+          rf["field"]["name"] == "Computers and Electronics" and rn["field"] is None
+          and [x["score"] for x in rf["recommendations"]] != [x["score"] for x in rn["recommendations"]])
+    soc = rf["recommendations"][0]["soc_code"]
+    s, mf = call("GET", f"/profiles/{fpid}/match/{soc}")
+    check("TC-I24e", "How we matched you: the same score as the list, and the skills' shares plus the field's add up to it",
+          mf["score"] == rf["recommendations"][0]["score"] and mf["field"]["name"] == "Computers and Electronics"
+          and abs(sum(k["contribution"] for k in mf["skills"]) + mf["field"]["contribution"] - mf["score"]) < 0.002
+          and abs(0.9 * mf["score_skills"] + 0.1 * mf["field"]["score"] - mf["score"]) < 0.002, str(mf["field"]))
+    s, mn = call("GET", f"/profiles/{nf['profile_id']}/match/{soc}")
+    check("TC-I24f", "without a field the explanation has none, and the score is the skills' score",
+          mn["field"] is None and mn["score"] == mn["score_skills"])
+    s, cl = call("PUT", f"/profiles/{fpid}/field", {"element_id": None})
+    s, rc = call("GET", f"/recommendations?profile_id={fpid}&limit=10")
+    check("TC-I24g", "clearing the field puts the scores back exactly as without one",
+          s == 200 and cl["field"] is None and rc["recommendations"] == rn["recommendations"])
+    call("PUT", f"/profiles/{fpid}/field", {"element_id": comp})
+    call("PUT", f"/profiles/{fpid}/target", {"soc_code": "15-1251.00"})
+    call("PUT", f"/profiles/{nf['profile_id']}/target", {"soc_code": "15-1251.00"})
+    s, pw = call("GET", f"/profiles/{fpid}/pathway")
+    check("TC-I24h", "the Pathway still builds with a field (its order uses the same model)",
+          s == 200 and pw["target"]["soc_code"] == "15-1251.00", str(s))
+    s, nope = call("PUT", "/profiles/nobody/field", {"element_id": comp})
+    check("TC-I24i", "setting the field of an unknown profile: 404", s == 404, str(s))
+
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
     spid = sprof["profile_id"]

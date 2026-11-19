@@ -6,13 +6,16 @@ PT-01  TR-01 accuracy against a random baseline of the SAME metric
 PT-05  Job-to-job similarity against O*NET's expert lists of related jobs
   PASS  PT-05  top 5 includes an expert-listed related job for 60.6% of 879 jobs, vs random 5.2% (11.6x)  -- share of the top 5 the experts list: 19.8%; no requirement sets a target
 
+PT-06  PT-01b with a field of study added (ADR-0029)
+  PASS  PT-06  same family in top 5: no field 67.5%, a noisy field 70.1%, the job's own field 71.5% (n=713; gate: a noisy field doesn't lower it)  -- noisy-field gain +2.7 points, 95% interval +1.0 to +4.5; simulated students
+
 PT-02  TR-02 latency: rank all 879 occupations, top 5
-  PASS  PT-02  p95 7.9 ms, median 7.4 ms, n=49 (target <= 100 ms)  -- max 13.2 ms
+  PASS  PT-02  p95 7.3 ms, median 6.9 ms, n=49 (target <= 100 ms)  -- max 8.3 ms
 
 PT-03  NFR-01 response time over HTTP, every demo-path endpoint
-  PASS  PT-03  60 requests: p95 57 ms, max 77 ms (target: 95% under 2000 ms)  -- median 21 ms
+  PASS  PT-03  60 requests: p95 126 ms, max 213 ms (target: 95% under 2000 ms)  -- median 16 ms
 
 PT-04  NFR-04 full rebuild of saycep.db from the O*NET files
-  PASS  PT-04  rebuild took 2.22 s (target <= 60 s)  -- Built saycep.db from O*NET 29.0 (August 2024 release)
+  PASS  PT-04  rebuild took 2.21 s (target <= 60 s)  -- Built saycep.db from O*NET 29.0 (August 2024 release)
 
-6 passed, 0 failed, 6 total
+7 passed, 0 failed, 7 total

@@ -77,6 +77,8 @@ class ProfileIn(BaseModel):
     target_soc_code: str | None = None
     # Optional, and the only personal detail SAYCEP ever holds (ADR-0008).
     display_name: str | None = Field(None, max_length=40)
+    # A student's field of study: one O*NET knowledge area, optional (ADR-0029).
+    field_element_id: str | None = Field(None, max_length=12)
 
 
 class CvIn(BaseModel):
@@ -91,6 +93,10 @@ class AnswerIn(BaseModel):
     answer: str = Field(..., max_length=5000)
     skill_element_id: str | None = None
     tool: str | None = Field(None, max_length=120)   # the tool a technical question asked about
+
+
+class FieldIn(BaseModel):
+    element_id: str | None = Field(None, max_length=12)   # null clears it
 
 
 class NameIn(BaseModel):
@@ -269,9 +275,11 @@ def create_profile(body: ProfileIn, con=Depends(db)):
         raise HTTPException(422, f"Unknown skill identifiers: {unknown}")
     if body.target_soc_code:
         _require_occupation(con, body.target_soc_code)
+    _require_field(con, body.field_element_id)
 
     profile_id = repository.create_profile(
-        con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name))
+        con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name),
+        body.field_element_id)
     _log(con, profile_id, "started", skill_count=len(set(body.skills)),
          soc_code=body.target_soc_code)
     return {
@@ -314,6 +322,7 @@ def get_profile(profile_id: str, con=Depends(db)):
         "created_at": profile["created_at"],
         "display_name": profile["display_name"],
         "plan_code": _format_code(profile["plan_code"]),
+        "field": _field_view(con, profile["field_element_id"]),
         "target": target,
         "skills": skills,
         "held_count": sum(s["status"] == "held" for s in skills),
@@ -343,6 +352,39 @@ def set_name(profile_id: str, body: NameIn, con=Depends(db)):
     _require_profile(con, profile_id)
     repository.set_display_name(con, profile_id, _clean_name(body.display_name))
     return {"profile_id": profile_id, "display_name": _clean_name(body.display_name)}
+
+
+def _require_field(con, element_id):
+    if element_id and element_id not in {r["element_id"] for r in repository.knowledge_areas(con)}:
+        raise HTTPException(422, f"Unknown field of study: {element_id}. See GET /knowledge-areas.")
+
+
+def _field_view(con, element_id):
+    if not element_id:
+        return None
+    row = next((r for r in repository.knowledge_areas(con) if r["element_id"] == element_id), None)
+    return {"element_id": element_id, "name": row["name"]} if row else None
+
+
+@app.get("/knowledge-areas", tags=["profile"])
+def knowledge_areas(con=Depends(db)):
+    """The 33 O*NET knowledge areas a student can give as their field of study
+    (ADR-0029), each with O*NET's description and our plain examples."""
+    return {"areas": [{"element_id": r["element_id"], "name": r["name"], "description": r["description"],
+                       "examples": plain.FIELD_EXAMPLES.get(r["element_id"], "")}
+                      for r in repository.knowledge_areas(con)],
+            "weight": recommendation_engine.FIELD_WEIGHT,
+            "dataset": "O*NET 29.0 (August 2024 release)"}
+
+
+@app.put("/profiles/{profile_id}/field", tags=["profile"])
+def set_field(profile_id: str, body: FieldIn, con=Depends(db)):
+    """Set or clear the field of study (ADR-0029). Recommendations, the
+    Pathway's order and "How we matched you" take it into account."""
+    _require_profile(con, profile_id)
+    _require_field(con, body.element_id)
+    repository.set_field(con, profile_id, body.element_id or None)
+    return {"profile_id": profile_id, "field": _field_view(con, body.element_id)}
 
 
 def _goal_snapshot(con, profile_id):
@@ -530,7 +572,8 @@ def scan_cv(body: CvIn, con=Depends(db)):
         # Jobs your CV points to (ADR-0025): the skills the CV seems to show, put
         # through the same engine as For you. Unconfirmed suggestions, so
         # nothing is added to the profile.
-        "points_to": _ranked(con, list(evidence), 5, 3 if leaver else None),
+        "points_to": _ranked(con, list(evidence), 5, 3 if leaver else None,
+                             repository.profile_field(con, body.profile_id) if body.profile_id else None),
         "points_to_basis": "The skills your CV seems to show, matched by the skill-matching model.",
         "goal": None,
         "stored": False,
@@ -743,7 +786,7 @@ def interest_match(
         held = repository.profile_skill_ids(con, profile_id)
         if held:
             model = recommendation_engine.Model.load(con)
-            prof = model.profile(held)
+            prof = model.profile(held, repository.profile_field(con, profile_id))
             skill_score = lambda soc: model.score(prof, soc)
     return {
         "your_areas": [{"area": x, "name": interest_matcher.AREA_NAMES[x]}
@@ -855,10 +898,12 @@ def get_recommendations(
     """
     _require_profile(con, profile_id)
     held = repository.profile_skill_ids(con, profile_id)
-    results = _ranked(con, held, limit, max_job_zone)
+    field = repository.profile_field(con, profile_id)
+    results = _ranked(con, held, limit, max_job_zone, field)
     return {
         "profile_id": profile_id,
         "method": METHOD,
+        "field": _field_view(con, field),
         "max_job_zone": max_job_zone,
         "recommendations": results,
         "message": None if results else
@@ -867,19 +912,20 @@ def get_recommendations(
 
 
 METHOD = ("the skill-matching model: mean-centred cosine similarity over 35 O*NET skills, "
-          "averaging two views of each job, its importance ratings and its must-have list (ADR-0027)")
+          "averaging two views of each job, its importance ratings and its must-have list (ADR-0027); "
+          "a student's field of study, if given, counts for a tenth (ADR-0029)")
 
 
-def _ranked(con, held, limit, max_job_zone=None):
+def _ranked(con, held, limit, max_job_zone=None, field=None):
     """The engine's ranked jobs for a set of held skills, each with its score,
     plain match words and the held skills that lifted it most (FR-06). Shared
     by For you and the CV's "Jobs your CV points to" (ADR-0025)."""
     model = recommendation_engine.Model.load(con)
-    results = recommendation_engine.recommend(con, held, limit, max_job_zone, model=model)
+    results = recommendation_engine.recommend(con, held, limit, max_job_zone, model=model, field=field)
     if not results:
         return []
     zones = repository.occupation_zones(con)
-    prof = model.profile(held)
+    prof = model.profile(held, field)
     names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
     return [{"soc_code": soc, "title": title, "score": round(score, 3),
              "match": plain.match_level(score), "job_zone": zones.get(soc),
@@ -904,12 +950,20 @@ def match_explained(profile_id: str, soc_code: str, con=Depends(db)):
     if not held or soc_code not in model.vectors:
         return {**out, "explained": False,
                 "message": "Tick at least one skill first." if not held else "This job has no skill ratings to compare."}
-    ex = model.explain(held, soc_code)
+    field = repository.profile_field(con, profile_id)
+    ex = model.explain(held, soc_code, field)
     names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
     r3 = lambda x: round(x, 3)
+    fx = ex["field"]
     return {**out, "explained": True,
             "score": r3(ex["score"]), "match": plain.match_level(ex["score"]),
             "score_ratings": r3(ex["score_ratings"]), "score_must_haves": r3(ex["score_must_haves"]),
+            "score_skills": r3(ex["score_skills"]),
+            # The field of study's part (ADR-0029), or None when none is given.
+            "field": None if fx is None else {
+                **_field_view(con, fx["element_id"]), "score": r3(fx["score"]), "weight": fx["weight"],
+                "contribution": round(fx["contribution"], 4), "importance": r3(fx["importance"]),
+                "must_have": fx["must_have"]},
             "score_uncentred": r3(ex["score_uncentred"]),
             "spread": {k: ({kk: r3(vv) for kk, vv in v.items()} if isinstance(v, dict) else v)
                        for k, v in ex["spread"].items()},
