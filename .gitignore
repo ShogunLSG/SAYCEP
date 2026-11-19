@@ -30,3 +30,7 @@ docs/Datasets/
 
 # Claude Code harness state (launch.json is project config and is kept)
 .claude/*.lock
+
+# Test-time tools (Playwright, axe-core), installed with npm i --no-save
+node_modules/
+package-lock.json

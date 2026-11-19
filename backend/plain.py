@@ -91,3 +91,44 @@ def preparation(zone):
 def skill_group(element_id):
     return next((name for prefix, name in SKILL_GROUPS
                  if element_id.startswith(prefix)), "Other skills")
+
+
+# Plain examples under each O*NET knowledge area, so a student can find their
+# field of study (ADR-0029). The 33 areas and their descriptions are O*NET's;
+# these examples are ours: UI wording that helps someone choose, not data the
+# model uses.
+FIELD_EXAMPLES = {
+    "2.C.1.a": "Business management, public administration",
+    "2.C.1.b": "Office administration, secretarial studies",
+    "2.C.1.c": "BCom, accounting, economics, banking",
+    "2.C.1.d": "Marketing, retail, sales",
+    "2.C.1.e": "Hospitality, tourism, customer service",
+    "2.C.1.f": "Human resource management",
+    "2.C.2.a": "Manufacturing, quality control, operations",
+    "2.C.2.b": "Agriculture, farming, food technology",
+    "2.C.3.a": "IT, computer science, information systems",
+    "2.C.3.b": "Engineering: civil, electrical, mechanical, chemical",
+    "2.C.3.c": "Drafting, architecture, technical drawing",
+    "2.C.3.d": "Building, construction, plumbing, bricklaying",
+    "2.C.3.e": "Motor mechanics, fitting and turning, millwright",
+    "2.C.4.a": "Mathematics, statistics, actuarial science",
+    "2.C.4.b": "Physics, physical science",
+    "2.C.4.c": "Chemistry, chemical sciences",
+    "2.C.4.d": "Biology, life sciences, environmental science",
+    "2.C.4.e": "Psychology",
+    "2.C.4.f": "Sociology, social work, anthropology",
+    "2.C.4.g": "Geography, surveying, GIS",
+    "2.C.5.a": "Nursing, medicine, pharmacy, dentistry",
+    "2.C.5.b": "Physiotherapy, occupational therapy, counselling",
+    "2.C.6": "Teaching, education, early childhood development",
+    "2.C.7.a": "English, journalism, writing",
+    "2.C.7.b": "Languages other than English, translation",
+    "2.C.7.c": "Music, drama, dance, visual art",
+    "2.C.7.d": "History, archaeology, heritage",
+    "2.C.7.e": "Philosophy, theology, religious studies",
+    "2.C.8.a": "Policing, safety and security, firefighting",
+    "2.C.8.b": "Law (LLB), paralegal studies, public policy",
+    "2.C.9.a": "Telecommunications, network technology",
+    "2.C.9.b": "Media, public relations, film",
+    "2.C.10": "Logistics, transport, aviation",
+}

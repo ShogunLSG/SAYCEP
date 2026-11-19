@@ -359,8 +359,8 @@ def main():
     print("\nTC-I19  Interview practice  (ADR-0015)")
     s, iq = call("GET", f"/interview/questions?profile_id={pid}")
     kinds = [q["kind"] for q in iq["questions"]]
-    check("TC-I19a", "questions for the profile's goal: an opener, one per must-have, one from a task",
-          s == 200 and iq["soc_code"] == "47-2111.00" and kinds == ["opener", "skill", "skill", "task"]
+    check("TC-I19a", "questions for the profile's goal: an opener, one per must-have, a tool where adverts name one (ADR-0024), one from a task",
+          s == 200 and iq["soc_code"] == "47-2111.00" and kinds == ["opener", "skill", "skill", "tool", "task"]
           and {q["skill"]["name"] for q in iq["questions"] if q["skill"]} == {"Troubleshooting", "Repairing"},
           str(kinds))
     sq = next(q for q in iq["questions"] if q["kind"] == "skill")
@@ -419,6 +419,157 @@ def main():
               s == 200 and none["adverts"] == 0, none_soc)
     s, e = call("GET", "/occupations/99-9999.99/adverts")
     check("TC-I20g", "an unknown occupation returns 404", s == 404, str(s))
+
+    print("\nTC-I21  Jobs for you: sample listings  (module 4, ADR-0022)")
+    s, lp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    lpid = lp["profile_id"]
+    s, none_yet = call("GET", f"/profiles/{lpid}/listings")
+    check("TC-I21a", "no goal yet: no listings, not an error", s == 200 and none_yet["listings"] == [], str(s))
+    call("PUT", f"/profiles/{lpid}/target", {"soc_code": "47-2111.00"})
+    s, jl = call("GET", f"/profiles/{lpid}/listings?limit=40")
+    if s == 200 and not jl["loaded"]:
+        print("  SKIP  TC-I21  listings not loaded (run python backend/load_listings.py)")
+    else:
+        _, lpw = call("GET", f"/profiles/{lpid}/pathway")
+        items = jl["listings"]
+        check("TC-I21b", "listings come from the goal and the jobs on the route, and only those",
+              set(jl["occupations"]) == {st["soc_code"] for st in lpw["steps"]}
+              and items and {x["soc_code"] for x in items} <= set(jl["occupations"]), str(jl["occupations"]))
+        check("TC-I21c", "every listing is labelled: US adverts, demo data, closed, not openings; dataset named",
+              all(w in jl["note"] for w in ("United States", "demo data", "closed", "not openings")) and "CC BY-SA" in jl["dataset"])
+        shares = [x["fit"]["have"] / x["fit"]["mentioned"] if x["fit"]["mentioned"] else 0 for x in items]
+        check("TC-I21d", "best fit first: the share of named skills held never rises down the list",
+              all(a >= b for a, b in zip(shares, shares[1:])), str([round(v, 2) for v in shares[:6]]))
+        check("TC-I21e", "fit counts agree with the skills listed and the profile",
+              all(x["fit"]["have"] == sum(k["status"] == "held" for k in x["skills"]) for x in items))
+        check("TC-I21f", "no advert text, company, link or pay comes back",
+              not any(k in json.dumps(jl).lower() for k in ("description", "company", "http", "salary")))
+        s, one = call("GET", f"/occupations/47-2111.00/listings?profile_id={lpid}&limit=3")
+        check("TC-I21g", "a job page gets at most the limit, all for that job",
+              s == 200 and 0 < len(one["listings"]) <= 3 and all(x["soc_code"] == "47-2111.00" for x in one["listings"]))
+    s, _ = call("GET", "/occupations/99-9999.99/listings")
+    check("TC-I21h", "an unknown occupation returns 404", s == 404, str(s))
+
+    print("\nTC-I22  CV advice and the technical interview question  (ADR-0024)")
+    weak_cv = ("Lerato Nkosi. Matric 2023. Shop assistant at Pick n Pay: served customers at the till, kept stock records. "
+               "Volunteer: replaced plugs in the community hall.")
+    s, sc = call("POST", "/cv/scan", {"text": weak_cv, "soc_code": "47-2111.00"})
+    add = sc["goal"]["add"] if s == 200 and sc.get("goal") else []
+    check("TC-I22a", "a CV scan with a goal returns what to add: requirements, then skills, each with a reason and an example",
+          s == 200 and add and all(x["kind"] in ("requirement", "tool", "skill") and x["why"] and x["example"] for x in add)
+          and {x["kind"] for x in add} >= {"requirement", "skill"}, str([(x["kind"], x["title"]) for x in add]))
+    adv_ok = repository_has_adverts = "adverts" in json.dumps(add)
+    check("TC-I22b", "advert figures say how many US adverts, and when",
+          all("US adverts for this job (" in x["why"] for x in add if x["kind"] != "skill"))
+    s, lic = call("POST", "/cv/scan", {"text": weak_cv + " I hold a trade certificate and a Code 8 driver's licence.", "soc_code": "47-2111.00"})
+    check("TC-I22c", "naming a licence in the CV removes the licence advice",
+          s == 200 and not [x for x in lic["goal"]["add"] if x["title"] in ("A trade licence or certificate", "A driver's licence")],
+          str([x["title"] for x in lic["goal"]["add"]]))
+    s, nogoal = call("POST", "/cv/scan", {"text": weak_cv})
+    check("TC-I22d", "no goal, no advice: goal stays empty and nothing is stored", s == 200 and nogoal["goal"] is None and nogoal["stored"] is False)
+    import sqlite3
+    from pathlib import Path
+    dbc = sqlite3.connect(Path(__file__).resolve().parents[1] / "saycep.db")
+    no_adverts = dbc.execute("SELECT soc_code FROM occupations WHERE soc_code NOT IN (SELECT soc_code FROM advert_summary) AND soc_code IN "
+                             "(SELECT soc_code FROM occupation_skills) ORDER BY soc_code LIMIT 1").fetchone()[0]
+    dbc.close()
+    s, na = call("POST", "/cv/scan", {"text": weak_cv, "soc_code": no_adverts})
+    check("TC-I22e", "a job with no adverts: skill advice only, and no advert figure claimed",
+          s == 200 and na["goal"]["add"] and all(x["kind"] == "skill" for x in na["goal"]["add"]), no_adverts)
+    s, iq = call("GET", "/interview/questions?soc_code=47-2111.00")
+    tq = [q for q in iq.get("questions", []) if q["id"] == "tool"]
+    check("TC-I22f", "Electricians get a technical question about a tool the adverts name, after the skill questions",
+          s == 200 and len(tq) == 1 and tq[0]["tool"] in tq[0]["text"] and iq["questions"][-1]["id"] == "task", str(tq))
+    s, nq = call("GET", f"/interview/questions?soc_code={no_adverts}")
+    check("TC-I22g", "a job with no adverts gets no technical question", s == 200 and all(q["id"] != "tool" for q in nq["questions"]))
+    s, f1 = call("POST", "/interview/feedback", {"answer": "Last year I used " + tq[0]["tool"] + " at school to track the club's stock list. I made a sheet and it saved us time.", "tool": tq[0]["tool"]})
+    s, f2 = call("POST", "/interview/feedback", {"answer": "Last year at school I tracked the club's stock list by hand. I made a list and it saved us time.", "tool": tq[0]["tool"]})
+    check("TC-I22h", "feedback checks the tool is named: green when it is, a tip when it isn't",
+          s == 200 and f1["items"][0]["key"] == "tool" and f1["items"][0]["ok"] and not f2["items"][0]["ok"] and f2["items"][0]["tip"])
+    s, _ = call("POST", "/interview/feedback", {"answer": "x" * 10, "tool": "t" * 200})
+    check("TC-I22i", "an over-long tool name is refused (422), never stored", s == 422, str(s))
+
+    print("\nTC-I23  The skill-matching model, made visible  (ADR-0025)")
+    s, mp = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})
+    mpid = mp["profile_id"]
+    s, rec5 = call("GET", f"/recommendations?profile_id={mpid}&limit=5&max_job_zone=3")
+    top = rec5["recommendations"][0]
+    s, mx = call("GET", f"/profiles/{mpid}/match/{top['soc_code']}")
+    check("TC-I23a", "How we matched you: the same score, match words and reasons as the For you list",
+          s == 200 and mx["explained"] and mx["score"] == top["score"] and mx["match"] == top["match"]
+          and mx["because"] == top["because"], f"{top['title']}: {mx.get('score')} vs {top['score']}")
+    check("TC-I23b", "it carries all 35 skills, each with the job's rating, its centred value, yours and the product",
+          len(mx["skills"]) == 35 and all({"importance", "job_centred", "you_centred", "contribution", "held", "group"} <= set(k) for k in mx["skills"])
+          and sum(k["held"] for k in mx["skills"]) == len(held))
+    check("TC-I23c", "with and without centring, and the range across every job",
+          mx["spread"]["jobs"] >= 800 and mx["spread"]["centred"]["low"] < 0 < mx["spread"]["uncentred"]["low"]
+          and "score_uncentred" in mx, str(mx["spread"]))
+    s, e1 = call("GET", f"/profiles/{mpid}/match/99-9999.99")
+    s2, e2 = call("GET", "/profiles/nobody/match/47-2111.00")
+    check("TC-I23d", "an unknown job or profile returns 404", s == 404 and s2 == 404, f"{s}, {s2}")
+    s, ep = call("POST", "/profiles", {"profile_type": "student", "skills": [held[0]]})
+    call("DELETE", f"/profiles/{ep['profile_id']}/skills/{held[0]}")
+    s, em = call("GET", f"/profiles/{ep['profile_id']}/match/47-2111.00")
+    check("TC-I23e", "a profile with no skills gets a message, not an error", s == 200 and em["explained"] is False and em["message"], str(em.get("message")))
+    s, sj = call("GET", "/occupations/47-2111.00/similar")
+    check("TC-I23f", "closest jobs: five, best first, never the job itself, each marked if O*NET's experts also list it",
+          s == 200 and len(sj["similar"]) == 5 and all(x["soc_code"] != "47-2111.00" for x in sj["similar"])
+          and [x["score"] for x in sj["similar"]] == sorted([x["score"] for x in sj["similar"]], reverse=True)
+          and any(x["expert_listed"] for x in sj["similar"]), str([(x["title"][:20], x["expert_listed"]) for x in sj["similar"]]))
+    s, _ = call("GET", "/occupations/99-9999.99/similar")
+    check("TC-I23g", "closest jobs for an unknown job: 404", s == 404, str(s))
+    s, pt = call("POST", "/cv/scan", {"text": "I fixed bicycles and repaired small appliances for neighbours. I installed plug points with my uncle.",
+                                      "profile_id": mpid})
+    _, zones = call("GET", "/occupations?zone=4&limit=1")
+    check("TC-I23h", "Jobs your CV points to: ranked by the same engine, with reasons, within Job Zones 1-3 for a school-leaver",
+          s == 200 and pt["points_to"] and all(x["job_zone"] <= 3 and x["because"] for x in pt["points_to"])
+          and [x["score"] for x in pt["points_to"]] == sorted([x["score"] for x in pt["points_to"]], reverse=True),
+          str([(x["title"][:25], x["job_zone"]) for x in pt["points_to"]]))
+    s, nopt = call("POST", "/cv/scan", {"text": "Hello, my name is Sipho and I am looking for work in Pretoria."})
+    check("TC-I23i", "a CV that shows no skills points to no jobs, and nothing is added to a profile",
+          s == 200 and nopt["points_to"] == [] and nopt["stored"] is False)
+
+    print("\nTC-I24  A student's field of study  (ADR-0029)")
+    s, ka = call("GET", "/knowledge-areas")
+    check("TC-I24a", "the 33 O*NET knowledge areas, each with O*NET's description and plain examples",
+          s == 200 and len(ka["areas"]) == 33 and all(a["description"] and a["examples"] for a in ka["areas"])
+          and ka["weight"] == 0.1, f"{len(ka.get('areas', []))} areas")
+    comp = "2.C.3.a"   # Computers and Electronics
+    s, fp = call("POST", "/profiles", {"profile_type": "student", "skills": held, "field_element_id": comp})
+    fpid = fp["profile_id"]
+    s, nf = call("POST", "/profiles", {"profile_type": "student", "skills": held})
+    s, g = call("GET", f"/profiles/{fpid}")
+    check("TC-I24b", "a profile can be created with a field, and reads it back with its name",
+          s == 200 and g["field"] == {"element_id": comp, "name": "Computers and Electronics"}, str(g.get("field")))
+    s, bad = call("POST", "/profiles", {"profile_type": "student", "skills": held, "field_element_id": "9.Z.9"})
+    s2, _ = call("PUT", f"/profiles/{fpid}/field", {"element_id": "2.A.1.a"})   # a skill, not a knowledge area
+    check("TC-I24c", "an unknown field is refused (422), whether at creation or later", s == 422 and s2 == 422, f"{s}, {s2}")
+    s, rf = call("GET", f"/recommendations?profile_id={fpid}&limit=10")
+    s, rn = call("GET", f"/recommendations?profile_id={nf['profile_id']}&limit=10")
+    check("TC-I24d", "recommendations say which field they used, and the field changes the scores",
+          rf["field"]["name"] == "Computers and Electronics" and rn["field"] is None
+          and [x["score"] for x in rf["recommendations"]] != [x["score"] for x in rn["recommendations"]])
+    soc = rf["recommendations"][0]["soc_code"]
+    s, mf = call("GET", f"/profiles/{fpid}/match/{soc}")
+    check("TC-I24e", "How we matched you: the same score as the list, and the skills' shares plus the field's add up to it",
+          mf["score"] == rf["recommendations"][0]["score"] and mf["field"]["name"] == "Computers and Electronics"
+          and abs(sum(k["contribution"] for k in mf["skills"]) + mf["field"]["contribution"] - mf["score"]) < 0.002
+          and abs(0.9 * mf["score_skills"] + 0.1 * mf["field"]["score"] - mf["score"]) < 0.002, str(mf["field"]))
+    s, mn = call("GET", f"/profiles/{nf['profile_id']}/match/{soc}")
+    check("TC-I24f", "without a field the explanation has none, and the score is the skills' score",
+          mn["field"] is None and mn["score"] == mn["score_skills"])
+    s, cl = call("PUT", f"/profiles/{fpid}/field", {"element_id": None})
+    s, rc = call("GET", f"/recommendations?profile_id={fpid}&limit=10")
+    check("TC-I24g", "clearing the field puts the scores back exactly as without one",
+          s == 200 and cl["field"] is None and rc["recommendations"] == rn["recommendations"])
+    call("PUT", f"/profiles/{fpid}/field", {"element_id": comp})
+    call("PUT", f"/profiles/{fpid}/target", {"soc_code": "15-1251.00"})
+    call("PUT", f"/profiles/{nf['profile_id']}/target", {"soc_code": "15-1251.00"})
+    s, pw = call("GET", f"/profiles/{fpid}/pathway")
+    check("TC-I24h", "the Pathway still builds with a field (its order uses the same model)",
+          s == 200 and pw["target"]["soc_code"] == "15-1251.00", str(s))
+    s, nope = call("PUT", "/profiles/nobody/field", {"element_id": comp})
+    check("TC-I24i", "setting the field of an unknown profile: 404", s == 404, str(s))
 
     print("\nTC-S01  System test: the rehearsed demo path, start to finish")
     s, sprof = call("POST", "/profiles", {"profile_type": "school_leaver", "skills": held})

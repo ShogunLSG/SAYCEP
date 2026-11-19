@@ -1,0 +1,21 @@
+33 knowledge areas; 879 of 879 jobs rated on them
+
+Choosing the weight on 356 jobs (field 'noisy', skills clean):
+  w = 0.1    73.3%
+  w = 0.2    73.0%
+  w = 0.33   73.3%
+  w = 0.5    67.4%
+  chosen w = 0.1
+
+Reported on the other 357 jobs (same family in top 5; chance 25.9%):
+                          skills clean  skills messy
+  field none                     65.8%         39.2%
+  field noisy                    68.9%         40.9%
+  field own                      69.7%         43.1%
+  gain from field 'noisy', skills clean: +3.1 points (95% interval +0.3 to +5.9)
+  gain from field 'noisy', skills messy: +1.7 points (95% interval -0.8 to +4.5)
+  gain from field 'own', skills clean: +3.9 points (95% interval +1.4 to +6.7)
+  gain from field 'own', skills messy: +3.9 points (95% interval +0.6 to +7.3)
+
+The 33 areas a user would choose from:
+  Administration and Management; Administrative; Biology; Building and Construction; Chemistry; Communications and Media; Computers and Electronics; Customer and Personal Service; Design; Economics and Accounting; Education and Training; Engineering and Technology; English Language; Fine Arts; Food Production; Foreign Language; Geography; History and Archeology; Law and Government; Mathematics; Mechanical; Medicine and Dentistry; Personnel and Human Resources; Philosophy and Theology; Physics; Production and Processing; Psychology; Public Safety and Security; Sales and Marketing; Sociology and Anthropology; Telecommunications; Therapy and Counseling; Transportation

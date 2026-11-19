@@ -29,10 +29,12 @@ from pydantic import BaseModel, Field
 
 from config import ESSENTIAL_THRESHOLD
 import adverts as advert_summary
+import cvadvice
 import cvscan
 import gap as gap_analyser
 import interview as interview_practice
 import interests as interest_matcher
+import listings as job_listings
 import pathway as pathway_service
 import plain
 import recommend as recommendation_engine
@@ -75,6 +77,8 @@ class ProfileIn(BaseModel):
     target_soc_code: str | None = None
     # Optional, and the only personal detail SAYCEP ever holds (ADR-0008).
     display_name: str | None = Field(None, max_length=40)
+    # A student's field of study: one O*NET knowledge area, optional (ADR-0029).
+    field_element_id: str | None = Field(None, max_length=12)
 
 
 class CvIn(BaseModel):
@@ -88,6 +92,11 @@ class AnswerIn(BaseModel):
     # Never stored (ADR-0015).
     answer: str = Field(..., max_length=5000)
     skill_element_id: str | None = None
+    tool: str | None = Field(None, max_length=120)   # the tool a technical question asked about
+
+
+class FieldIn(BaseModel):
+    element_id: str | None = Field(None, max_length=12)   # null clears it
 
 
 class NameIn(BaseModel):
@@ -266,9 +275,11 @@ def create_profile(body: ProfileIn, con=Depends(db)):
         raise HTTPException(422, f"Unknown skill identifiers: {unknown}")
     if body.target_soc_code:
         _require_occupation(con, body.target_soc_code)
+    _require_field(con, body.field_element_id)
 
     profile_id = repository.create_profile(
-        con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name))
+        con, body.profile_type, body.skills, body.target_soc_code, _clean_name(body.display_name),
+        body.field_element_id)
     _log(con, profile_id, "started", skill_count=len(set(body.skills)),
          soc_code=body.target_soc_code)
     return {
@@ -311,6 +322,7 @@ def get_profile(profile_id: str, con=Depends(db)):
         "created_at": profile["created_at"],
         "display_name": profile["display_name"],
         "plan_code": _format_code(profile["plan_code"]),
+        "field": _field_view(con, profile["field_element_id"]),
         "target": target,
         "skills": skills,
         "held_count": sum(s["status"] == "held" for s in skills),
@@ -340,6 +352,39 @@ def set_name(profile_id: str, body: NameIn, con=Depends(db)):
     _require_profile(con, profile_id)
     repository.set_display_name(con, profile_id, _clean_name(body.display_name))
     return {"profile_id": profile_id, "display_name": _clean_name(body.display_name)}
+
+
+def _require_field(con, element_id):
+    if element_id and element_id not in {r["element_id"] for r in repository.knowledge_areas(con)}:
+        raise HTTPException(422, f"Unknown field of study: {element_id}. See GET /knowledge-areas.")
+
+
+def _field_view(con, element_id):
+    if not element_id:
+        return None
+    row = next((r for r in repository.knowledge_areas(con) if r["element_id"] == element_id), None)
+    return {"element_id": element_id, "name": row["name"]} if row else None
+
+
+@app.get("/knowledge-areas", tags=["profile"])
+def knowledge_areas(con=Depends(db)):
+    """The 33 O*NET knowledge areas a student can give as their field of study
+    (ADR-0029), each with O*NET's description and our plain examples."""
+    return {"areas": [{"element_id": r["element_id"], "name": r["name"], "description": r["description"],
+                       "examples": plain.FIELD_EXAMPLES.get(r["element_id"], "")}
+                      for r in repository.knowledge_areas(con)],
+            "weight": recommendation_engine.FIELD_WEIGHT,
+            "dataset": "O*NET 29.0 (August 2024 release)"}
+
+
+@app.put("/profiles/{profile_id}/field", tags=["profile"])
+def set_field(profile_id: str, body: FieldIn, con=Depends(db)):
+    """Set or clear the field of study (ADR-0029). Recommendations, the
+    Pathway's order and "How we matched you" take it into account."""
+    _require_profile(con, profile_id)
+    _require_field(con, body.element_id)
+    repository.set_field(con, profile_id, body.element_id or None)
+    return {"profile_id": profile_id, "field": _field_view(con, body.element_id)}
 
 
 def _goal_snapshot(con, profile_id):
@@ -517,12 +562,19 @@ def scan_cv(body: CvIn, con=Depends(db)):
         _require_occupation(con, soc)
 
     evidence = cvscan.skill_evidence(index, body.text)
+    leaver = bool(body.profile_id) and profile["profile_type"] == "school_leaver"
     software = cvscan.software_named(index, body.text)
     tools = cvscan.tools_named(index, body.text)
     out = {
         "suggestions": [{**sg, "status": held.get(sg["element_id"])} for sg in cvscan.suggestions(index, evidence)],
         "software_named": sorted(software), "tools_named": sorted(tools),
         "checks": cvscan.checks(body.text),
+        # Jobs your CV points to (ADR-0025): the skills the CV seems to show, put
+        # through the same engine as For you. Unconfirmed suggestions, so
+        # nothing is added to the profile.
+        "points_to": _ranked(con, list(evidence), 5, 3 if leaver else None,
+                             repository.profile_field(con, body.profile_id) if body.profile_id else None),
+        "points_to_basis": "The skills your CV seems to show, matched by the skill-matching model.",
         "goal": None,
         "stored": False,
     }
@@ -543,7 +595,23 @@ def scan_cv(body: CvIn, con=Depends(db)):
             "worth_mentioning": mention,
             "basis": BENCHMARK_NOTE,
         }
+        missing = [k["name"] for k in out["goal"]["key_skills"] if not k["evidence"]]
+        out["goal"]["add"] = cvadvice.advice(_advert_view(con, soc, held), body.text, software | tools, missing)
     return out
+
+
+def _advert_view(con, soc_code, held):
+    """The advert summary the CV advice is built on, or None where this job
+    has too few adverts (or none are loaded): then no advert figure is claimed."""
+    if not repository.adverts_loaded(con):
+        return None
+    row = repository.advert_summary(con, soc_code)
+    if row is None or row["adverts"] < advert_summary.MIN_ADVERTS:
+        return None
+    base, total = repository.advert_baseline(con)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    return {**advert_summary.summarise(row, repository.advert_counts(con, soc_code), base, total, names, held),
+            "adverts": row["adverts"], "period": advert_summary.period(row["listed_from"], row["listed_to"])}
 
 
 # ---------- interview practice (module 5, ADR-0015) ----------
@@ -569,7 +637,7 @@ def interview_feedback(body: AnswerIn, con=Depends(db)):
     index = _cv(con)
     if body.skill_element_id and body.skill_element_id not in index.skills:
         raise HTTPException(404, f"No skill {body.skill_element_id}")
-    return {**interview_practice.feedback(index, body.answer, body.skill_element_id), "stored": False}
+    return {**interview_practice.feedback(index, body.answer, body.skill_element_id, body.tool), "stored": False}
 
 
 # ---------- what employers ask for (module 4, ADR-0017) ----------
@@ -613,6 +681,74 @@ def occupation_adverts(soc_code: str, profile_id: str | None = None, con=Depends
     return out
 
 
+# ---------- Jobs for you: sample listings (module 4 as job cards, ADR-0022) ----------
+
+def _listing_note(con):
+    first, last = repository.advert_period(con)
+    when = advert_summary.period(first, last) if first else "2024"
+    return (f"Real job adverts from the United States, {when}, used as demo data. "
+            "They have closed, so they show the kind of jobs you'd fit, not openings to apply to.")
+
+
+def _listing(row, statuses, names):
+    mentioned = [e for e in row["skills"].split(",") if e]
+    reqs = [k for k in row["reqs"].split(",") if k]
+    return {
+        "advert_id": row["advert_id"], "soc_code": row["soc_code"], "occupation": row["occupation"],
+        "title": row["title"], "location": row["location"], "work_type": row["work_type"],
+        "level": row["level"], "years": row["years"], "listed": row["listed"],
+        "beginner": job_listings.beginner_ok(row["level"], reqs, row["years"]),
+        "requirements": [advert_summary.REQUIREMENT_LABELS[k] for k in reqs
+                         if k in advert_summary.REQUIREMENT_LABELS and k != "train"],
+        "training_given": "train" in reqs,
+        "tools": [x for x in row["tools"].split("|") if x][:4],
+        "skills": [{"element_id": e, "name": names[e], "status": statuses.get(e)}
+                   for e in mentioned if e in names],
+        "fit": job_listings.fit(mentioned, statuses),
+    }
+
+
+def _listings(con, soc_codes, profile_id, limit):
+    statuses = ({r["element_id"]: r["status"] for r in repository.profile_skills(con, profile_id)}
+                if profile_id else {})
+    loaded = repository.listings_loaded(con)
+    out = {"loaded": loaded, "note": _listing_note(con) if loaded else None,
+           "dataset": LISTINGS_DATASET if loaded else None, "total": 0, "listings": []}
+    if not loaded or not soc_codes:
+        return out
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    items = [_listing(r, statuses, names) for r in repository.advert_listings(con, soc_codes)]
+    out.update(total=len(items), listings=job_listings.rank(items)[:limit])
+    return out
+
+
+LISTINGS_DATASET = "LinkedIn Job Postings 2023-2024 (Kaggle arshkon/linkedin-job-postings, CC BY-SA 4.0)"
+
+
+@app.get("/occupations/{soc_code}/listings", tags=["adverts"])
+def occupation_listings(soc_code: str, profile_id: str | None = None,
+                        limit: int = Query(10, ge=1, le=20), con=Depends(db)):
+    """Sample listings for one occupation, best fit for the profile first.
+    Real US adverts from 2024, all closed: shown as examples, never as openings."""
+    _require_occupation(con, soc_code)
+    if profile_id:
+        _require_profile(con, profile_id)
+    return {"soc_code": soc_code, **_listings(con, [soc_code], profile_id, limit)}
+
+
+@app.get("/profiles/{profile_id}/listings", tags=["adverts"])
+def profile_listings(profile_id: str, limit: int = Query(12, ge=1, le=40), con=Depends(db)):
+    """Jobs for you: sample listings across the goal and the jobs on the
+    profile's Pathway, best fit first. No goal, no listings."""
+    profile = _require_profile(con, profile_id)
+    target = profile["target_soc_code"]
+    socs = []
+    if target:
+        route = pathway_service.generate_pathway(con, profile_id, target)
+        socs = [st["soc_code"] for st in route["steps"]]
+    return {"profile_id": profile_id, "occupations": socs, **_listings(con, socs, profile_id, limit)}
+
+
 # ---------- interests (slice 4, ADR-0011) ----------
 
 @app.get("/interests/quiz", tags=["interests"])
@@ -649,11 +785,9 @@ def interest_match(
         _require_profile(con, profile_id)
         held = repository.profile_skill_ids(con, profile_id)
         if held:
-            ids, vectors = recommendation_engine.load_vectors(con)
-            means = recommendation_engine.skill_means(vectors, len(ids))
-            centred = recommendation_engine.centre_occupations(vectors, means)
-            pv = recommendation_engine.centre_profile(ids, held, means)
-            skill_score = lambda soc: recommendation_engine.cosine(pv, centred[soc])
+            model = recommendation_engine.Model.load(con)
+            prof = model.profile(held, repository.profile_field(con, profile_id))
+            skill_score = lambda soc: model.score(prof, soc)
     return {
         "your_areas": [{"area": x, "name": interest_matcher.AREA_NAMES[x]}
                        for x in interest_matcher.top_areas(scores) if scores[x] > 0],
@@ -764,33 +898,103 @@ def get_recommendations(
     """
     _require_profile(con, profile_id)
     held = repository.profile_skill_ids(con, profile_id)
-    results = recommendation_engine.recommend(con, held, limit, max_job_zone)
-    zones = repository.occupation_zones(con)
-    why = {}
-    if results:
-        ids, vectors = recommendation_engine.load_vectors(con)
-        means = recommendation_engine.skill_means(vectors, len(ids))
-        centred = recommendation_engine.centre_occupations(vectors, means)
-        pv = recommendation_engine.centre_profile(ids, held, means)
-        names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
-        why = {soc: [names[e] for e in recommendation_engine.reasons(ids, centred[soc], pv, held)]
-               for soc, _, _ in results}
+    field = repository.profile_field(con, profile_id)
+    results = _ranked(con, held, limit, max_job_zone, field)
     return {
         "profile_id": profile_id,
-        "method": "mean-centred cosine similarity over 35-dimensional "
-                  "O*NET skill-importance vectors",
+        "method": METHOD,
+        "field": _field_view(con, field),
         "max_job_zone": max_job_zone,
-        "recommendations": [
-            {"soc_code": soc, "title": title, "score": round(score, 3),
-             "match": plain.match_level(score), "job_zone": zones.get(soc),
-             # FR-06: the held skills that lifted this job most (recommend.reasons).
-             "because": why.get(soc, []),
-             "preparation": plain.preparation(zones.get(soc))}
-            for soc, title, score in results
-        ],
+        "recommendations": results,
         "message": None if results else
                    "Select at least one skill to receive recommendations.",
     }
+
+
+METHOD = ("the skill-matching model: mean-centred cosine similarity over 35 O*NET skills, "
+          "averaging two views of each job, its importance ratings and its must-have list (ADR-0027); "
+          "a student's field of study, if given, counts for a tenth (ADR-0029)")
+
+
+def _ranked(con, held, limit, max_job_zone=None, field=None):
+    """The engine's ranked jobs for a set of held skills, each with its score,
+    plain match words and the held skills that lifted it most (FR-06). Shared
+    by For you and the CV's "Jobs your CV points to" (ADR-0025)."""
+    model = recommendation_engine.Model.load(con)
+    results = recommendation_engine.recommend(con, held, limit, max_job_zone, model=model, field=field)
+    if not results:
+        return []
+    zones = repository.occupation_zones(con)
+    prof = model.profile(held, field)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    return [{"soc_code": soc, "title": title, "score": round(score, 3),
+             "match": plain.match_level(score), "job_zone": zones.get(soc),
+             # FR-06: the held skills that lifted this job most (Model.reasons).
+             "because": [names[e] for e in model.reasons(prof, held, soc)],
+             "preparation": plain.preparation(zones.get(soc))}
+            for soc, title, score in results]
+
+
+@app.get("/profiles/{profile_id}/match/{soc_code}", tags=["recommendation"])
+def match_explained(profile_id: str, soc_code: str, con=Depends(db)):
+    """How we matched you (ADR-0025): every number behind this job's score for
+    this profile, from the engine's own functions -- the job's 35 ratings, the
+    average job, what is left after centring, the profile's skills, each
+    skill's contribution, the score with and without centring, and how both
+    spread across every job."""
+    _require_profile(con, profile_id)
+    occ = _require_occupation(con, soc_code)
+    held = repository.profile_skill_ids(con, profile_id)
+    out = {"profile_id": profile_id, "soc_code": soc_code, "title": occ["title"], "method": METHOD}
+    model = recommendation_engine.Model.load(con)
+    if not held or soc_code not in model.vectors:
+        return {**out, "explained": False,
+                "message": "Tick at least one skill first." if not held else "This job has no skill ratings to compare."}
+    field = repository.profile_field(con, profile_id)
+    ex = model.explain(held, soc_code, field)
+    names = {r["element_id"]: r["name"] for r in repository.list_skills(con)}
+    r3 = lambda x: round(x, 3)
+    fx = ex["field"]
+    return {**out, "explained": True,
+            "score": r3(ex["score"]), "match": plain.match_level(ex["score"]),
+            "score_ratings": r3(ex["score_ratings"]), "score_must_haves": r3(ex["score_must_haves"]),
+            "score_skills": r3(ex["score_skills"]),
+            # The field of study's part (ADR-0029), or None when none is given.
+            "field": None if fx is None else {
+                **_field_view(con, fx["element_id"]), "score": r3(fx["score"]), "weight": fx["weight"],
+                "contribution": round(fx["contribution"], 4), "importance": r3(fx["importance"]),
+                "must_have": fx["must_have"]},
+            "score_uncentred": r3(ex["score_uncentred"]),
+            "spread": {k: ({kk: r3(vv) for kk, vv in v.items()} if isinstance(v, dict) else v)
+                       for k, v in ex["spread"].items()},
+            "because": [names[e] for e in ex["reasons"]],
+            "skills": [{"element_id": r["element_id"], "name": names[r["element_id"]],
+                        "group": plain.skill_group(r["element_id"]),
+                        "importance": r3(r["importance"]), "average": r3(r["average"]),
+                        "job_centred": r3(r["job_centred"]), "typical": r["typical"], "held": r["held"],
+                        "must_have": r["must_have"], "must_have_share": r3(r["must_have_share"]),
+                        "you_centred": r["you_centred"], "part_ratings": r3(r["part_ratings"]),
+                        "part_must_haves": r3(r["part_must_haves"]), "contribution": round(r["contribution"], 4)}
+                       for r in ex["rows"]],
+            "dataset": occ["source_dataset"]}
+
+
+@app.get("/occupations/{soc_code}/similar", tags=["recommendation"])
+def similar_jobs(soc_code: str, limit: int = Query(5, ge=1, le=20), con=Depends(db)):
+    """Jobs with the closest skills (ADR-0025): the engine compares this job's
+    centred skill vector with every other job's. Each says whether O*NET's
+    experts also list it as related -- the agreement PT-05 measures."""
+    occ = _require_occupation(con, soc_code)
+    ids, vectors = recommendation_engine.load_vectors(con)
+    means = recommendation_engine.skill_means(vectors, len(ids))
+    centred = recommendation_engine.centre_occupations(vectors, means)
+    expert = {r["related_soc_code"] for r in repository.related_occupations(con, soc_code)}
+    zones = repository.occupation_zones(con)
+    titles = dict(con.execute("SELECT soc_code, title FROM occupations"))
+    return {"soc_code": soc_code, "title": occ["title"], "method": METHOD,
+            "similar": [{"soc_code": o, "title": titles[o], "score": round(s, 3), "match": plain.match_level(s),
+                         "expert_listed": o in expert, "preparation": plain.preparation(zones.get(o))}
+                        for o, s in recommendation_engine.similar(centred, soc_code, limit)]}
 
 
 # ---------- the app ----------

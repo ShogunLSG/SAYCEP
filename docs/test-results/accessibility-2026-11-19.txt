@@ -1,0 +1,96 @@
+== SCHEME=light
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+model panel             0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+practice retry          0 rules   0 nodes  
+employers section       0 rules   0 nodes  
+jobs for you card       0 rules   0 nodes  
+jobs for you page       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors
+== SCHEME=dark
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+model panel             0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+practice retry          0 rules   0 nodes  
+employers section       0 rules   0 nodes  
+jobs for you card       0 rules   0 nodes  
+jobs for you page       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors
+== WIDTH=320
+welcome                 0 rules   0 nodes  
+journey 1 start         0 rules   0 nodes  
+journey 2 skills        0 rules   0 nodes  
+journey 3 for you       0 rules   0 nodes  
+model panel             0 rules   0 nodes  
+journey 3 job sheet     0 rules   0 nodes  
+journey 4 gap           0 rules   0 nodes  
+journey 5 route         0 rules   0 nodes  
+home                    0 rules   0 nodes  
+unlock card             0 rules   0 nodes  
+explore for you         0 rules   0 nodes  
+explore search          0 rules   0 nodes  
+job page                0 rules   0 nodes  
+interest quiz           0 rules   0 nodes  
+quiz results            0 rules   0 nodes  
+skills tab              0 rules   0 nodes  
+skill page              0 rules   0 nodes  
+compare                 0 rules   0 nodes  
+cv check                0 rules   0 nodes  
+cv result               0 rules   0 nodes  
+practice                0 rules   0 nodes  
+practice feedback       0 rules   0 nodes  
+practice retry          0 rules   0 nodes  
+employers section       0 rules   0 nodes  
+jobs for you card       0 rules   0 nodes  
+jobs for you page       0 rules   0 nodes  
+me                      0 rules   0 nodes  
+student skills + field  0 rules   0 nodes  
+model panel + field     0 rules   0 nodes  
+me (student)            0 rules   0 nodes  
+TOTAL failing elements 0 · no page errors

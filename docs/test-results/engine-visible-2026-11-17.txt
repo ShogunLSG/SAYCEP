@@ -1,0 +1,29 @@
+
+In the journey: For you  (ADR-0025)
+  PASS  For you carries the "Skill-matching model" tag with "How does it work?"
+  PASS  every recommendation has its own "How we matched this"
+  PASS  the panel opens for that job, with the same score as the list  -- Chemical Equipment Operators and Tenders: 0.64 vs 0.64
+  PASS  it walks the four steps, then why step 3 matters  -- 1 The job, as 35 numbers | 2 You, as 35 numbers | 3 What makes this job different | 4 The score | Why step 3 matters
+  PASS  it shows the top 8, and all 35 on request
+  PASS  with and without centring: two ranges, the centred one reaching below zero  -- All jobs score from 0.27 to 0.58; this job 0.52. | All jobs score from -0.56 to 0.64; this job 0.64.
+  PASS  every bar is decoration; its number is text (screen readers get the numbers)
+  PASS  the panel is a labelled dialog that holds focus
+  PASS  Tab stays inside the panel
+  PASS  Escape closes it and focus returns to the button that opened it
+  PASS  "How does it work?" opens the panel for the top recommendation
+  PASS  the Pathway says the model orders its steps
+
+In the app: the job page, closest jobs and the CV
+  PASS  "Jobs with the closest skills": the API's five, in order, tagged  -- Manufactured Building and Mobile Home Installers | Plumbers, Pipefitters, and Steamfitters | Electrical Power-Line Installers and Repairers | Heating, Air Conditioning, and Refrigeration Mechanics and Installers | Weatherization Installers and Technicians
+  PASS  O*NET's expert marks match the API
+  PASS  "How well do my skills match this job?" opens the panel with the API's score  -- 0.27
+  PASS  a closest job opens its own page  -- Plumbers, Pipefitters, and Steamfitters
+  PASS  "Jobs your CV points to": tagged, five jobs with reasons, and says nothing is added  -- Solar Energy Installation Managers | Weatherization Installers and Technicians | Automotive Engineering Technicians | Biofuels Processing Technicians | Geothermal Technicians
+  PASS  a job the CV points to opens its page  -- Solar Energy Installation Managers
+
+Screens
+  PASS  dark mode: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.14276885986328,"width":460,"height":791.9999923706055}
+  PASS  a 320 px phone: the panel is on screen, with no sideways scrolling  -- {"x":0,"y":108.14035034179688,"width":320,"height":792.0000305175781}
+  PASS  no page or console errors anywhere
+
+21 passed. MODEL VISIBLE OK

@@ -1,0 +1,24 @@
+
+Interview practice  (ADR-0024)
+  PASS  five questions: opener, two skills, a tool, a task  -- 5
+  PASS  question 4 is the technical one, about a tool the adverts name  -- Tell me about a time you used Microsoft Excel, or how you would use it in this job.
+  PASS  the screen says it is a technical question about a tool or software the job uses
+  PASS  a first check shows a count and no comparison yet  -- 2 of 7 things interviewers listen for
+  PASS  sentence starters appear for the missing parts of the story  -- Ways to start the missing partsSituation: “Last year at school…”, “One weekend at home…”, 
+  PASS  the tool item is there and not yet met
+  PASS  checking again shows "n of 7 → m of 7" with the gain  -- 2 of 7 → then 7 of 7 +5. Now there: Names Microsoft Excel; Sets the scene (when and where); Ends with what happened; Has a specific detail (a number, a day, a place); About the right length (40–250 words).
+  PASS  it says what is now there  -- 2 of 7 → then 7 of 7 +5. Now there: Names Microsoft Excel; Sets the scene (when and where); Ends with what happened; Has a specific detail (a number, a day, a place); About the right length (40–250 words).
+  PASS  a screen reader gets words, not just an arrow ("then")
+  PASS  a good answer: all seven met, no sentence starters left  -- 7 of 7
+  PASS  checking the same answer again says no change
+  PASS  each question keeps its own history: question 2 starts fresh
+  PASS  the feedback call sends only the answer, the skill or the tool; nothing is stored  -- ["/interview/feedback","/interview/feedback","/interview/feedback","/interview/feedback"]
+
+CV advice  (ADR-0024)
+  PASS  "What to add" lists advice for the goal, each with a title, a reason and an example  -- 4 items: A trade licence or certificate, A driver's licence, Troubleshooting, Repairing
+  PASS  requirements say how many US adverts and when
+  PASS  the section says to add only what is true, and that the figures are US
+  PASS  a CV that already names a licence gets less advice, and no licence advice  -- 4 -> 2
+  PASS  no page or console errors
+
+18 passed. INTERVIEW AND CV ADVICE OK

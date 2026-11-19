@@ -21,8 +21,11 @@ CREATE TABLE IF NOT EXISTS users (
     target_soc_code TEXT,
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     display_name    TEXT,
-    plan_code       TEXT
+    plan_code       TEXT,
+    field_element_id TEXT
 );
+-- field_element_id: a student's field of study, one of the 33 O*NET knowledge
+-- areas, or NULL (ADR-0029). Optional; school-leavers aren't asked.
 -- plan_code reopens a plan on any device (ADR-0008). Its uniqueness is a
 -- separate index, created in ensure_profile_tables after any upgrade, so an
 -- older database can gain the column in place.
@@ -79,7 +82,7 @@ def ensure_profile_tables(con):
     # loader rebuilds from scratch so this rarely matters, but a server started
     # on an old file must not fail on its first profile call.
     user_cols = {r[1] for r in con.execute("PRAGMA table_info(users)")}
-    for col in ("display_name", "plan_code"):
+    for col in ("display_name", "plan_code", "field_element_id"):
         if col not in user_cols:
             con.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
     con.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_plan_code ON users(plan_code)")
@@ -236,6 +239,19 @@ def advert_titles(con, soc_code, limit=5):
                        " ORDER BY n DESC, title LIMIT ?", (soc_code, limit)).fetchall()
 
 
+def listings_loaded(con):
+    """Whether load_listings.py has run (the sample listings are optional)."""
+    return con.execute("SELECT 1 FROM sqlite_master WHERE name = 'advert_listings'").fetchone() is not None
+
+
+def advert_listings(con, soc_codes):
+    """Every sample listing for these occupations, with the occupation's title."""
+    marks = ",".join("?" * len(soc_codes))
+    return con.execute(f"SELECT l.*, o.title AS occupation FROM advert_listings l"
+                       f" JOIN occupations o ON o.soc_code = l.soc_code"
+                       f" WHERE l.soc_code IN ({marks})", list(soc_codes)).fetchall()
+
+
 def advert_baseline(con):
     """({(kind, item): n}, total linked adverts)."""
     rows = con.execute("SELECT kind, item, n FROM advert_baseline").fetchall()
@@ -327,11 +343,13 @@ def profile_by_plan_code(con, code):
                        (normalise_plan_code(code),)).fetchone()
 
 
-def create_profile(con, profile_type, skill_ids, target_soc_code=None, display_name=None):
+def create_profile(con, profile_type, skill_ids, target_soc_code=None, display_name=None,
+                   field_element_id=None):
     profile_id = uuid.uuid4().hex[:12]
     con.execute("INSERT INTO users (profile_id, profile_type, target_soc_code,"
-                " display_name, plan_code) VALUES (?,?,?,?,?)",
-                (profile_id, profile_type, target_soc_code, display_name, new_plan_code(con)))
+                " display_name, plan_code, field_element_id) VALUES (?,?,?,?,?,?)",
+                (profile_id, profile_type, target_soc_code, display_name, new_plan_code(con),
+                 field_element_id))
     con.executemany("INSERT INTO user_skills (profile_id, element_id) VALUES (?,?)",
                     [(profile_id, s) for s in set(skill_ids)])
     con.commit()
@@ -418,6 +436,26 @@ def set_target(con, profile_id, soc_code):
     con.execute("UPDATE users SET target_soc_code = ? WHERE profile_id = ?",
                 (soc_code, profile_id))
     con.commit()
+
+
+def set_field(con, profile_id, element_id):
+    con.execute("UPDATE users SET field_element_id = ? WHERE profile_id = ?", (element_id, profile_id))
+    con.commit()
+
+
+def profile_field(con, profile_id):
+    """The profile's field of study (a knowledge-area element id), or None."""
+    row = con.execute("SELECT field_element_id FROM users WHERE profile_id = ?", (profile_id,)).fetchone()
+    return row[0] if row else None
+
+
+def knowledge_areas(con):
+    """The 33 O*NET knowledge areas (ADR-0029); empty on a database built
+    before they were loaded."""
+    try:
+        return con.execute("SELECT element_id, name, description FROM knowledge_areas ORDER BY name").fetchall()
+    except sqlite3.OperationalError:
+        return []
 
 
 def valid_skill_ids(con):

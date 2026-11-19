@@ -278,6 +278,161 @@ def main():
     check("TC-U14b", "a change in the O*NET rows the counts were built from makes the cache stale", stale is False)
     check("TC-U14c", "a corrupt cache is treated as no cache, not a crash", corrupt is False)
 
+    print("\nTC-U15  Jobs for you: fit and ranking  (ADR-0022)")
+    import listings
+    import load_listings
+    st = {"a": "held", "b": "held", "c": "held", "d": "learning"}
+    words = [listings.fit(m, st)["words"] for m in (["a", "b", "c", "x"], ["a", "b", "x", "y"], ["a", "x", "y"], ["x"], [])]
+    check("TC-U15a", "fit words follow the share held: strong, good, some, a stretch, none named",
+          words == ["Strong fit", "Good fit", "Some fit", "A stretch", "No skills named"], str(words))
+    f = listings.fit(["a", "d", "x"], st)
+    check("TC-U15b", "a skill being learned is counted apart, never as held",
+          (f["have"], f["learning"], f["mentioned"]) == (1, 1, 3), str(f))
+    check("TC-U15c", "open to beginners: entry level, training given, or a year or less asked",
+          [listings.beginner_ok(*a) for a in (("Entry level", [], 5), ("", ["train"], None), ("", [], 1), ("Associate", [], 3))]
+          == [True, True, True, False])
+    mk = lambda i, have, n, beg, yrs, d: {"advert_id": i, "fit": listings.fit(["a"] * have + ["x"] * (n - have), {"a": "held"}),
+                                          "beginner": beg, "years": yrs, "listed": d}
+    order = [x["advert_id"] for x in listings.rank([
+        mk("old", 1, 2, True, None, "2024-04-01"), mk("new", 1, 2, True, None, "2024-04-20"),
+        mk("pro", 1, 2, False, None, "2024-04-25"), mk("best", 2, 2, False, 5, "2024-04-02"),
+        mk("yrs", 1, 2, True, 3, "2024-04-30")])]
+    check("TC-U15d", "ranked by share held, then beginners, then fewer years, then newest",
+          order == ["best", "new", "old", "yrs", "pro"], str(order))
+    check("TC-U15e", "the committed listings match the current code and O*NET rows "
+          "(if not: python backend/load_listings.py --fresh, then commit backend/seed/)",
+          json.loads(load_listings.CACHE.read_text()).get("inputs") == load_listings.fingerprint(con), "stale seed")
+    check("TC-U15f", "listings store features only: no description, company, link or pay columns",
+          not {"description", "company_name", "job_posting_url", "application_url", "max_salary", "min_salary"}
+          & {r[1] for r in con.execute("PRAGMA table_info(advert_listings)")})
+
+    print("\nTC-U16  CV advice: what to add  (ADR-0024)")
+    import cvadvice
+    import interview as interview_mod
+    summ = {"adverts": 84, "period": "April 2024",
+            "requirements": [{"key": "licence", "share": 0.7, "words": "7 in 10"},
+                             {"key": "school", "share": 0.9, "words": "almost all"},
+                             {"key": "driver", "share": 0.3, "words": "3 in 10"},
+                             {"key": "lifting", "share": 0.1, "words": "a few"},
+                             {"key": "train", "share": 0.5, "words": "5 in 10"}],
+            "tools": [{"name": "Microsoft Excel", "share": 0.4, "words": "4 in 10"},
+                      {"name": "Multimeters", "share": 0.2, "words": "2 in 10"},
+                      {"name": "Respirators", "share": 0.06, "words": "a few"}]}
+    cv = "Matric 2023. Shop assistant. Used Microsoft Excel for stock lists."
+    adv = cvadvice.advice(summ, cv, {"Microsoft Excel"}, ["Troubleshooting", "Repairing"])
+    kinds = [(x["kind"], x["title"]) for x in adv]
+    check("TC-U16a", "requirements the CV doesn't mention, commonest first; what it mentions (matric) is left out",
+          [k for k in kinds if k[0] == "requirement"] == [("requirement", "A trade licence or certificate"), ("requirement", "A driver's licence")],
+          str(kinds))
+    check("TC-U16b", "weak signals are not advice: a few adverts (physical work, a tool) and 'training given'",
+          not any(x["title"] in ("Physical work", "Respirators") or "train" in x["title"].lower() for x in adv))
+    check("TC-U16c", "tools: the CV's own tools are left out; the rest named by 15%+ of adverts are advised",
+          [x["title"] for x in adv if x["kind"] == "tool"] == ["Multimeters"], str(kinds))
+    check("TC-U16d", "every advert figure says how many, that they are US, and when",
+          all("of the 84 US adverts for this job (April 2024)" in x["why"] for x in adv if x["kind"] != "skill"))
+    check("TC-U16e", "missing skills get a worked example (known skills) or a frame (others)",
+          "tested each plug point" in adv[-2]["example"] and cvadvice.example_for("Zebra Handling").startswith("Add one line"))
+    check("TC-U16f", "no summary (too few adverts): skill advice only, and no advert figure claimed",
+          [x["kind"] for x in cvadvice.advice(None, cv, set(), ["Repairing"])] == ["skill"]
+          and "adverts" not in cvadvice.advice(None, cv, set(), ["Repairing"])[0]["why"])
+    many = cvadvice.advice(dict(summ, requirements=[{"key": k, "share": 0.9, "words": "almost all"} for k in ("licence", "driver", "lifting", "degree", "school")]),
+                           "", set(), ["A", "B", "C", "D", "E"])
+    check("TC-U16g", f"at most {cvadvice.MAX_PER_KIND} pieces of each kind",
+          Counter(x["kind"] for x in many).most_common(1)[0][1] <= cvadvice.MAX_PER_KIND, str(Counter(x["kind"] for x in many)))
+    check("TC-U16h", "South African wording counts: 'Code 8', 'N2', 'TVET', 'matric' are seen as the CV mentioning it",
+          not [x for x in cvadvice.advice(dict(summ, requirements=[{"key": "driver", "share": 0.9, "words": "almost all"},
+               {"key": "degree", "share": 0.9, "words": "almost all"}], tools=[]), "Code 8 licence. Studying N2 at a TVET college.", set(), [])
+               if x["kind"] == "requirement"])
+
+    print("\nTC-U17  Interview: a technical question from the job's tools  (ADR-0024)")
+    check("TC-U17a", "a tool is asked about only where real adverts name it (5+ adverts and 5%+): Electricians -> Microsoft Excel",
+          interview_mod.tool_for(con, "47-2111.00") == "Microsoft Excel", str(interview_mod.tool_for(con, "47-2111.00")))
+    none_soc = con.execute("SELECT soc_code FROM occupations WHERE soc_code NOT IN (SELECT soc_code FROM advert_summary) LIMIT 1").fetchone()[0]
+    check("TC-U17b", "no adverts for the job: no tool, not a generic or invented one", interview_mod.tool_for(con, none_soc) is None, none_soc)
+    check("TC-U17c", "naming the tool: plural and case folded ('multimeter' names Multimeters); a vendor alone does not",
+          interview_mod.names_tool("I tested it with a multimeter.", "Multimeters")
+          and interview_mod.names_tool("I used microsoft excel daily", "Microsoft Excel")
+          and not interview_mod.names_tool("I used Microsoft Word", "Microsoft Excel")
+          and not interview_mod.names_tool("", "Multimeters"))
+    qs_ = interview_mod.questions(con, "47-2111.00", cvscan.Index(con))
+    ids = [q["id"] for q in qs_]
+    check("TC-U17d", "the question comes after the skill questions and before the task question, and carries the tool",
+          ids.index("tool") > max(i for i, x in enumerate(ids) if x.startswith("skill:")) and ids.index("tool") < ids.index("task")
+          and qs_[ids.index("tool")]["tool"] == "Microsoft Excel", str(ids))
+    fb_yes = interview_mod.feedback(cvscan.Index(con), "I used Microsoft Excel to track stock.", None, "Microsoft Excel")
+    fb_no = interview_mod.feedback(cvscan.Index(con), "I tracked stock.", None, "Microsoft Excel")
+    check("TC-U17e", "feedback adds a 'Names the tool' item, green when named, with a tip when not",
+          fb_yes["items"][0]["key"] == "tool" and fb_yes["items"][0]["ok"] and not fb_no["items"][0]["ok"] and fb_no["items"][0]["tip"]
+          and fb_yes["of"] == fb_no["of"] == 7, str([i["key"] for i in fb_yes["items"]]))
+
+    print("\nTC-U18  The skill-matching model, explained  (ADR-0025, ADR-0027)")
+    import math
+    import recommend as rec
+    ids_, vec_ = rec.load_vectors(con)
+    means_ = rec.skill_means(vec_, len(ids_))
+    cen_ = rec.centre_occupations(vec_, means_)
+    thabo = [e for n, e in con.execute("SELECT name, element_id FROM skills") if n in (
+        "Operation and Control", "Operations Monitoring", "Equipment Maintenance", "Active Listening", "Critical Thinking", "Monitoring")]
+    model_ = rec.Model(ids_, vec_)
+    ex = model_.explain(thabo, "47-2111.00")
+    prof_ = model_.profile(thabo)
+    ranked_ = dict(model_.rank(prof_, 0))
+    check("TC-U18a", "the explained score is exactly the score the model ranks by",
+          abs(ex["score"] - ranked_["47-2111.00"]) < 1e-12, f"{ex['score']:.4f}")
+    check("TC-U18b", "the per-skill contributions add up to the score, and each view's parts to that view's score",
+          abs(sum(r["contribution"] for r in ex["rows"]) - ex["score"]) < 1e-9
+          and abs(sum(r["part_ratings"] for r in ex["rows"]) - ex["score_ratings"]) < 1e-9
+          and abs(sum(r["part_must_haves"] for r in ex["rows"]) - ex["score_must_haves"]) < 1e-9)
+    check("TC-U18c", "the reasons shown are the model's own reasons, and the score is the average of the two views",
+          ex["reasons"] == model_.reasons(prof_, thabo, "47-2111.00")
+          and abs(ex["score"] - (ex["score_ratings"] + ex["score_must_haves"]) / 2) < 1e-12
+          and abs(ex["score_ratings"] - rec.cosine(rec.centre_profile(ids_, thabo, means_), cen_["47-2111.00"])) < 1e-12)
+    raw_you = [1.0 if e in thabo else 0.0 for e in ids_]
+    check("TC-U18d", "the score without centring is the plain cosine of the raw lists, and the spreads cover every job",
+          abs(ex["score_uncentred"] - rec.cosine(raw_you, vec_["47-2111.00"])) < 1e-12
+          and ex["spread"]["jobs"] == len(vec_)
+          and ex["spread"]["centred"]["low"] <= ex["score"] <= ex["spread"]["centred"]["high"]
+          and ex["spread"]["uncentred"]["low"] <= ex["score_uncentred"] <= ex["spread"]["uncentred"]["high"])
+    check("TC-U18e", "centring is what spreads the scores: the model's range is wider and reaches below zero",
+          (ex["spread"]["centred"]["high"] - ex["spread"]["centred"]["low"])
+          > 2 * (ex["spread"]["uncentred"]["high"] - ex["spread"]["uncentred"]["low"]) and ex["spread"]["centred"]["low"] < 0,
+          f"{ex['spread']['uncentred']} vs {ex['spread']['centred']}")
+    ticks_ = rec.tick_vectors(vec_)
+    no_must = [s for s, v in vec_.items() if max(v) < 3.5]
+    check("TC-U18h", "must-have lists: skills rated 3.5+, or the top 5 for the jobs with none, so no job is left out",
+          all(sum(t_) >= 1 for t_ in ticks_.values()) and all(sum(ticks_[s]) == 5 for s in no_must)
+          and all(ticks_["47-2111.00"][i] == (1.0 if vec_["47-2111.00"][i] >= 3.5 else 0.0) for i in range(len(ids_))),
+          f"{len(no_must)} jobs use the top-5 fallback")
+    check("TC-U18i", "the recommendation entry point uses this model: same jobs, same order, same scores",
+          [(s, round(x, 9)) for s, _, x in rec.recommend(con, thabo, 5)] == [(s, round(x, 9)) for s, x in model_.rank(prof_, 5)])
+    sim = rec.similar(cen_, "47-2111.00", 5)
+    back = dict(rec.similar(cen_, sim[0][0], len(cen_)))
+    check("TC-U18f", "closest jobs: never the job itself, best first, and similarity is symmetric",
+          all(s != "47-2111.00" for s, _ in sim) and [x for _, x in sim] == sorted([x for _, x in sim], reverse=True)
+          and abs(back["47-2111.00"] - sim[0][1]) < 1e-12)
+    check("TC-U18g", "an unknown job has no closest jobs, not an error", rec.similar(cen_, "99-9999.99") == [])
+
+    print("\nTC-U19  The field of study in the model  (ADR-0029)")
+    know_ = rec.load_knowledge(con)
+    full_ = rec.Model(ids_, vec_, knowledge=know_)
+    check("TC-U19a", "33 knowledge areas, rated for every job in the catalogue",
+          know_ is not None and len(know_[0]) == 33 and set(know_[1]) == set(vec_), f"{len(know_[1])} jobs")
+    p0, p_none = model_.profile(thabo), full_.profile(thabo)
+    check("TC-U19b", "with no field, every score is exactly the skills-only model's",
+          all(full_.score(p_none, s_) == model_.score(p0, s_) for s_ in vec_))
+    pf = full_.profile(thabo, "2.C.3.e")   # Mechanical
+    a_, b_ = full_.parts(pf, "47-2111.00")
+    f_ = full_.field_part(pf, "47-2111.00")
+    check("TC-U19c", "with a field, the score is 0.9 x the skills' score + 0.1 x the field's",
+          abs(full_.score(pf, "47-2111.00") - (0.9 * (a_ + b_) / 2 + 0.1 * f_)) < 1e-12, f"field part {f_:.3f}")
+    exf = full_.explain(thabo, "47-2111.00", "2.C.3.e")
+    check("TC-U19d", "the skills' shares plus the field's add up to the score exactly",
+          abs(sum(r["contribution"] for r in exf["rows"]) + exf["field"]["contribution"] - exf["score"]) < 1e-12)
+    check("TC-U19e", "an unknown field is ignored, not an error", full_.profile(thabo, "9.Z.9")[2] is None
+          and full_.profile(thabo, "2.A.1.a")[2] is None)
+    check("TC-U19f", "the field's reasons are still skills, in the same order as without it",
+          full_.reasons(pf, thabo, "47-2111.00") == model_.reasons(p0, thabo, "47-2111.00"))
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

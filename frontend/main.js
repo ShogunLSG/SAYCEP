@@ -34,6 +34,7 @@ function App() {
   const [held, setHeld] = useState(() => new Set());
   const [profile, setProfile] = useState(null); // { id, key }
   const [target, setTarget] = useState(null);   // { soc_code, title, job_zone }
+  const [field, setField] = useState(null);     // a student's field of study (ADR-0029), or null
   const [sheet, setSheet] = useState(null);     // { soc_code, canAim } -- the journey's job panel
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -60,7 +61,8 @@ function App() {
     const ids = p.skills.filter((k) => k.status === "held").map((k) => k.element_id);
     setType(p.profile_type);
     setHeld(new Set(ids));
-    setProfile({ id: p.profile_id, key: keyOf(p.profile_type, ids) });
+    setProfile({ id: p.profile_id, key: keyOf(p.profile_type, ids), field: p.field ? p.field.element_id : null });
+    setField(p.field ? p.field.element_id : null);
     setTarget(p.target && { soc_code: p.target.soc_code, title: p.target.title, job_zone: p.target.job_zone });
   }
 
@@ -84,7 +86,7 @@ function App() {
   }
 
   function reset() {
-    setType(null); setHeld(new Set()); setProfile(null); setTarget(null);
+    setType(null); setHeld(new Set()); setProfile(null); setTarget(null); setField(null);
     setStack([]); setTab("home"); setSheet(null); setStep(0); setDir("bwd");
   }
   function startOver() { saved.clear(); reset(); setName(""); setView("welcome"); }
@@ -117,12 +119,21 @@ function App() {
             ...[...before].filter((id) => !held.has(id)).map((id) =>
               api.del(`/profiles/${profile.id}/skills/${id}`)),
           ]);
-          setProfile({ id: profile.id, key: profileKey });
+          setProfile({ ...profile, key: profileKey });
         } else {
-          const d = await api.post("/profiles", { profile_type: type, skills: [...held], display_name: name || null });
-          setProfile({ id: d.profile_id, key: profileKey });
+          const f = type === "student" ? field : null;
+          const d = await api.post("/profiles", { profile_type: type, skills: [...held], display_name: name || null,
+                                                  field_element_id: f });
+          setProfile({ id: d.profile_id, key: profileKey, field: f });
           setTarget(null);
+          go(step + 1);
+          return;
         }
+      }
+      if (step === 1 && type === "student" && profile && (profile.field || null) !== (field || null)) {
+        // Only the field changed (or the skills were edited in place): keep the profile.
+        await api.put(`/profiles/${profile.id}/field`, { element_id: field });
+        setProfile((p) => ({ ...p, field }));
       }
       if (step === 2) {
         await api.put(`/profiles/${profile.id}/target`, { soc_code: target.soc_code });
@@ -195,6 +206,7 @@ function App() {
     const openCompare = (socs) => push({ kind: "compare", socs });
     const openCv = () => push({ kind: "cv" });
     const openPractice = () => push({ kind: "practice" });
+    const openJobs = () => push({ kind: "jobs" });
     const title = page ? "" : TABS.find((t) => t.key === tab).label;
     // The tab stays mounted under any pushed page, so coming back finds the
     // search, filter and scroll position exactly as they were.
@@ -206,10 +218,12 @@ function App() {
                    onSavedChange=${() => setSavedRev((r) => r + 1)} />`;
     } else if (page && page.kind === "compare") {
       pageEl = html`<${ComparePage} key=${page.socs.join()} profileId=${profile.id} socs=${page.socs} onOpen=${openJob} />`;
+    } else if (page && page.kind === "jobs") {
+      pageEl = html`<${JobsPage} profileId=${profile.id} onOpenJob=${openJob} />`;
     } else if (page && page.kind === "practice") {
       pageEl = html`<${PracticePage} profileId=${profile.id} />`;
     } else if (page && page.kind === "cv") {
-      pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} />`;
+      pageEl = html`<${CvPage} profileId=${profile.id} onSet=${setSkill} onOpenSkill=${openSkill} onOpenJob=${openJob} />`;
     } else if (page && page.kind === "skill") {
       pageEl = html`<${SkillPage} key=${page.element_id} elementId=${page.element_id} profileId=${profile.id}
                    rev=${skillRev} onSet=${setSkill} onOpenJob=${openJob} />`;
@@ -234,6 +248,7 @@ function App() {
                  <${SavedJobs} profileId=${profile.id} rev=${savedRev + skillRev} onOpen=${openJob} onCompare=${openCompare} />
                  <${ProgressHistory} profileId=${profile.id} rev=${skillRev} />
                  <${CvCard} onOpen=${openCv} />
+                 <${JobsForYouCard} profileId=${profile.id} rev=${rev + skillRev} onOpenAll=${openJobs} onOpenJob=${openJob} />
                  <${EmployersCard} profileId=${profile.id} goal=${target}
                    onOpen=${() => push({ kind: "job", soc_code: target.soc_code, title: target.title, focus: "employers" })} />
                  <${PracticeCard} onOpen=${openPractice} />
@@ -272,7 +287,7 @@ function App() {
 
   const panes = [
     html`<${StepStart} type=${type} onPick=${setType} />`,
-    html`<${StepSkills} held=${held} onToggle=${toggle} />`,
+    html`<${StepSkills} held=${held} onToggle=${toggle} type=${type} field=${field} onField=${setField} />`,
     html`<${StepExplore} profileId=${profile && profile.id} type=${type} target=${target}
                          onOpen=${(o) => setSheet({ soc_code: o.soc_code, canAim: true })} />`,
     html`<${StepGap} profileId=${profile && profile.id} />`,

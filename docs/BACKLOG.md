@@ -92,6 +92,24 @@ pen so nothing gets lost.
   (schema change), a requirement and a plan. Also: high-school learners as a
   third starting point. Both deferred past the Assignment 4 submission so the
   report matches the prototype. (Noted 2026-10-24.)
+- **CV skill rules: catch more of what a CV shows.** Run the 9,544 Kaggle CVs
+  through `SKILL_RULES`, find clear phrases they miss, add rules, and re-measure
+  (r = 0.27 must not fall). `cvscan.py` is in the advert-cache fingerprint
+  (ADR-0019), so it needs `load_adverts.py --fresh` and `load_listings.py --fresh`
+  (the 517 MB advert file, about 4 minutes) and both seeds committed. (Noted
+  2026-11-16; plan item 5.)
+- **Field of study as input** (O\*NET Knowledge, 33 areas): lets a student say
+  what they study and puts it through the same engine. ADR-0013 found that
+  richer *user* input is the real lever for accuracy. Needs a schema change, a
+  new screen and a requirement. (Noted 2026-11-16, plan C.)
+- **Courses for each missing skill.** Measured on 18 November (ADR-0026): the
+  two usably licensed Kaggle catalogues cover office and soft skills (about 29%
+  of school-leaver must-haves after a relevance check) and **none** of the
+  hands-on skills. The real source is South African TVET and SETA data, which
+  needs the lecturer's approval. (Noted 2026-11-16; measured 2026-11-18.)
+- **Graded skill ratings: tested and not worth it** (ADR-0026). Ticks beat
+  every graded variant. Richer input should be new dimensions, such as a field
+  of study, not finer grades.
 
 ---
 

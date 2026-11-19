@@ -1,8 +1,25 @@
-"""Occupation recommendation by mean-centred skill-vector cosine similarity.
+"""The skill-matching model: occupation recommendation from 35 O*NET skills.
 
-The emerging-technology component (FR-06). Each occupation is a 35-dimensional
-vector of O*NET importance ratings; a user profile is a binary vector over the
-same 35 skills.
+The emerging-technology component (FR-06). Since 19 November (ADR-0027) a person
+is matched to a job by two views of the job, averaged:
+
+  1. its ratings: the 35 O*NET importance ratings, mean-centred (below), and
+  2. its must-have list: the skills rated 3.5+ (its top 5 where none are),
+     as yes/no, mean-centred the same way,
+
+each compared with the person's ticks by cosine similarity. The ticks are
+yes/no, so the second view compares like with like; the first keeps how much
+each skill matters. Measured: 67.6% against 58.5% for the ratings alone
+(PT-01b), and ahead with realistic, messy profiles too
+(backend/tests/experiment_model_upgrades.py). Job to job, where both sides
+have ratings, the ratings view alone is better (PT-05), so similar() keeps it.
+
+A student may also give a field of study, one of O*NET's 33 knowledge areas
+(ADR-0029). The same two views are then built over knowledge instead of
+skills, and blended in with weight FIELD_WEIGHT (0.1). With no field, every
+score is exactly the skills-only score.
+
+The rest of this note is about the ratings view (the model until 19 November).
 
 Why mean-centred rather than plain cosine. O*NET's 35 skills are generic --
 Reading Comprehension, Active Listening, Critical Thinking -- and almost every
@@ -86,6 +103,17 @@ def cosine(a, b):
     return dot / (na * nb) if na and nb else 0.0
 
 
+def similar(centred, soc, limit=5):
+    """The jobs whose centred skill vectors point most nearly the same way as
+    this job's: job-to-job similarity (ADR-0025, PT-05). [(soc, score)]."""
+    if soc not in centred:
+        return []
+    me = centred[soc]
+    scored = [(o, cosine(me, v)) for o, v in centred.items() if o != soc]
+    scored.sort(key=lambda p: (-p[1], p[0]))
+    return scored[:limit]
+
+
 def rank(profile_vec, centred, limit=5, restrict_to=None):
     scored = [(soc, cosine(profile_vec, vec)) for soc, vec in centred.items()
               if restrict_to is None or soc in restrict_to]
@@ -93,7 +121,156 @@ def rank(profile_vec, centred, limit=5, restrict_to=None):
     return scored[:limit] if limit else scored
 
 
-def recommend(con, held_skill_ids, limit=5, max_job_zone=None):
+def tick_vectors(vectors, threshold=ESSENTIAL_THRESHOLD, fallback=5):
+    """Each job's must-have list as yes/no: skills rated at or above the
+    threshold, or, for a job with none, its `fallback` most important skills
+    (the same rule as pathway.step_readiness)."""
+    out = {}
+    for soc, v in vectors.items():
+        t = [1.0 if x >= threshold else 0.0 for x in v]
+        if not any(t):
+            top = set(sorted(range(len(v)), key=lambda i: (-v[i], i))[:fallback])
+            t = [1.0 if i in top else 0.0 for i in range(len(v))]
+        out[soc] = t
+    return out
+
+
+# How much a student's field of study counts (ADR-0029): chosen on half the
+# jobs in experiment_field_of_study.py (0.1 to 0.33 scored within 0.3 points of
+# each other), so the skills still decide. PT-06 measures it.
+FIELD_WEIGHT = 0.1
+
+
+def load_knowledge(con):
+    """(area_ids, {soc: importance vector}) over the 33 O*NET knowledge areas,
+    or None on a database built before they were loaded (ADR-0029)."""
+    try:
+        ids = [r[0] for r in con.execute("SELECT element_id FROM knowledge_areas ORDER BY element_id")]
+        rows = con.execute("SELECT soc_code, element_id, importance FROM occupation_knowledge").fetchall()
+    except Exception:
+        return None
+    if not ids:
+        return None
+    index = {e: i for i, e in enumerate(ids)}
+    vectors = {}
+    for soc, eid, imp in rows:
+        vectors.setdefault(soc, [0.0] * len(ids))[index[eid]] = imp
+    return ids, vectors
+
+
+class Model:
+    """The skill-matching model (ADR-0027): two views of every job, averaged.
+
+    profile() turns held skills into the two centred views of a person;
+    score() is the average of the two cosines; contributions() splits that
+    score into one number per skill, which add up to it exactly (the "How we
+    matched you" panel and the reasons both come from it)."""
+
+    def __init__(self, skill_ids, vectors, knowledge=None):
+        self.ids = skill_ids
+        self.vectors = vectors
+        self.means = skill_means(vectors, len(skill_ids))
+        self.centred = centre_occupations(vectors, self.means)
+        self.ticks = tick_vectors(vectors)
+        self.tick_means = skill_means(self.ticks, len(skill_ids))
+        self.tick_centred = centre_occupations(self.ticks, self.tick_means)
+        # The field of study (ADR-0029): the same two views, over the 33
+        # knowledge areas instead of the 35 skills.
+        self.know = Model(*knowledge) if knowledge else None
+
+    @classmethod
+    def load(cls, con):
+        return cls(*load_vectors(con), knowledge=load_knowledge(con))
+
+    def profile(self, held_skill_ids, field=None):
+        """The person, centred: (ratings view, must-have view, field). The field
+        is the knowledge model's own profile of the one area, or None, in which
+        case every score is exactly the skills-only score."""
+        held = set(held_skill_ids)
+        ratings = centre_profile(self.ids, held, self.means)
+        ticks = [(1.0 if e in held else 0.0) - self.tick_means[i] for i, e in enumerate(self.ids)]
+        kprof = self.know.profile([field]) if field and self.know and field in self.know.ids else None
+        return ratings, ticks, kprof
+
+    def parts(self, prof, soc):
+        """(score from the ratings view, score from the must-have view)."""
+        return cosine(prof[0], self.centred[soc]), cosine(prof[1], self.tick_centred[soc])
+
+    def field_part(self, prof, soc):
+        """How closely the field matches this job's knowledge, or None."""
+        if len(prof) < 3 or prof[2] is None or soc not in self.know.centred:
+            return None
+        return self.know.score(prof[2], soc)
+
+    def skill_weight(self, prof, soc):
+        return 1.0 if self.field_part(prof, soc) is None else 1.0 - FIELD_WEIGHT
+
+    def score(self, prof, soc):
+        a, b = self.parts(prof, soc)
+        f = self.field_part(prof, soc)
+        return (a + b) / 2 if f is None else (1 - FIELD_WEIGHT) * (a + b) / 2 + FIELD_WEIGHT * f
+
+    def rank(self, prof, limit=5, restrict_to=None):
+        scored = [(soc, self.score(prof, soc)) for soc in self.centred
+                  if restrict_to is None or soc in restrict_to]
+        scored.sort(key=lambda p: (-p[1], p[0]))
+        return scored[:limit] if limit else scored
+
+    def contributions(self, prof, soc):
+        """Per skill: (ratings part, must-have part, the two averaged). Each
+        part is the skill's product over the cosine's denominator, so a part's
+        sum is that view's score, and the averaged column sums to score().
+        With a field, the averaged column is scaled by the skills' weight and
+        sums to score() less the field's contribution (explain() gives it)."""
+        w = self.skill_weight(prof, soc)
+        out = []
+        for view, job in ((prof[0], self.centred[soc]), (prof[1], self.tick_centred[soc])):
+            dot = sum(x * y for x, y in zip(view, job))
+            den = math.sqrt(sum(x * x for x in view)) * math.sqrt(sum(y * y for y in job))
+            out.append([x * y / den if den and dot else 0.0 for x, y in zip(view, job)])
+        return [(a, b, w * (a + b) / 2) for a, b in zip(*out)]
+
+    def reasons(self, prof, held_skill_ids, soc, top_n=3):
+        """The held skills that lifted this job's score most (FR-06): positive
+        contributions, largest first. A skill every job needs adds little."""
+        held = set(held_skill_ids)
+        c = self.contributions(prof, soc)
+        parts = [(c[i][2], e) for i, e in enumerate(self.ids) if e in held]
+        return [e for v, e in sorted(parts, key=lambda p: (-p[0], p[1])) if v > 1e-9][:top_n]
+
+    def explain(self, held_skill_ids, soc, field=None):
+        """Every number behind one job's score for one person (ADR-0025,
+        ADR-0027), from the same methods as rank(), so it cannot disagree with
+        the list. Also the score with no centring (ratings against ticks, raw),
+        and how both spread across every job: what centring is for."""
+        held = set(held_skill_ids)
+        prof = self.profile(held, field)
+        job = self.vectors[soc]
+        c = self.contributions(prof, soc)
+        rows = [{"element_id": e, "importance": job[i], "average": self.means[i],
+                 "job_centred": self.centred[soc][i], "must_have": bool(self.ticks[soc][i]),
+                 "must_have_share": self.tick_means[i], "typical": self.means[i] >= ESSENTIAL_THRESHOLD,
+                 "held": e in held, "you_centred": prof[0][i],
+                 "part_ratings": c[i][0], "part_must_haves": c[i][1], "contribution": c[i][2]}
+                for i, e in enumerate(self.ids)]
+        you_raw = [1.0 if e in held else 0.0 for e in self.ids]
+        raw_all = sorted(cosine(you_raw, v) for v in self.vectors.values())
+        model_all = sorted(self.score(prof, s) for s in self.vectors)
+        span = lambda v: {"low": v[0], "high": v[-1], "median": v[len(v) // 2]}
+        a, b = self.parts(prof, soc)
+        f = self.field_part(prof, soc)
+        field_out = None if f is None else {
+            "element_id": field, "score": f, "weight": FIELD_WEIGHT, "contribution": FIELD_WEIGHT * f,
+            "importance": self.know.vectors[soc][self.know.ids.index(field)],
+            "must_have": bool(self.know.ticks[soc][self.know.ids.index(field)])}
+        return {"rows": rows, "score": self.score(prof, soc), "score_ratings": a, "score_must_haves": b,
+                "score_skills": (a + b) / 2, "field": field_out,
+                "score_uncentred": cosine(you_raw, job),
+                "spread": {"uncentred": span(raw_all), "centred": span(model_all), "jobs": len(self.vectors)},
+                "reasons": self.reasons(prof, held, soc)}
+
+
+def recommend(con, held_skill_ids, limit=5, max_job_zone=None, model=None, field=None):
     """Public entry point. Returns [(soc_code, title, score), ...].
 
     An empty profile returns an empty list rather than an arbitrary ranking --
@@ -103,9 +280,7 @@ def recommend(con, held_skill_ids, limit=5, max_job_zone=None):
     if not held_skill_ids:
         return []
 
-    skill_ids, vectors = load_vectors(con)
-    means = skill_means(vectors, len(skill_ids))
-    centred = centre_occupations(vectors, means)
+    model = model or Model.load(con)
 
     restrict = None
     if max_job_zone is not None:
@@ -113,8 +288,7 @@ def recommend(con, held_skill_ids, limit=5, max_job_zone=None):
             "SELECT soc_code FROM occupations WHERE job_zone <= ?",
             (max_job_zone,))}
 
-    ranked = rank(centre_profile(skill_ids, held_skill_ids, means),
-                  centred, limit, restrict)
+    ranked = model.rank(model.profile(held_skill_ids, field), limit, restrict)
     titles = dict(con.execute("SELECT soc_code, title FROM occupations"))
     return [(soc, titles.get(soc, "?"), score) for soc, score in ranked]
 

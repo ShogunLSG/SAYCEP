@@ -39,6 +39,9 @@ EXPECTED = {
     "Tools Used.txt": 41650,
     # Added 30 September for the interest quiz (ADR-0011).
     "Interests.txt": 8307,
+    # Added 19 November for the field of study (ADR-0029). Counted from the
+    # Kaggle copy.
+    "Knowledge.txt": 58014,
 }
 
 SCHEMA = """
@@ -52,6 +55,8 @@ DROP TABLE IF EXISTS occupation_alt_titles;
 DROP TABLE IF EXISTS occupation_technology;
 DROP TABLE IF EXISTS occupation_tools;
 DROP TABLE IF EXISTS occupation_interests;
+DROP TABLE IF EXISTS knowledge_areas;
+DROP TABLE IF EXISTS occupation_knowledge;
 
 CREATE TABLE occupations (
     soc_code        TEXT PRIMARY KEY,
@@ -145,6 +150,22 @@ CREATE TABLE occupation_interests (
     PRIMARY KEY (soc_code, area)
 );
 
+-- The 33 knowledge areas (ADR-0029): a student's field of study is one of
+-- these. Importance on the same 1-5 scale as skills, filtered the same way.
+CREATE TABLE knowledge_areas (
+    element_id      TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    description     TEXT,
+    source_dataset  TEXT NOT NULL
+);
+
+CREATE TABLE occupation_knowledge (
+    soc_code        TEXT NOT NULL REFERENCES occupations(soc_code),
+    element_id      TEXT NOT NULL REFERENCES knowledge_areas(element_id),
+    importance      REAL NOT NULL,
+    PRIMARY KEY (soc_code, element_id)
+);
+
 CREATE INDEX idx_occ_skills_soc ON occupation_skills(soc_code);
 CREATE INDEX idx_alt_titles_soc ON occupation_alt_titles(soc_code);
 CREATE INDEX idx_tech_soc ON occupation_technology(soc_code);
@@ -184,6 +205,7 @@ def main():
     technology = read("Technology Skills.txt")
     tools = read("Tools Used.txt")
     interests = read("Interests.txt")
+    knowledge = read("Knowledge.txt")
 
     zone_by_soc = {r["O*NET-SOC Code"]: int(r["Job Zone"]) for r in job_zones}
 
@@ -299,6 +321,20 @@ def main():
         [(r["O*NET-SOC Code"], r["Element Name"][0], float(r["Data Value"]), r["Date"])
          for r in interests if r["Scale ID"] == "OI" and r["O*NET-SOC Code"] in usable],
     )
+    # Knowledge areas (ADR-0029), with the same exclusions as skills.
+    k_not_relevant = {(r["O*NET-SOC Code"], r["Element ID"]) for r in knowledge
+                      if r["Scale ID"] == "LV" and r["Not Relevant"] == "Y"}
+    k_importance = [r for r in knowledge if r["Scale ID"] == "IM" and r["Recommend Suppress"] != "Y"
+                    and (r["O*NET-SOC Code"], r["Element ID"]) not in k_not_relevant
+                    and r["O*NET-SOC Code"] in usable]
+    k_ids = {r["Element ID"] for r in k_importance}
+    con.executemany(
+        "INSERT INTO knowledge_areas VALUES (?,?,?,?)",
+        [(r["Element ID"], r["Element Name"], r["Description"], SOURCE)
+         for r in content_model if r["Element ID"] in k_ids])
+    con.executemany(
+        "INSERT INTO occupation_knowledge VALUES (?,?,?)",
+        [(r["O*NET-SOC Code"], r["Element ID"], float(r["Data Value"])) for r in k_importance])
     # The profile tables are empty but must exist. The loader deletes the whole
     # file and the API only creates them at startup, so without this,
     # rebuilding the data under a running server breaks every profile call
@@ -310,7 +346,7 @@ def main():
     for table in ("occupations", "skills", "occupation_skills",
                   "related_occupations", "job_zone_reference", "occupation_tasks",
                   "occupation_alt_titles", "occupation_technology", "occupation_tools",
-                  "occupation_interests"):
+                  "occupation_interests", "knowledge_areas", "occupation_knowledge"):
         n = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
         print(f"  {table:22} {n:>7,}")
 
@@ -329,6 +365,11 @@ def main():
         load_adverts.load(con, compute_if_stale=False)
     except Exception as e:   # the O*NET database above is complete either way
         print(f"Adverts: skipped ({e}).")
+    import load_listings     # Jobs for you (ADR-0022): the same rule, its own cache
+    try:
+        load_listings.load(con, compute_if_stale=False)
+    except Exception as e:
+        print(f"Listings: skipped ({e}).")
     con.close()
 
 

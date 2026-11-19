@@ -1,4 +1,8 @@
-# Presentation: Friday 6 November 2026
+# Presentation: Friday 20 November 2026, 18:00 (final)
+
+*Updated 18 November for the final: your 8-slide deck (the results slide was
+removed in your 9 November edit), the features added since the report, and new
+demo steps N1–N7. The prototype presentation on 6 November went well.*
 
 The script, the demo path, what to do if it breaks, and the questions to
 expect. **The words are suggestions: put them in your own voice.** You're
@@ -43,6 +47,12 @@ added this as a test (PT-01b). **Say the strict figure if asked.** It's in the
 Q&A (Q3.2). The submitted document is accurate for what it measured, and
 nothing in it needs withdrawing.
 
+**Since 19 November the model is better: 67.5% (95% interval 64.0–70.8)**,
+measured the same strict way (ADR-0027). The report and slides say 58.5%. Say:
+"58.5% in the report; I've improved it since to 67.5%, and here's how I tested
+it." Don't quote PT-01's new 95%: it lets the target count, and the new model
+almost always finds the target itself.
+
 **3. Use the newer unemployment figures.** Assignment 2 quotes Q1 2026 (60.9%
 for ages 15–24). StatsSA has since published Q2 2026 (released 11 August):
 **62.8%** for 15–24, **41.8%** for 25–34, **33.6%** overall, and **47.4%** for
@@ -78,34 +88,30 @@ seconds. That's tight: **one idea per slide, and practise it against a timer.**
 | Time | What | Slide | Say, in one breath |
 |---|---|---|---|
 | 0:00 | **Problem** | 1 | 62.8% of 15–24-year-olds are unemployed, against 33.6% overall (StatsSA, Q2 2026). The worst-hit group has the least guidance. |
-| 0:40 | **Solution and users** | 2 | SAYCEP shows the skills between a young person and a named job, and an ordered route of nearby jobs to get there: the **Pathway**. Two users: the school-leaver and the enrolled student. |
+| 0:40 | **Solution and users** | 2 | Skills → gap → Pathway → progress. Two users: the school-leaver and the enrolled student. |
 | 1:20 | **Architecture** | 3 | One FastAPI service, SQLite and a React app. Data is O\*NET 29.0 from Kaggle: 879 jobs and 35 skills. |
-| 2:00 | **Emerging technology** | 4 | Each job is a 35-number skill vector; your skills are another. Ranking is mean-centred cosine similarity. It's measured: **58.5% against 25.9% by chance**. |
-| 2:45 | **Prototype features** | 5 | Five modules. Two built in full (pathway, gap); three in reduced forms I'll name: CV check, interview practice, what employers ask for. |
-| 3:15 | **Results** | 6 | 161 automated tests pass. Response about 98 ms at p95. CV score r = 0.27. Accessibility: 169 failures to 0. |
-| 4:05 | **Limitations** | 7 | The data isn't South African (O\*NET is American; the course required Kaggle). Too little for students mid-study: no internships, certificates or learnerships. Next: South African occupational data (OFO) with approval, linking skills to SETA learnerships and TVET courses, a user test. |
-| **5:00** | **Live demo** | 8 | §3, **10 minutes**. A "DEMO" slide, so you can click away from it cleanly. |
-| 15:00 | **Questions** | 9 | |
+| 2:00 | **Emerging technology** | 4 | The **skill-matching model**: each job is 35 numbers, you're 35 numbers; subtract the average job, then cosine similarity. Measured: **67.5% against 25.9% by chance** (58.5% in the report; improved since by comparing your ticks with each job's must-have list too), and job to job it agrees with O\*NET's experts for **60.6% against 5.2%** (PT-05). "I'll show you its numbers in the demo." |
+| 3:00 | **Prototype features** | 5 | Five modules: two in full, three in reduced forms, each named. Say "added since the report": CV upload and "what to add", job cards, interview retry, the model panel, and a field of study for students. 232 automated tests pass. |
+| 3:50 | **Limitations** | 6 | The data isn't South African (the course required Kaggle). Too little for students mid-study. Next: the OFO with approval, SETA learnerships and TVET courses, a user test. |
+| **5:00** | **Live demo** | 7 | §3, **10 minutes**, with N5 at step 3. |
+| 15:00 | **Questions** | 8 | |
 
-**If you run long, cut Results to two numbers.** Don't cut Limitations: saying them
-yourself before you're asked is worth more than one more statistic.
+**If you run long, cut the feature list to the five module names.** Don't cut
+Limitations: saying them yourself before you're asked is worth more than one more
+statistic. The results numbers no longer have a slide: they're in §6 for
+answers.
 
-### Slide outline (the slides are yours; this is a suggestion)
+### The 8 slides (your deck, as edited on 9 November)
 
-1. **The problem.** Three numbers in a row: 62.8% (15–24), 41.8% (25–34), 33.6%
-   (all). Source line: *StatsSA, Quarterly Labour Force Survey, Q2 2026.* Put the
-   title (SAYCEP: South African Youth Career and Employment Platform) as the
-   slide header, so you need no separate title slide.
-2. **The solution.** The route screen (`docs/screenshots/v4/05-route.png`) and
-   one line on each user.
-3. **Architecture.** `docs/uml/a3/01-architecture.png`, or three boxes: *Kaggle
-   O\*NET 29.0 → one FastAPI service + SQLite → React app*.
-4. **Emerging technology.** A picture of two vectors and the words *mean-centred
-   cosine similarity*, plus the measured result.
-5. **Prototype features.** A table: module · what it is · how far it goes.
+1. The problem · 2. From your skills to a named job · 3. One service, one
+database, one app · 4. Matching skills to jobs · 5. What the prototype does ·
+6. Limitations, and what comes next · 7. Live demonstration · 8. Questions.
 
-   | Module | What it is | Built as |
-   |---|---|---|
+Slide 5's table still says "pasted text" for the CV check and "summarised" for
+adverts, as submitted. Say what's been added since rather than editing the
+submitted deck.
+
+---|---|---|
    | Career Pathway Builder | skills → ordered route | full |
    | Skills gap analyser | must-have and desirable gaps | full |
    | CV scanner | skills a CV shows, a measured goal score | reduced: pasted text, rules |
@@ -134,7 +140,7 @@ Use a first name of your choice at step 1. The walk uses *Thabo*.
 |---|---|---|---|
 | **1** *(about 50 s)* | Open the app. Tap **I have a plan code**: the button stays greyed. Type *ZZZZZZ* and tap it. Then tap **I'm new**, type a first name, tap *Start my plan*. | "Find a career you can actually reach." "No email, no password." The wrong code gets: **"No plan matches that code. Check it and try again."** | "Bad input gets a plain message, and the button won't work until a full code is typed. There's no account: a plan code brings you back, and nothing personal is held." *(This is brief 2.1 and 2.4: validation, error feedback, protection of personal data.)* |
 | **2** | Tap **I left school**, then tick six skills: *Operation and Control, Operations Monitoring, Equipment Maintenance, Active Listening, Critical Thinking, Monitoring*. | Six skills ticked. | "This is self-reported, the same as a CV: you say what you can do." |
-| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Chemical Equipment Operators… each "Because you have: Operation and Control, Equipment Maintenance…". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
+| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Hydroelectric Plant Technicians, Service Unit Operators (oil and gas), Explosives Workers, CNC Tool Programmers (since 19 November), each "Because you have: Operation and Control, Operations Monitoring, Equipment Maintenance". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
 | **4** | Continue. **The gap.** | "You already have **6 of the 34** skills." **2 must-haves**: Troubleshooting and Repairing. | "Two skills stand between this person and the job. Not a long list: the two that the job depends on." |
 | **5** | Continue. **The route.** Then *Save as my plan*. | Boilermakers → Electrical Power-Line Installers and Repairers → Electrical and Electronics Repairers → **Electricians**. Each says how close it is to you now. | "This is the Pathway: nearby jobs that need nearly the same skills, ordered so the next step is the most achievable." |
 | **6** | **Home.** On *Troubleshooting* tap **Start learning**; then **I can do this now**. | Learning changes nothing. Then the card: **1 of 2** must-haves; *Electrical Power-Line Installers* now ready; "every must-have for **106 jobs**, 4 more than before". | "Only 'I can do this now' closes a gap. 'Learning' doesn't. That's a deliberate rule, so progress isn't flattering." |
@@ -150,6 +156,36 @@ Use a first name of your choice at step 1. The walk uses *Thabo*.
 > off the power at the board, tightened the wire and tested it again. In the end
 > the lights worked and my uncle saved paying an electrician R450. I learned to
 > always test before and after.
+
+### New since the report (6 November): show these if time allows
+
+Both are on `main-7rly7s`. Say **"added since the report"**: the submitted
+report and slides describe pasted text and adverts summarised.
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N1** *(at step 7)* | On *Check my CV*, use **Upload a CV** and choose a PDF or Word CV. Tap *Check my CV*. | The text appears in the box: "Read … Check the text below". Then the skills it shows. | "You can upload a PDF or Word file now. It's read in the browser, so the file never leaves your device; only the text is checked." |
+| **N2** *(after step 6, on Home)* | Scroll to **Jobs for you**. Tap **Apply** on a card, then **See all … jobs for you**. | Job cards marked "Sample listings": "You have 3 of the 8 skills it mentions", "Open to beginners". Apply says it's a demo listing. | "These are real adverts, ranked by how well you fit. They're American and from 2024, so they're labelled as sample listings, not openings. Live South African adverts would come from Adzuna's South Africa API, with approval." |
+
+### New since the report, part 2 (16 November): CV advice and interview retry
+
+On `main-7rly7s`. Say "added since the report".
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N3** *(at step 7, after the CV check)* | Scroll to **What to add**. | Advice such as "A trade licence or certificate: 7 in 10 of the 84 US adverts for this job (April 2024) mention it. Your CV doesn't", with an example line. | "It doesn't just say what your CV shows: it says what to add, and how common that is in real adverts. They're American, so it says so. The scanner and its score are unchanged." |
+| **N4** *(at step 9, interview practice)* | Open question **4** (the tool). Type *I fixed it.*, then **Get feedback**. Then paste a fuller answer and check again. | The technical question ("Tell me about a time you used Microsoft Excel…"). "2 of 7 → 7 of 7 +5. Now there: …". | "There's a technical question from a tool the job's adverts name. Improve your answer and check again, and it shows what got better. It's guidance, not a score." |
+
+### New since the report, part 3 (17 November): the skill-matching model, shown
+
+**Use N5 at step 3 every time. It answers "what is the emerging technology?"
+on screen.**
+
+| # | Do this | What appears | Say |
+|---|---|---|---|
+| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the five steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the job's must-have list; the score as two views averaged (ratings 0.64, must-have list 0.76, score 0.70); two ranges: without centring 0.27–0.58, the model −0.47 to 0.70. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. And because your answers are yes or no, it also compares them with the job's must-have list, and averages the two. That second view is what took it from 58.5% to 67.5%." |
+| **N6** *(on a job page)* | Scroll to **Jobs with the closest skills**. | Five jobs, some marked "also listed by O\*NET's experts". | "The same model compares jobs with jobs. It agrees with O\*NET's experts for 61% of jobs, against 5% by chance: that's PT-05." |
+| **N7** *(step 7, after the CV check)* | Scroll to **Jobs your CV points to**. | Five jobs, each "Because your CV shows: …". | "The CV feeds the same model: the skills it finds go in, and jobs come out." |
 
 ### Add these if you have the time (to the 15-step version)
 
@@ -234,6 +270,24 @@ hand and use §3 as the checklist; the numbers are all there.
   calls out. The text font comes from Google when online and falls back to a
   system font when not, so it may look slightly different but works the same.
 
+### Presenting on Microsoft Teams (6 November: Room 2, 18:00)
+
+- **Share your entire screen, not one window.** Then switching between the
+  slides and the browser with Alt+Tab shows up for the markers. Don't use
+  "PowerPoint Live": you can't switch to the app from it.
+- **Turn on Do not disturb** in Windows, and set Teams itself to Do not
+  disturb, so no chat or email pop-ups appear on the shared screen. Close
+  WhatsApp, email and other browser tabs.
+- **The app runs on the laptop, so Wi-Fi only affects the call.** Keep a phone
+  hotspot ready in case the connection drops.
+- **Zoom the browser to about 175%.** Shared video is compressed, so small text
+  blurs.
+- **Join 10–15 minutes early,** test sharing once, and check your microphone.
+  Use headphones if you can. Keep the laptop plugged in.
+- **The markers can't open your app themselves.** It runs on your laptop, and
+  the live link isn't deployed. If sharing fails, post the screenshots from
+  `docs/screenshots/demo-2026-11-06/` in the meeting chat and talk through them.
+
 ### The live link (safety net)
 
 If you've deployed it (`docs/deploy.md`), the link is `https://<your-app>.fly.dev`.
@@ -269,8 +323,10 @@ the least guidance. Written work used Q1 (60.9%); Q2 is the latest.
 **Q1.2 Who is the user, and did you test it with one?**
 Two: the school-leaver (15–24) and the enrolled student. **No, not with a real
 first-time user yet**, so NFR-02 (a first-time user reaches a route in five
-screens, unassisted) is reported as *partial*. ◆ *If you run the ten-minute
-test before the presentation, say what happened, in your own words.*
+screens, unassisted) is reported as *partial*. The test is ready to run, with
+consent, a task sheet, the SUS and a results table, in `docs/user-test/`.
+◆ *If you run it before the presentation, say what happened, in your own
+words.*
 
 **Q1.3 Does it help anyone get a job?**
 Not measured, and I don't claim it. It's a guidance tool: it makes the gap and
@@ -329,14 +385,32 @@ see whether any of its top five recommendations is in the **same occupational
 family**. Against a random baseline of 25.9%, it gets **58.5%** over all 713
 jobs that have must-haves (95% interval 54.6–62.1) with the job itself *not*
 allowed to count. Assignment 3's 59.7% was a sample of 124 that did allow the
-job itself, and it still passes the 55% threshold. Honest reading: about twice
+job itself, and it still passes the 55% threshold. **Since 19 November: 67.5%
+(64.0–70.8)** on the same strict test, after the improvement in Q3.3. Honest reading: about twice
 chance, on a generous measure of "right". It's a proxy, not proof that people
 would take the advice.
 
 **Q3.3 That's only a few points above your threshold. Can you improve it?**
-I tried. Adding O\*NET's Knowledge and Abilities to the vectors moves it from
-59.7% to 60.5%, which is noise, because users don't record those. It would only
-help if users did, and that's a new capture step (ADR-0013).
+I did, on 19 November (ADR-0027): **58.5% → 67.5%** on the same strict test. I
+tried ten techniques, cross-validating the ones that learn, then re-tested the
+best with realistic, messy users. Standardising, LDA, smoothing with related
+jobs and PCA didn't help. Learned weights looked good (68%) but fell apart with
+messy users: overfitting. What worked was comparing your yes/no ticks with each
+job's yes/no must-have list as well as its ratings, and averaging. It keeps its
+lead with messy users (53.6% against 46.8%). Earlier, adding O\*NET's knowledge
+and abilities (ADR-0013) and graded ratings (ADR-0026) didn't help.
+
+**Q3.3b Why didn't adding knowledge help in ADR-0013, but the field of study does?**
+In ADR-0013 the knowledge ratings were added to every job's vector, but the
+person still only ticked skills, so there was nothing to compare them with. Now
+a student says what they study, one of O\*NET's 33 knowledge areas, and the
+model compares that with each job's knowledge must-haves. It counts for a
+tenth. On simulated students it's **67.5% → 70.1%** (PT-06, ADR-0029).
+School-leavers aren't asked, so their results don't change. Be honest about the
+caveat: the students are simulated from the jobs themselves.
+◆ *To show it: start as "I'm studying", tick a few skills, pick a field at the
+bottom of the skills screen, then open "How we matched this". Step 5 shows
+the field's share.*
 
 **Q3.4 Why mean-centred? Why not plain cosine?**
 O\*NET's 35 skills are generic, and nearly every job needs most of them, so the
@@ -378,6 +452,9 @@ scores at **r = 0.27** (95% interval 0.20–0.33), against 0.16 for word
 matching. That's modest, and it's from tech and office CVs, not South African
 ones. The skill suggestions are rules I wrote and quote back for the user to
 confirm, and I make no accuracy claim for them (ADR-0014, ADR-0018).
+*If asked whether you tried to improve it:* yes. Eleven more phrasings found
+more skills per CV (3.8 → 4.6) but didn't raise the held-out score (0.266 →
+0.261, within noise), so I didn't ship them (ADR-0028).
 
 **Q4.4 What happens to a CV pasted in?**
 It's read and forgotten. It's never stored, and the server doesn't log request
@@ -525,6 +602,23 @@ using an AI assistant. Know which of the decisions above you made yourself.
 
 ---
 
+### 5.9 "How did you improve it?" (ADR-0026, ADR-0027)
+
+> "After the prototype demo I tested ten techniques and kept the one that
+> genuinely helped: the model now compares your yes/no ticks with each job's
+> must-have list as well as its ratings, and averages the two. That took it
+> from 58.5% to 67.5%, and it stays ahead when I simulate messy, realistic
+> users. Some obvious ideas didn't help, so I didn't use them: rating skills as
+> 'a bit' or 'well' made it *worse*, learned weights overfitted, and the Kaggle
+> course data covers office skills, not the hands-on ones. Then I added a
+> field-of-study input for students, which did help: 67.5% to 70.1% on
+> simulated students. Next would be South African TVET and SETA data, which
+> needs approval because it isn't on Kaggle."
+
+That answer shows you measured rather than guessed. The numbers are in
+`test-results/experiment-skill-ratings-2026-11-18.txt` and
+`course-data-check-2026-11-18.txt`.
+
 ## 6. The numbers, in one place
 
 All reproduced by a command or a document in the repo. **Quote only these.**
@@ -534,46 +628,64 @@ All reproduced by a command or a document in the repo. **Quote only these.**
 | Youth unemployment, Q2 2026 | 62.8% (15–24) · 41.8% (25–34) · 33.6% (all) · 47.4% (15–34) | StatsSA QLFS Q2 2026, released 11 Aug 2026 |
 | The data | 879 jobs · 35 skills · 27,463 ratings · O\*NET 29.0 | `load_onet.py`; `test_units.py` |
 | Recommendation, as submitted | 59.7% vs 25.8% random, n = 124 | `test_performance.py` PT-01 |
-| Recommendation, stricter | **58.5%** vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b |
+| Recommendation, stricter, in the report | 58.5% vs 25.9% random, 713 jobs, interval 54.6–62.1, target removed | PT-01b, before 19 Nov |
+| **Recommendation now** (ADR-0027) | **67.5%** vs 25.9% random, interval 64.0–70.8; realistic users 53.6% vs 46.8% before | PT-01b; `experiment-model-upgrades-2026-11-19.txt` |
+| With a field of study (ADR-0029) | **70.1%** with a noisy field (+2.7 points, interval +1.0 to +4.5); 71.5% with the job's own; simulated students | PT-06 |
+| Closest jobs vs O\*NET's experts | **60.6%** of 879 jobs vs 5.2% random (11.6×); 19.8% of the top five expert-listed | PT-05 (ADR-0025) |
+| Centring, for Thabo | without: every job 0.27–0.58; the model: −0.47 to 0.70 | the "How we matched you" panel; TC-I23c |
 | Ranking speed | about 5 ms at p95 (limit 100 ms) | PT-02 |
-| Response time over HTTP | about 98 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
+| Response time over HTTP | about 100 ms at p95 (limit 2,000 ms); runs vary, 98–120 ms | PT-03 |
 | Rebuild from source | a few seconds (limit 60 s) | PT-04 |
-| CV scanner | r = **0.27** on 172 held-out CVs, vs 0.16 word matching | `benchmark-cv-2026-10-09.txt` |
+| CV scanner | r = **0.27** on 172 held-out CVs, vs 0.16 word matching (unchanged by later work) | `benchmark-cv-2026-10-09.txt` |
 | Employer adverts | 123,849 read · 26,472 linked · 438 jobs with 5+ · Electricians 84 | `adverts-2026-10-05.txt` |
+| Job cards | 7,094 sample listings over 682 jobs; Electricians' route has 26 | ADR-0022; `job-cards-2026-11-17.txt` |
+| Technical interview question | asked for 168 of 879 jobs (where 5+ adverts and 5%+ name a tool) | ADR-0024 |
 | Advert linking precision | 44 of 50 right (my own check) | `job-postings-step0-2026-10-05.txt` |
-| Accessibility | 169 failures to 0 · 23 screens · light, dark, 320 px | `accessibility-2026-10-05.txt` |
-| Automated tests | **161**, plus the accessibility, keyboard and demo walks | §7 |
-| Dependencies | 2 (FastAPI, uvicorn); the app loads React from files in the repo | `requirements.txt` |
+| Accessibility | 169 failures to 0 at first; still 0 on 30 screens · light, dark, 320 px | `accessibility-2026-11-19.txt` |
+| Automated tests | **232**, plus 8 browser suites | §7 |
+| Dependencies | 2 (FastAPI, uvicorn); React, htm and pdf.js load from files in the repo | `requirements.txt` |
 
 ---
 
-## 7. Test counts, checked 5 November on a fresh build
+## 7. Test counts, checked 19 November
 
 | Check | Result |
 |---|---|
-| Unit tests (`backend/tests/test_units.py`) | **56** passed |
-| Integration and system tests over HTTP (`test_api.py`) | **100** passed |
-| Performance and accuracy measurements (`test_performance.py`) | **5** passed |
-| **Automated tests in all** | **161** |
-| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **23** screens, in light mode, dark mode, and at 320 px wide |
-| Keyboard-only walk of the demo | **21** of 21 checks |
+| Unit tests (`backend/tests/test_units.py`) | **90** passed |
+| Integration and system tests over HTTP (`test_api.py`) | **135** passed |
+| Performance and accuracy measurements (`test_performance.py`) | **7** passed (PT-01, 01b, 02, 03, 04, 05, 06) |
+| **Automated tests in all** | **232** |
+| Accessibility audit (axe, WCAG 2.1 A and AA) | **0** failing elements on **30** screens, in light mode, dark mode, and at 320 px wide |
+| Keyboard-only walk of the demo | **22** checks, all passing |
 | Demo walk (this page's script) | **50** checks over all 15 steps; **40** over the 10-minute path |
+| CV upload (`cv_upload.js`) | **33** checks |
+| Jobs for you (`job_cards.js`) | **28** checks |
+| Interview retry and CV advice (`interview_retry.js`) | **18** checks |
+| The model, made visible (`engine_visible.js`) | **22** checks |
+| Field of study (`field_of_study.js`) | **18** checks |
 
 Run any of them with `python backend/tests/test_<name>.py` (the server running
 for the API and performance ones), or the `node frontend/tests/...` scripts.
-The accessibility and keyboard scripts need `axe-core` and Playwright; see the
-header of each file.
+The browser scripts need Playwright, and the accessibility one needs
+`axe-core`; see `frontend/README.md`. Transcripts:
+`docs/test-results/*-2026-11-19.txt`.
 
 ---
 
-## 8. Open items before you present
+## 8. Open items before the final (Friday 20 November)
 
-- ◆ **Set up the presenting laptop from a fresh copy** (§4) and run `demo_walk.js` on it. Tonight, then again tomorrow morning.
-- ◆ **Rehearse against a timer:** 5 minutes of slides, then the 10-minute path (§3), twice.
-- ◆ **Record the demo tonight** as the fallback (§4), and keep the screenshots in `docs/screenshots/v4/` to hand.
-- ◆ §5.8: choose your three decisions, and §5.3: be able to explain the recommendation maths in your own words.
-- The live link is **not deployed** (checked 5 November). Either deploy it tonight (`docs/deploy.md`) or rely on the laptop, recording and screenshots.
-- Requirements FR-11 onward (yours), if you're asked about them.
+- ◆ **On the presenting laptop:** `git pull origin main-7rly7s`, then start the
+  app (§4). No database rebuild is needed after 6 November's.
+- ◆ **Rehearse with N5 at step 3:** open "How we matched this" and walk the four
+  steps. This is the answer to "what is the emerging technology?".
+- ◆ **Practise saying "added since the report"** for the features slide 5
+  doesn't show.
+- ◆ §5.3: be ready for "why centring?". It spreads a person's scores (0.27–0.58
+  becomes −0.56 to 0.64), and it doesn't matter job to job (PT-05 is 60.6%
+  either way).
+- Optional, needs your go by Wednesday: more CV skill phrases (re-measured), and
+  the user test.
+- Merge `main-7rly7s` into `main` when you're happy, so `main` matches.
 - Rotate the Kaggle token that was pasted into this project's chat.
 
 ---

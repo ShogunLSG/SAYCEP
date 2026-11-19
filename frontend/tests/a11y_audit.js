@@ -40,6 +40,7 @@ const results = [];
   for (const k of ['Operation and Control','Operations Monitoring','Equipment Maintenance','Active Listening','Critical Thinking','Monitoring'])
     await p.click(`button.chip[aria-label="${k}"]`);
   await audit('journey 2 skills'); await cta(); await p.waitForSelector('.occ'); await audit('journey 3 for you');
+  await p.click('.occwrap .how >> nth=0'); await p.waitForSelector('.sheet.match .mscore'); await p.click('.sheet.match >> text=Show all 35 skills'); await audit('model panel'); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   await p.click('.tabs >> text=Search'); await p.fill('#occ-search', 'electric'); await p.waitForSelector('text=Electricians');
   await p.click('button.occ:has-text("Electricians")'); await p.waitForSelector('.sheet-title'); await audit('journey 3 job sheet');
   await p.click('.sheet-foot .cta'); await cta();
@@ -49,7 +50,7 @@ const results = [];
   await p.click('.ps.learning >> text=I can do this now'); await p.waitForSelector('.unlock'); await audit('unlock card'); await p.click('.unlock .cta');
   await p.click('.tb >> text="Explore"'); await p.waitForSelector('.tabpane .occ'); await audit('explore for you');
   await p.click('.tabpane .tabs >> text=Search'); await p.fill('#occ-search', 'conduit installer'); await p.waitForSelector('.aka'); await audit('explore search');
-  await p.click('.tabpane button.occ:has-text("Electricians")'); await p.waitForSelector('.page .sheet-title'); await audit('job page');
+  await p.click('.tabpane button.occ:has-text("Electricians")'); await p.waitForSelector('.page .sheet-title'); await p.waitForSelector('#sim-h'); await audit('job page');
   await p.click('.page-foot >> text=Save this job'); await p.waitForSelector('.page-foot >> text=Saved'); await p.click('.back');
   await p.fill('#occ-search', 'boilermakers'); await p.waitForTimeout(600); await p.click('.tabpane button.occ >> nth=0');
   await p.waitForSelector('.page .sheet-title'); await p.click('.page-foot >> text=Save this job'); await p.waitForSelector('.page-foot >> text=Saved'); await p.click('.back');
@@ -64,14 +65,31 @@ const results = [];
   await p.click('.pick >> nth=0'); await p.click('.pick >> nth=1'); await p.click('text=/Compare 2 jobs/'); await p.waitForSelector('.cmpcol'); await audit('compare'); await p.click('.back');
   await p.click('.cvcard .btn'); await p.waitForSelector('#cv-text'); await audit('cv check');
   await p.click('text=Use an example CV'); await p.click('text=Check my CV >> nth=-1');
-  await p.waitForSelector('.cvs'); await audit('cv result'); await p.click('.back');
+  await p.waitForSelector('.cvs'); await p.waitForSelector('#cv-points'); await audit('cv result'); await p.click('.back');
   await p.click('text=Start practising'); await p.waitForSelector('.qtext'); await audit('practice');
-  await p.fill('#answer', 'Last year at school I fixed the printer. In the end it worked.'); await p.click('text=Get feedback'); await p.waitForSelector('.fbk'); await audit('practice feedback'); await p.click('.back');
+  await p.fill('#answer', 'Last year at school I fixed the printer. In the end it worked.'); await p.click('text=Get feedback'); await p.waitForSelector('.fbk'); await audit('practice feedback');
+  await p.fill('#answer', 'Last year at school I fixed the printer for our class. I checked the cables and replaced the toner. In the end it worked and we printed 30 pages on time, and I learned to test before and after.'); await p.click('text=Get feedback'); await p.waitForSelector('.retry'); await audit('practice retry'); await p.click('.back');
   // The advert data is optional (ADR-0017): audit the section only where it's loaded.
   if (await p.evaluate(() => fetch('/occupations/47-2111.00/adverts').then((r) => r.json()).then((d) => d.loaded))) {
     await p.click('text=See what employers ask for'); await p.waitForSelector('.emp'); await audit('employers section'); await p.click('.back');
   } else console.log('employers section      skipped: advert data not loaded');
+  // Jobs for you (ADR-0022) is optional data too.
+  if (await p.evaluate(() => fetch('/occupations/47-2111.00/listings').then((r) => r.json()).then((d) => d.loaded))) {
+    await p.waitForSelector('.card.jobs .jc'); await p.click('.card.jobs .jc-apply >> nth=0'); await audit('jobs for you card');
+    await p.click('text=/See all .* jobs for you/'); await p.waitForSelector('.page .jc'); await audit('jobs for you page'); await p.click('.back');
+  } else console.log('jobs for you           skipped: listings not loaded');
   await p.click('.tb >> text="Me"'); await p.waitForSelector('#me-name'); await audit('me');
+  // A student with a field of study (ADR-0029): the question, its panel row, and Me.
+  await p.evaluate(() => localStorage.clear()); await p.goto('http://127.0.0.1:8000/'); await p.waitForSelector('.hero');
+  await p.click('.door .cta'); await p.click("text=I'm studying"); await cta();
+  for (const k of ['Programming', 'Critical Thinking', 'Mathematics']) await p.click(`button.chip[aria-label="${k}"]`);
+  await p.waitForSelector('#field-select option[value="2.C.3.a"]', { state: 'attached' }); await p.selectOption('#field-select', '2.C.3.a');
+  await audit('student skills + field'); await cta(); await p.click('.tabs >> text=For you'); await p.waitForSelector('.occwrap');
+  await p.click('.occwrap .how >> nth=0'); await p.waitForSelector('.sheet.match .mscore'); await audit('model panel + field');
+  await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+  await p.click('button.occ >> nth=0'); await p.click('.sheet-foot .cta'); await cta(); await p.waitForSelector('.headline'); await cta();
+  await p.waitForSelector('.steps'); await cta(); await p.waitForSelector('.hello');
+  await p.click('.tb >> text="Me"'); await p.waitForSelector('#me-field'); await audit('me (student)');
   if (process.env.OUT) fs.writeFileSync(process.env.OUT, JSON.stringify(results, null, 1));
   const tot = results.reduce((a, s) => a + s.r.reduce((b, v) => b + v.nodes.length, 0), 0);
   console.log('TOTAL failing elements', tot, '·', errs.length ? 'PAGE ERRORS: ' + errs.join(' | ') : 'no page errors');

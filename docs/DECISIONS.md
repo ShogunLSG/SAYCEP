@@ -1153,3 +1153,481 @@ code:
   their plan to last should use the printed plan.
 - **No schema change,** so the user-data split moves to ADR-0022 if it's ever
   built, and `plans/hosting.md` renumbers accordingly.
+
+---
+
+## ADR-0022 — Jobs for you: real adverts as labelled sample listings, ranked by fit
+
+**Date:** 2026-11-06
+**Status:** Accepted. The project owner asked for job cards ("Jobs for you")
+on presentation day, and the go was given on 24 October with every card
+labelled as sample data.
+**Partly supersedes:** ADR-0017. It keeps that ADR's rule that closed US
+adverts are never offered as openings, and adds per-advert matching.
+**Relates to:** `plans/advert-matching.md`, ADR-0002 (Kaggle only), ADR-0019
+(committed seed). It takes the number ADR-0021 had reserved for the user-data
+split, which becomes ADR-0023 if it's ever built.
+
+### Decision
+
+- **One advert per card.** For the goal and the jobs on the user's Pathway,
+  the app shows real LinkedIn adverts as job cards: the advert's title, US
+  place, work type, listing date, whether it's open to beginners, years asked,
+  requirements, and **how you fit**: "You have 3 of the 8 skills it mentions".
+- **Fit is plain counting.** It's the share of the O\*NET skills an advert
+  mentions that the user holds, shown in words (Strong fit, Good fit, Some fit,
+  A stretch), never as a percentage. Ranking is by that share, then open to
+  beginners, then fewer years asked, then newest. **No accuracy is claimed**:
+  nobody was hired, so there's no ground truth. The rules are unit-tested
+  (TC-U15).
+- **Labelled every time.** Each section carries a "Sample listings" badge and
+  says the adverts are from the United States, spring 2024, used as demo data,
+  and closed. **Apply** explains that it's a demo and that the full system
+  would open the live advert.
+- **Features only.** New table `advert_listings`: the 20 most recent linked
+  adverts per occupation (7,094 over 682 occupations), with no advert text,
+  company, link or pay. TC-U15f and TC-I21f check this.
+- **Its own module and cache.** It lives in `listings.py` and
+  `load_listings.py`, with the cache committed at
+  `backend/seed/advert_listings.cache.json` (1.4 MB). It's kept apart from
+  `adverts.py`, so the committed advert-count cache (ADR-0019) stays valid.
+  Linking and mention rules are the same as the counts'.
+
+### Consequences
+
+- **A schema change:** one new, optional table. Without it, the cards simply
+  don't appear.
+- **The skills signal is weak** (ADR-0017: median Spearman +0.23 against
+  O\*NET), so the cards present fit as a rough guide. O\*NET's ratings stay the
+  guide to what a job needs.
+- **The next step is a live South African source.** Adzuna's South Africa API
+  is the candidate (ADR-0001), but it needs the lecturer's approval under
+  ADR-0002. The cards are built so that a source can replace the sample data
+  without a redesign.
+
+---
+
+## ADR-0023 — CV upload is read in the browser: PDF, Word and text
+
+**Date:** 2026-11-06
+**Status:** Accepted. The project owner asked for it on presentation day,
+following `plans/cv-upload.md` (the browser option).
+**Relates to:** ADR-0014 (the CV scanner), ADR-0018. It takes the next number,
+so the user-data split, if ever built, becomes ADR-0024.
+
+### Decision
+
+- **The browser pulls the text out of the file and puts it in the CV box**, so
+  the user can check it before scanning. **Only the text is sent**, as when
+  it's pasted, so the backend, the scanner and its measured r = 0.27 are
+  unchanged. The file never leaves the device.
+- **.txt** is read directly. **.docx** is a zip of XML: `word/document.xml` is
+  unzipped with the browser's own `DecompressionStream`, with no library.
+- **.pdf** uses **pdf.js 3.11.174** (Mozilla, Apache-2.0), vendored in
+  `frontend/vendor/` and loaded only when a PDF is chosen. This is a **new
+  front-end dependency**: reading PDFs without one isn't realistic. That version
+  is affected by CVE-2024-4367 when `isEvalSupported` is on, so it's turned
+  off, which is the published fix. Version 4 is fixed, but it ships only as ES
+  modules, and serving `.mjs` with the right type isn't reliable on every
+  laptop.
+- **Refused, with a plain message:** other file types and old `.doc` files,
+  files over 5 MB, and a PDF with no text layer ("This looks like a scanned
+  document… Paste the text instead"). Text over the scanner's 15,000-character
+  limit is cut, and the screen says so.
+
+### Consequences
+
+- **No OCR,** so scanned CVs still need pasting.
+- **Tests:** `frontend/tests/cv_upload.js` uploads real fixture files (9
+  checks, including that no request carries a file). The axe audit and the
+  keyboard walk cover the new control.
+- The written report (submitted earlier) says "pasted text only". **In the
+  presentation, describe upload as added since the report.**
+
+---
+
+## ADR-0024 — CV advice and a technical interview question, from data already in the app
+
+**Date:** 2026-11-16
+**Status:** Accepted. The project owner approved items 1–3 of
+`plans/cv-interview-upgrade.md` for the final presentation (Friday 20 November).
+**Relates to:** ADR-0014 (CV scanner), ADR-0015 (interview practice), ADR-0017
+(adverts). It takes the next number, so the user-data split, if ever built,
+becomes ADR-0025.
+
+### Context
+
+The CV check said what a CV shows but not what to add, and interview practice
+asked skill questions only and gave feedback once per answer. No new data was
+sought: **no Kaggle interview-question dataset was found** (the nearest are on
+Hugging Face, which ADR-0002 rules out without approval), and the Kaggle
+LiveCareer CVs have category labels but no match scores, so they can't improve
+or measure the goal score.
+
+### Decision
+
+- **CV: "What to add".** For the goal job, `cvadvice.py` turns the advert
+  counts (ADR-0017) into up to three pieces of each kind of advice:
+  - **requirements** adverts commonly ask for (25%+ of adverts) that the CV
+    doesn't mention, in South African terms ("Code 8", "N2", "matric"), each
+    with an example line;
+  - **tools** at least 15% of adverts name that the CV doesn't;
+  - **key skills** (O\*NET essential) the CV doesn't show, with a worked example
+    for 15 common skills and a frame for the rest.
+  Every advert figure says how many US adverts and when ("7 in 10 of the 84 US
+  adverts for this job (April 2024)"). A job with too few adverts gets skill
+  advice only and no advert figure. **The scanner, its rules and the goal score
+  are not touched**, so r = 0.27 stands, and the advice claims no accuracy.
+- **Interview: a technical question.** After the skill questions, "Tell me about
+  a time you used *X*, or how you would use it in this job", where X is the tool
+  or software the most real adverts name (at least 5 adverts and 5% of them).
+  **168 of 879 jobs get one;** the rest don't, rather than a generic or silly
+  question. (O\*NET's "hot technology" list was tried first and rejected: it
+  offered Git for coroners and Apache Spark for nurses.) Feedback gains a
+  "Names *X*" item, matched word by word with plurals folded.
+- **Interview: retry.** Checking an answer again shows "2 of 7 → 7 of 7" and
+  what is now there, kept per question and never stored; sentence starters
+  appear only for the missing parts of the story.
+
+### Consequences
+
+- **No schema change, no new data, no seed change:** `cvscan.py` and the
+  advert cache fingerprint are untouched.
+- Electricians' technical question is about **Microsoft Excel**: that is what
+  their adverts name most (8%), though multimeters are the more natural tool.
+- **Deferred (backlog):** adding CV skill rules. It would invalidate both
+  committed seeds and need a re-measure of r = 0.27.
+- **Tests:** TC-U16a–h, TC-U17a–e, TC-I22a–i, a corrected TC-I19a, and
+  `frontend/tests/interview_retry.js` (18 checks); the axe audit covers the CV
+  result and the retry state.
+
+---
+
+## ADR-0025 — The skill-matching model, made visible and used in two more places
+
+**Date:** 2026-11-17
+**Status:** Accepted. The project owner approved `plans/emerging-tech-visible.md`
+(A, B1, B2) and the on-screen name "Skill-matching model".
+**Relates to:** FR-06, TR-01, ADR-0013, ADR-0014. It takes the next number, so
+the user-data split, if ever built, becomes ADR-0026.
+
+### Context
+
+At the 6 November demo the lecturer was unsure what the emerging technology was.
+The engine (mean-centred cosine similarity over 35 O\*NET skill ratings) ranked
+*For you* and ordered the Pathway, but nothing on screen showed a model at work.
+More data was not the fix: ADR-0013 measured richer job vectors at 59.7% →
+60.5%, which is noise.
+
+### Decision
+
+- **A. "How we matched you".** A panel, opened from every *For you*
+  recommendation, from "How does it work?" on the model's tag, and from a job
+  page, walks the real numbers for one person and one job:
+  1. the job's 35 ratings;
+  2. the person's ticks (with the skills almost every job needs marked as
+     ordinary);
+  3. the job after subtracting the average job;
+  4. the score and the skills that lifted or held it back.
+  It also shows the score without centring, and the range across all 879 jobs.
+  For Thabo, uncentred scores bunch between 0.27 and 0.58; centred ones spread
+  from −0.56 to 0.64. It's built from `recommend.explain()`, which uses the
+  engine's own functions, so it cannot disagree with the list (TC-U18a–c). The
+  panel is rendered at the app's top level, so it works inside the journey.
+- **A "Skill-matching model" tag** wherever the engine runs: *For you*, the
+  Pathway, "Jobs your CV points to", and "Jobs with the closest skills".
+- **B1. "Jobs your CV points to".** The skills a CV seems to show go through the
+  same engine (`_ranked`, now shared with *For you*), limited to Job Zones 1–3
+  for a school-leaver. They're unconfirmed, the screen says so, and nothing is
+  added to the profile. The scanner is untouched (r = 0.27 stands).
+- **B2. "Jobs with the closest skills".** `recommend.similar()` compares one
+  job's centred vector with every other job's. Each result says whether O\*NET's
+  experts also list it as related.
+
+### Measured: PT-05 (a second, independent check)
+
+Over all 879 jobs, the engine's five closest include a job O\*NET's experts list
+as related **60.6%** of the time, against an exact random baseline of **5.2%**
+(**11.6×**). On average **19.8%** of the five are expert-listed. No requirement
+sets a target, so the gate is only "well above chance" (3×). An earlier sampled
+baseline of 4.7%, in the plan, is replaced by the exact figure.
+
+**A finding to say in the Q&A:** job to job, centring changes nothing (plain
+cosine also gives 60.6%), because two jobs' ratings are on the same scale.
+Centring matters when matching a *person*, whose ticks are all 0 or 1, to jobs.
+That's what the panel's "Why step 3 matters" shows.
+
+### Consequences
+
+- No schema change, no new data and no new dependency. The seeds and the
+  scanner are untouched.
+- **A correction made before building:** the plan's first draft said that
+  without centring "every job scores about 0.9 against you". That's the
+  job-to-job figure. Measured for a person, it is 0.27–0.58. Corrected in the
+  plan.
+- **Tests:** TC-U18a–g, TC-I23a–i, PT-05, and `frontend/tests/engine_visible.js`
+  (21 checks); the axe audit covers the panel (with all 35 rows), the job page
+  with closest jobs, and the CV result with "points to".
+
+---
+
+## ADR-0026 — Two improvements tested and not adopted: skill grades, and Kaggle course catalogues
+
+**Date:** 2026-11-18
+**Status:** Accepted. Both checks were asked for by the project owner, as
+evidence for the presentation's "next steps". The app is unchanged.
+**Relates to:** ADR-0013 (richer vectors), ADR-0014 (text matching), ADR-0002
+(Kaggle only). It takes the next number, so the user-data split, if ever built,
+becomes ADR-0027.
+
+### 1. Grading skills ("a bit" or "well") instead of ticking them
+
+`backend/tests/experiment_skill_ratings.py` uses PT-01b's method (713 jobs,
+target removed; random baseline 25.9%). Transcript:
+`test-results/experiment-skill-ratings-2026-11-18.txt`.
+
+| Variant | Same family in top 5 | vs ticks |
+|---|---|---|
+| V0 ticks, as shipped | **58.5%** (54.8–62.3) | — |
+| V1 same skills, graded | 54.8% (51.3–58.5) | +45 / −71 jobs |
+| V1b the same, with everyday skills counted as ordinary at any grade | 56.5% (52.9–60.4) | +23 / −37 |
+| V2 V1 with a third of the grades wrong | 57.1% (53.6–60.7) | +39 / −49 |
+| V3 more skills, graded (an upper bound) | 52.9% (49.1–56.7) | +79 / −119 |
+
+**Not adopted.** No variant beats ticks, even with perfect grades copied from
+the target job, which flatters them. Part of the loss is how the engine centres
+a half-grade (V1 against V1b), but even the fairer centring doesn't win. Adding
+mid-importance skills (V3) dilutes what makes a job distinctive. **So the
+"richer user input" ADR-0013 points to is *other dimensions*, such as a field
+of study (O\*NET Knowledge), not finer grades of the same 35 skills.** That's
+the next step to name.
+
+### 2. Kaggle course catalogues, for "how to learn each missing skill"
+
+Licences were read from Kaggle's own metadata, with the owner's API key, on
+18 November. Of six candidates, only two are usable: the **Coursera Course
+Dataset** (`siddharthm1698`, **GPL-2.0**, 891 courses, titles only, scraped from
+Coursera) and **Udemy Finance & Accounting** (`jilkothari`, **CC0-1.0**,
+13,608 courses, finance only). Coursera 2021, Udemy (andrewmvd) and both edX
+sets are "unknown" or unspecified.
+
+`backend/tests/check_course_data.py` measured coverage against the skills
+school-leavers' jobs (Zones 1–3) need. Transcript:
+`test-results/course-data-check-2026-11-18.txt`.
+- **62%** of must-have slots have a keyword-matched Coursera course, but **about
+  29% after hand-checking relevance**. "Troubleshooting" matched "AI for Medical
+  Diagnosis", and "Reading Comprehension" matched a course for teachers.
+- **The hands-on skills** (operating and monitoring equipment, repairing,
+  troubleshooting, maintenance) are 19% of must-have slots and have **no
+  relevant course**.
+
+**Not adopted.** The usable data teaches office and soft skills, not the
+hands-on skills most school-leaver jobs depend on. Keyword matching needs hand
+curation, and the GPL-2.0 set is scraped from Coursera. The source that would
+cover hands-on training is South African (TVET courses, SETA learnerships). It
+isn't on Kaggle, so it needs the lecturer's approval: limitation 2 of the
+report.
+
+---
+
+## ADR-0027 — The skill-matching model compares a person with two views of each job
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for accuracy improvements "any
+way we can, within our restrictions", and approved this change after the
+experiment.
+**Supersedes:** the scoring part of FR-06's implementation (ADR-0025's
+explanation panel is extended, not replaced).
+**Relates to:** ADR-0013, ADR-0020, ADR-0026. It takes the next number, so the
+user-data split, if ever built, becomes ADR-0028.
+
+### Context
+
+The lecturer found the model's accuracy unconvincing: 58.5% against 25.9% by
+chance (PT-01b). ADR-0013 and ADR-0026 had ruled out more job data and graded
+user input.
+
+### What was measured (`backend/tests/experiment_model_upgrades.py`)
+
+Ten techniques were scored as PT-01b; the learned ones were cross-validated (5
+folds), so no job was scored by a model that saw its own label. Transcript:
+`test-results/experiment-model-upgrades-2026-11-19.txt`.
+- **No help:**
+  - z-score standardising (55.7%);
+  - LDA by occupational family (50.9%);
+  - smoothing with O\*NET's related jobs (57.6%);
+  - PCA latent factors (60.7% at 20 factors, within the noise);
+  - learned profile expansion (64.1% clean, but worse than the baseline with
+    messy users).
+- **Learned per-skill weights** scored 68.0% on the clean test, **but most of
+  the gain vanished with realistic users**: they were overfitting to how the
+  test builds its profiles. Rejected.
+- **Comparing ticks with each job's must-have list** (yes/no against yes/no)
+  won, and kept its lead with realistic users. Each test profile keeps 70% or
+  50% of a job's must-haves plus 2–3 random other skills, over three seeds:
+
+| | Clean | 70% + 2 random | 50% + 3 random |
+|---|---|---|---|
+| Before: the ratings view only | 58.5% | 46.8% | 37.9% |
+| **Now: ratings and must-have list, averaged** | **67.6%** | **53.6%** | **40.8%** |
+
+### Decision
+
+- **`recommend.Model` scores a person against each job in two views,
+  averaged:**
+  - the job's 35 importance ratings, mean-centred (as before);
+  - its **must-have list** (skills rated 3.5+, or its top 5 for the 166 jobs
+    with none, the readiness rule), as yes/no, mean-centred the same way.
+- **Why it works:** the user's ticks are yes/no, so the second view compares
+  like with like. Ratings alone let many middling skills dilute what makes a
+  job distinctive, the same lesson as ADR-0026.
+- **One model for every person-to-job match:** *For you*, the Pathway's order,
+  "Jobs your CV points to" and the quiz's skill match.
+- **Job to job keeps the ratings view.** "Jobs with the closest skills" and
+  PT-05 are unchanged, because there the must-have view is worse (39.5% against
+  60.6% expert agreement).
+- **The "How we matched you" panel** gains a step for the must-have list and
+  shows the two scores averaged. Each skill's contribution still adds up to
+  the score exactly (TC-U18b).
+
+### Consequences
+
+- **PT-01b: 67.5% (95% interval 64.0–70.8)** against 25.9% by chance. 0.1
+  points off the experiment, from ordering ties.
+- **PT-01 (95.2%) is now flattering by design.** It lets the target job count,
+  and the must-have view almost always finds the target itself. It's labelled
+  in the test; quote PT-01b.
+- **The submitted report says 58.5%.** In the presentation, say "improved since
+  the report", with this ADR as the evidence.
+- **Thabo's *For you* list changes:** Gas Plant Operators stays top; others now
+  include Hydroelectric Plant Technicians and Explosives Workers. His gap and
+  Pathway are unchanged, and the demo walk passes unchanged.
+- **Caveat:** the realistic users are simulated. The gain shrinks as input gets
+  messier (+9, +7, +3 points) but stays positive.
+
+## ADR-0028 — More CV skill phrasings tested and not adopted
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner asked for the CV scanner to catch more
+of what a CV shows (plan item 5 in `docs/plans/cv-interview-upgrade.md`). The
+app is unchanged.
+**Relates to:** ADR-0014 (the CV benchmark), ADR-0026 (the same kind of
+negative result). It takes the next number, so the user-data split, if ever
+built, becomes ADR-0029.
+
+### Context
+
+The CV scanner finds skills with one hand-written rule per skill. On the 344
+distinct CVs in the Kaggle Resume Dataset, five skills never fire, and common
+CV words such as "documentation", "research", "AutoCAD", "monitoring" and
+"interpersonal" fall through. The rule set before measuring was: the goal score's
+test-half r must not fall below 0.265, the figure the presentation quotes.
+
+### What was tried
+
+`backend/tests/experiment_cv_rules.py`, with the benchmark's own split:
+
+- 16 candidate phrasings, one group per skill, kept only if the **tuning**
+  half's r did not fall. 11 kept, tuning r 0.311 → 0.318.
+- **Round 1, test half:** r 0.2655 → 0.2605 (change −0.016 to +0.005).
+- **Round 2:** the three loosest phrasings ("decisions", "designed",
+  "wrote …") removed on precision grounds from a hand-check of matched lines,
+  not from the score. Test half, the second look: r → **0.2613** (change
+  −0.015 to +0.005).
+- The extra rules find more skills: 3.79 → 4.55 per CV. Writing now fires on
+  82 CVs (was 2), Technology Design on 75 (was 0), Reading Comprehension on 59
+  (was 1). Most matched lines read correctly by hand ("sales reports",
+  "AutoCAD", "Statistical process control", "Fast learner").
+
+### Decision
+
+**Don't ship.** The drop is within noise, but it isn't a gain, and it misses the
+bar that was set beforehand. A third try at the test half would be tuning on
+it. The scanner stays as it was; r stays 0.265.
+
+### Consequences
+
+- The quoted CV figure is unchanged, and so are the caches (no fingerprint
+  change).
+- **Why more correct skills don't raise r:** the benchmark's labels score how a
+  CV fits one advert, mostly by its tech stack. Broad skills such as Writing and
+  Research appear on CVs for every kind of job, so they add evidence without
+  separating good fits from poor ones. That's the same lesson as ADR-0026.
+- If asked in the presentation: "I tried, it found more skills, it didn't
+  improve the measured score, so I didn't ship it." Transcript:
+  `docs/test-results/experiment-cv-rules-2026-11-19.txt`.
+
+## ADR-0029 — A student can give their field of study, and the model uses it
+
+**Date:** 2026-11-19
+**Status:** Accepted. The project owner said go after reading
+`docs/plans/field-of-study.md`. **The functional requirement for it is still
+to be worded by the project owner** (CLAUDE.md: FR-5 onward are theirs).
+**Relates to:** ADR-0027 (the model it extends), ADR-0002 (Kaggle only: the
+data is the same O\*NET 29.0 release), ADR-0008 (what a profile holds). It
+takes the next number, so the user-data split, if ever built, becomes
+ADR-0030.
+
+### Context
+
+The model's only evidence about a person is the skills they tick, which are
+self-reported and yes/no. A student knows something firmer, which is what they're
+studying. O\*NET rates every job on 33 knowledge areas ("Economics and
+Accounting", "Biology", "Mechanical" and so on), in `Knowledge.txt`, part of
+the same Kaggle release.
+`backend/tests/experiment_field_of_study.py` measured the gain before anything
+was built: +3 to +4 points on PT-01b's protocol, with the weight chosen on
+half the jobs and reported on the other half.
+
+### Decision
+
+- **Data:** `load_onet.py` loads `Knowledge.txt` into `knowledge_areas` (33)
+  and `occupation_knowledge` (23,067 importance ratings), with the same
+  exclusions as skills (suppressed and not-relevant ratings dropped).
+- **Profile:** `users.field_element_id`, nullable, is added in place for older
+  databases. `PUT /profiles/{id}/field` sets or clears it, `POST /profiles`
+  accepts it, and `GET /knowledge-areas` lists the 33 with O\*NET's
+  descriptions and **our plain examples** ("BCom, accounting, economics,
+  banking"). The examples are UI wording to help someone find their area. The
+  model never uses them.
+- **Model:** `recommend.Model` builds the same two views (ratings and
+  must-haves, centred) over knowledge areas. The score is **0.9 × the skills
+  score + 0.1 × the field score**. **With no field, every score is exactly
+  the skills-only score** (TC-U19b), so school-leavers, Thabo and every
+  existing figure are unchanged.
+- **One model everywhere:** the field reaches *For you*, the Pathway's order,
+  the interest quiz's skill match, and the CV's "points to" when a profile is
+  attached.
+- **Journey:** students see one optional question, "What are you studying?",
+  at the bottom of the skills screen, as a native select of the 33 areas.
+  It's **not a new screen**, so the journey stays at five (NFR-02).
+  School-leavers never see it. The Me tab can change or clear it.
+- **Panel:** step 5 of "How we matched you" shows the skills score, the field
+  score and the blend. "Your field" is a row among what lifted or held back
+  the score, and the shares still add up exactly (TC-U19d).
+
+### Alternatives rejected
+
+- **A new journey screen.** It would make six screens, against NFR-02.
+- **A list of South African qualifications mapped onto the areas.** It reads
+  better, but the mapping would be our own invention presented as data.
+  Examples under O\*NET's names give most of the benefit without that.
+- **A larger weight.** In the experiment, 0.1 to 0.33 scored within 0.3 points
+  of each other, and 0.5 was clearly worse (67.4% against 73.3% on the tuning
+  half). The smallest weight keeps skills in charge.
+
+### Consequences
+
+- **PT-06** (every job with must-haves, n = 713):
+  - no field: 67.5%;
+  - a noisy field (one of the job's top 3 areas): **70.1%**, +2.7 points,
+    95% interval +1.0 to +4.5;
+  - the job's own top area: 71.5%.
+- **The caveat to say aloud:** the field is simulated from the job itself,
+  which is favourable, and no real students have been tested.
+- **Schema change:** two reference tables and one profile column.
+  `docs/architecture.md` is updated.
+- **PT-03** is a little slower (p95 about 130 ms against about 100 ms), because
+  each request now also builds the knowledge view. That's still far inside
+  the 2,000 ms limit.
+- **Fallback without this change:** `git checkout 36a4b4e`.

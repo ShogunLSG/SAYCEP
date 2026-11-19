@@ -10,29 +10,32 @@ project up cold and know not just what the code does but why it does it that way
 
 ## 1. Running it
 
-**Requirements:** Python 3.10+. Nothing else — the loader uses only the standard
-library. There is no `requirements.txt` yet because nothing has needed one.
+**Requirements:** Python 3.10 or newer, and the two packages in
+`requirements.txt` (FastAPI 0.141.1 and uvicorn 0.52.4):
+`pip install -r requirements.txt`. Nothing else at run time. React, htm and
+pdf.js are vendored in `frontend/vendor/`, so the app works offline.
 
-**Get the data.** The O*NET 29.0 Database from Kaggle
-(`emarkhauser/onet-29-0-database`). Kaggle requires a login to download. Unzip so
-the `.txt` files sit directly in `backend/data/onet/`.
+**Get the data.** The O\*NET 29.0 Database from Kaggle
+(`emarkhauser/onet-29-0-database`). Unzip it so the 41 `.txt` files sit
+directly in `backend/data/onet/`.
 
 ```bash
 python backend/load_onet.py
 ```
 
-Rebuilds `backend/saycep.db` from scratch and prints what it loaded:
+This rebuilds `backend/saycep.db` in about 5 seconds and prints what it loaded
+(879 occupations, 35 skills, 27,463 ratings, and so on). It ends with two lines
+saying the advert counts and the sample listings came **from cache**. Those
+caches are committed in `backend/seed/` (ADR-0019, ADR-0022), so a fresh clone
+has every screen without the 517 MB advert file. Recomputing them needs that file
+(Kaggle `arshkon/linkedin-job-postings`, unzipped into `backend/data/linkedin/`):
+`python backend/load_adverts.py --fresh` and
+`python backend/load_listings.py --fresh`, about 1–2.5 minutes each. **Any edit
+to `adverts.py`, `cvscan.py`, `listings.py` or the two loaders changes the
+caches' fingerprint**, so they must then be recomputed and committed. Unit tests
+TC-U14d and TC-U15e fail until they are.
 
-```
-occupations                879
-skills                      35
-occupation_skills       27,463
-related_occupations     17,580
-job_zone_reference           5
-```
-
-Neither `backend/data/` nor `saycep.db` is committed. Both are reproducible from
-the source files, and 97 MB of third-party data has no business in a git history.
+`backend/data/` and `saycep.db` are not committed: both are reproducible.
 
 **Run the app.** From the repo root:
 
@@ -40,9 +43,21 @@ the source files, and 97 MB of third-party data has no business in a git history
 python -m uvicorn app:app --app-dir backend --port 8000
 ```
 
-Open http://127.0.0.1:8000 for the journey, `/docs` for the API. Needs FastAPI
-and uvicorn installed. If `saycep.db` is missing the server refuses to start and
+One command serves both the API and the app. Open http://127.0.0.1:8000, or
+`/docs` for the API. If `saycep.db` is missing, the server refuses to start and
 says why (NFR-03).
+
+**Run the tests** (the server running for the API, performance and browser
+ones):
+
+```bash
+python backend/tests/test_units.py         # 84
+python backend/tests/test_api.py           # 126
+python backend/tests/test_performance.py   # 6, including PT-01b and PT-05
+node frontend/tests/demo_walk.js           # the presentation demo; see frontend/README.md for the rest
+```
+
+Dated transcripts of every full run are in `docs/test-results/`.
 
 ---
 
@@ -50,32 +65,31 @@ says why (NFR-03).
 
 | Component | File | Diagram name |
 |---|---|---|
-| Loader | `backend/load_onet.py` | — |
-| API — routes only | `backend/app.py` | SAYCEP API |
+| Loaders | `backend/load_onet.py`, `load_adverts.py`, `load_listings.py` | — |
+| API: routes only (31 endpoints) | `backend/app.py` | SAYCEP API |
 | Database access | `backend/repository.py` | Occupation Repository |
 | Gap analysis | `backend/gap.py` | Gap Analyser |
 | Pathway generation | `backend/pathway.py` | Pathway Service |
-| Recommendation | `backend/recommend.py` | Recommendation Engine |
-| The journey | `frontend/` | Web UI |
+| **The skill-matching model** (the emerging technology) | `backend/recommend.py` | Recommendation Engine |
+| CV check, and what to add | `backend/cvscan.py`, `cvadvice.py` | CV Scanner |
+| Interview practice | `backend/interview.py` | Interview Practice |
+| What employers ask for, and Jobs for you | `backend/adverts.py`, `listings.py` | Advert Summary |
+| Interest quiz | `backend/interests.py` | — |
+| The app | `frontend/` (one file per part; see `frontend/README.md`) | Web UI |
 
-Module names match the sequence diagram deliberately, so the code and Figure 4
-tell the same story. The API has eight endpoints: the seven the proposal lists,
-plus `PUT /profiles/{id}/target`, which FR-03 needs — see
-`docs/plans/frontend-journey.md`.
+Module names match the sequence diagram deliberately, so the code and the UML
+tell the same story. The API began with eight endpoints (the seven the proposal
+lists, plus `PUT /profiles/{id}/target` for FR-03). It now has 29, one group
+per module.
 
 ### Schema
 
-```sql
-occupations         (soc_code PK, title, description, job_zone, source_dataset)
-skills              (element_id PK, name, description, source_dataset)
-occupation_skills   (soc_code, element_id, importance, importance_scale_max,
-                     source_date, PK(soc_code, element_id))
-related_occupations (soc_code, related_soc_code, tier, sort_index)
-job_zone_reference  (zone, name, experience, education, training, examples, svp_range)
-```
-
-`users` and `user_skills` are designed but not yet created — they arrive with the
-API, since nothing can write to them until then.
+The schema as built, with every table, is in `docs/architecture.md` (checked
+against the database on 18 November). In short:
+- the O\*NET tables (occupations, skills, ratings, related jobs, tasks,
+  alternate titles, software, tools, interests);
+- the advert tables (counts, titles, baseline, sample listings);
+- the profile tables (users, their skills, saved jobs, progress events).
 
 ---
 
@@ -363,6 +377,73 @@ The advert pass is slow, so it's cached and fingerprinted on its inputs.
 Get the data with the Kaggle API (`arshkon/linkedin-job-postings`), unzip it
 into `backend/data/linkedin/`, and run `python backend/load_onet.py`.
 
+### 8–24 October: corrections, a committed seed, and honest accuracy
+
+- **A code review found 12 problems, all fixed.** Among them: the cache
+  fingerprint hashed a row's memory address, so it never matched.
+- **The advert counts were committed** (ADR-0019), so a fresh laptop clone shows
+  every screen.
+- **TR-01 is reported two ways** (ADR-0020): 59.7% as first defined, and
+  58.5% (95% interval 54.6–62.1) with the target job removed, against 25.9% by
+  chance. Say the stricter figure if asked.
+- **A minimal Fly.io deploy** (ADR-0021).
+
+### 6 November: Jobs for you, and CV upload
+
+- **Job cards** (ADR-0022): real adverts, one per card, ranked by the share of
+  the skills each mentions that the user has. They're always labelled as sample
+  listings: US, 2024, closed. Kept in their own module and cache, so the
+  committed advert counts stayed valid.
+- **CV upload** (ADR-0023): PDF, Word or text, read **in the browser**, so only
+  the text is sent and the measured scanner is unchanged. pdf.js is vendored with
+  `isEvalSupported` off (CVE-2024-4367). Testing a designed two-column CV found
+  Word's bullets turning into box characters; now fixed.
+
+### 16 November: what to add, and better interview practice
+
+- **"What to add"** (ADR-0024): requirements, tools and skills a CV lacks for
+  the goal, with how common each is in real adverts and an example line. It
+  understands South African wording ("Code 8", "N2", "matric").
+- **A technical interview question** about the tool the job's adverts name most.
+  This is only asked where at least 5 adverts and 5% of them name it, which
+  covers 168 of the 879 jobs. O\*NET's "hot technology" list was tried first and
+  rejected: it asked coroners about Git.
+- **Retry** shows "2 of 7 → 7 of 7" and what improved.
+- **No new data:** no Kaggle interview dataset exists, and the course catalogues'
+  licences couldn't be verified.
+
+### 17 November: the skill-matching model, made visible
+
+At the 6 November demo the lecturer was unsure what the emerging technology was.
+It worked, but nothing on screen showed a model at work. So (ADR-0025):
+- **"How we matched you"** walks one person's and one job's real numbers through
+  the four steps (five since ADR-0027). It shows how centring spreads the scores: for Thabo, 0.27–0.58
+  without it, −0.56 to 0.64 with it.
+- **A "Skill-matching model" tag** wherever the engine runs.
+- **Two new uses:** "Jobs your CV points to", and "Jobs with the closest skills".
+- **PT-05**, a second accuracy figure: 60.6% agreement with O\*NET's experts,
+  against 5.2% by chance.
+- **Found while measuring:** job to job, centring makes no difference, because
+  two jobs' ratings share a scale. It matters for matching a *person*, whose
+  ticks are 0 or 1.
+- **A claim was corrected before it was built on:** the plan said "about 0.9
+  without centring", which was the job-to-job figure, not the person-to-job one.
+
+### 19 November: the model, improved (ADR-0027)
+
+- **The lecturer found the accuracy unconvincing.** So ten techniques were
+  tested on PT-01b's measure, with the learning ones cross-validated, and the
+  best re-tested on simulated, messy users.
+- **The winner:** compare the person's yes/no ticks with each job's yes/no
+  must-have list (top 5 for jobs with none), as well as its ratings, and
+  average the two cosines. **58.5% → 67.5%**; with messy users 46.8% → 53.6%.
+- **What didn't help:** z-scores, LDA, related-job smoothing and PCA. Learned
+  weights looked best on the clean test and fell apart on messy users: a
+  textbook overfit, caught by testing beyond the training set's shape.
+- **The structure:** `recommend.Model` holds both views; every person-to-job
+  match goes through it. Job to job stays on ratings, which are better there
+  (PT-05). The panel shows the must-have list and the average.
+
 ---
 
 ## 5. Where things are
@@ -374,8 +455,11 @@ into `backend/data/linkedin/`, and run `python backend/load_onet.py`.
 | `docs/DECISIONS.md` | Append-only ADR log — the load-bearing decisions |
 | `docs/data-sources.md` | O*NET, and the verified shortlist it replaced |
 | `docs/architecture.md` | Demo vs production architecture |
-| `docs/functional-requirements.md` | Assignment 2 — FR-1 to FR-4 worked, rest to draft |
-| `docs/timeline.md` | Three-week plan and its gates |
+| `docs/functional-requirements.md` | Assignment 2: the functional requirements |
+| `docs/timeline.md` | The plan and its gates, to the final presentation |
+| `docs/presentation.md`, `docs/presentation-script.md` | The demo path, set-up and Q&A; what to say over each slide |
+| `docs/deploy.md` | The optional Fly.io deploy |
+| `docs/test-results/` | Dated transcripts of every test run |
 | `docs/plans/` | Approach documents, written before code |
 | `docs/BACKLOG.md` | Noticed, deliberately deferred |
 | `docs/archive/` | The superseded August plan |

@@ -14,12 +14,28 @@ Experience:
 - Worked at a hardware store: served customers, checked stock and kept records.
 Skills: using a multimeter, soldering irons and power drills; Microsoft Excel; working in a team; reading circuit diagrams.`;
 
-function CvPage({ profileId, onSet, onOpenSkill }) {
+function CvPage({ profileId, onSet, onOpenSkill, onOpenJob }) {
   const [text, setText] = useState("");
   const [res, setRes] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [added, setAdded] = useState(() => new Set());
+  const [fileMsg, setFileMsg] = useState(null);   // { ok, text } about the last upload
+
+  async function upload(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";                            // the same file can be chosen again
+    if (!file) return;
+    setFileMsg({ ok: true, text: `Reading ${file.name}…` });
+    try {
+      const r = await readCvFile(file);
+      setText(r.text); setRes(null);
+      setFileMsg({ ok: true, text: `Read ${file.name}. Check the text below, then tap Check my CV.`
+        + (r.cut ? " It was long, so only the first 15,000 characters are kept." : "") });
+    } catch (err) {
+      setFileMsg({ ok: false, text: err instanceof CvFileError ? err.message : "That file couldn't be read. Paste the text instead." });
+    }
+  }
 
   async function scan() {
     setBusy(true); setError(null);
@@ -35,7 +51,13 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
       <div class="page-body">
         <p class="kicker">Check my CV${PRESENTER ? " · ADR-0014" : ""}</p>
         <h3 class="sheet-title">What does your CV show?</h3>
-        <p class="about">Paste your CV below. We'll point out the skills it shows and how it reads for your goal.${" "}<b>It's read and forgotten — never saved.</b></p>
+        <p class="about">Upload your CV or paste it below. We'll point out the skills it shows and how it reads for your goal.${" "}<b>It's read and forgotten — never saved.</b></p>
+        <div class="cvup">
+          <label for="cv-file">Upload a CV <span class="meta">PDF, Word (.docx) or text, up to 5 MB</span></label>
+          <input id="cv-file" type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                 onChange=${upload} />
+          <p class=${"cvup-msg" + (fileMsg && !fileMsg.ok ? " bad" : "")} role="status">${fileMsg ? fileMsg.text : "The file stays on your device: only its text is checked."}</p>
+        </div>
         <textarea id="cv-text" class="cvbox" aria-label="Your CV text" rows="9" maxLength="15000" value=${text}
                   placeholder="Paste the text of your CV here…" onInput=${(e) => setText(e.target.value)}></textarea>
         <div class="plan-actions">
@@ -61,6 +83,18 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
                   </div>`;
               })}`}
 
+          ${res.points_to && res.points_to.length > 0 && html`
+            <h4 class="sect" id="cv-points">Jobs your CV points to</h4>
+            <${ModelTag} />
+            <p class="note">Based on the skills your CV seems to show, before you confirm them. Nothing is added to your plan.</p>
+            <div class="list">${res.points_to.map((r) => html`
+              <button key=${r.soc_code} class="occ" onClick=${() => onOpenJob && onOpenJob(r)}>
+                <span class="t">${r.title}
+                  ${r.because.length > 0 && html`<span class="why-rec">Because your CV shows:${" "}<b>${r.because.join(", ")}</b></span>`}
+                  <span class="meta"><b class="match">${r.match}</b><span class="score mono">${r.score.toFixed(2)}</span> · ${r.preparation.label}</span>
+                </span><span class="chev">›</span>
+              </button>`)}</div>`}
+
           ${g && html`
             <h4 class="sect">How it reads for ${g.title}</h4>
             <div class="goalchg">
@@ -71,9 +105,19 @@ function CvPage({ profileId, onSet, onOpenSkill }) {
                 <p key=${k.element_id} class="cvline">${k.evidence
                   ? html`<span class="okt">${Icon.check}</span> <b>${k.name}</b> — “${k.evidence}”`
                   : html`<span class="miss">○</span> <b>${k.name}</b> — not shown yet. Add an example of when you did it.`}</p>`)}
-              ${g.worth_mentioning.length > 0 && html`<p class="note">Worth mentioning if you've used them: ${g.worth_mentioning.join(", ")}.</p>`}
+              ${g.worth_mentioning.length > 0 && !(g.add && g.add.some((a) => a.kind === "tool")) && html`<p class="note">Worth mentioning if you've used them: ${g.worth_mentioning.join(", ")}.</p>`}
               <${Figure}>score ${g.score} (overlap ${g.overlap}, coverage ${g.coverage}) · ${g.basis}<//>
             </div>`}
+
+          ${g && g.add && g.add.length > 0 && html`
+            <h4 class="sect" id="cv-add">What to add</h4>
+            <p class="note">Only add what is true for you. The figures are for real adverts for ${g.title.toLowerCase()}, from the United States.</p>
+            <ul class="addlist">${g.add.map((a) => html`
+              <li key=${a.kind + a.title} class=${"addtip " + a.kind}>
+                <b>${a.title}</b>
+                <span class="addwhy">${a.why}</span>
+                <span class="quote">${a.example}</span>
+              </li>`)}</ul>`}
 
           <h4 class="sect">CV checklist</h4>
           <ul class="sk">${res.checks.map((c) => html`

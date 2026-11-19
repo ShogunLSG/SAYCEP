@@ -1,0 +1,178 @@
+
+TC-I01  Catalogue endpoints  (FR-02, FR-04, FR-05)
+  PASS  TC-I01a  GET /skills returns 200 and 35 skills  -- 35
+  PASS  TC-I01b  GET /occupations?zone=3 returns 209 occupations  -- 209
+  PASS  TC-I01c  GET /occupations?q=electric finds Electricians
+  PASS  TC-I01d  GET /occupations/{bad soc} returns 404  -- 404
+
+TC-I02  Profile lifecycle  (FR-01, FR-02, FR-03)
+  PASS  TC-I02a  POST /profiles returns 201 with a profile id  -- 201
+  PASS  TC-I02b  PUT target sets Electricians
+  PASS  TC-I02c  PUT target replaces the previous one
+  PASS  TC-I02d  PUT target with an unknown SOC code returns 404  -- 404
+  PASS  TC-I02e  PUT target on an unknown profile returns 404  -- 404
+
+TC-I03  Gap analysis  (FR-07, FR-09)
+  PASS  TC-I03a  GET gap returns 200
+  PASS  TC-I03b  6 skills held out of 34 required  -- 6
+  PASS  TC-I03c  2 essential skills missing  -- 2
+  PASS  TC-I03d  26 desirable skills missing  -- 26
+  PASS  TC-I03e  every missing skill carries a source date (FR-09)
+
+TC-I04  Pathway generation  (FR-08)
+  PASS  TC-I04a  GET pathway returns 200
+  PASS  TC-I04b  at least 3 intermediate steps  -- 3
+  PASS  TC-I04c  every step names at least one skill
+  PASS  TC-I04d  the final step is flagged as the target
+
+TC-I06  Role sheet: an occupation read against a profile  (FR-04, FR-09)
+  PASS  TC-I06a  GET occupation with a profile marks which skills are held  -- 6
+  PASS  TC-I06b  essential counts agree with the gap (2 of the must-haves missing)  -- 2 - 0
+  PASS  TC-I06c  the description and a plain preparation label travel with it
+  PASS  TC-I06d  without a profile, 'held' is null rather than a guess
+  PASS  TC-I06f  the job's most important tasks travel with it, rated ones first (ADR-0007)  -- 8 of 21
+  PASS  TC-I06e  an unknown profile returns 404  -- 404
+
+TC-I05  Recommendation engine  (FR-06, TR-02, TR-03)
+  PASS  TC-I05a  GET recommendations returns 5 results
+  PASS  TC-I05b  single request completed in 77 ms (NFR-01: under 2000 ms)  -- 77 ms
+  PASS  TC-I05c  every recommendation carries its job zone
+  PASS  TC-I05d  an empty skill set returns no recommendations with a message (TR-03)
+
+TC-I07  Progress: working on it and can do it now  (dashboard, ADR-0005)
+  PASS  TC-I07a  GET profile reports readiness 0 of 2 must-haves, 6 of 34 overall  -- {'basis': 'essential', 'have': 0, 'total': 2, 'missing': [{'element_id': '2.B.3.k', 'name': 'Troubleshooting'}, {'element_id': '2.B.3.l', 'name': 'Repairing'}], 'ready': False, 'overall_have': 6, 'overall_total': 34}
+  PASS  TC-I07b  'working on it' is recorded but does not close the gap  -- learning 1, essential missing 2
+  PASS  TC-I07c  'can do it now' closes it: 1 must-have left, readiness 1 of 2  -- 1, 1
+  PASS  TC-I07d  the pathway recomputes and still has 3 steps, each saying whether it is ready
+  PASS  TC-I07e  DELETE undoes it: back to 2 must-haves missing  -- 2
+  PASS  TC-I07f  an unknown status is rejected with 422  -- 422
+  PASS  TC-I07g  an unknown skill returns 404  -- 404
+  PASS  TC-I07h  GET an unknown profile returns 404, so the app can forget a stale id  -- 404
+
+TC-I08  Search by the names people actually use  (FR-04, ADR-0009)
+  PASS  TC-I08a  'conduit installer' finds Electricians through an alternate title  -- {'soc_code': '47-2111.00', 'title': 'Electricians', 'job_zone': 3, 'source_dataset': 'O*NET 29.0 (August 2024 release)', 'also_called': 'Conduit Installer', 'preparation': {'label': 'Vocational training or an apprenticeship', 'detail': 'Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience.'}}
+  PASS  TC-I08b  official-title matches still come first and carry no also_called
+  PASS  TC-I08c  every title match is still returned (FR-04's criterion holds)
+
+TC-I09  Job page: related jobs, software and tools  (ADR-0009)
+  PASS  TC-I09a  related jobs are O*NET's primary related occupations, in review order  -- ['Helpers--Electricians', 'Plumbers, Pipefitters, and Steamfitters']
+  PASS  TC-I09b  software lists hot technologies first
+  PASS  TC-I09c  tools are grouped by category, largest first, with a total  -- 164
+
+TC-I10  Sign in with a plan code  (ADR-0008)
+  PASS  TC-I10a  a new profile gets a plan code like K7M-2QX and a trimmed first name  -- W78-CWE 'Thabo'
+  PASS  TC-I10b  the code reopens the same plan, however it is typed  -- {'profile_id': '7cea09bb9a2a', 'display_name': 'Thabo', 'has_target': False}
+  PASS  TC-I10c  an unknown code returns 404 with a plain message  -- 404
+  PASS  TC-I10d  the first name can be cleared -- it is optional
+  PASS  TC-I10e  a name over 40 characters is rejected  -- 422
+
+TC-I11  Skill pages and what a skill unlocks  (slice 2)
+  PASS  TC-I11a  a skill page lists where it matters most, most important first  -- 40
+  PASS  TC-I11b  marking Troubleshooting held reports the goal moving 0 -> 1 of 2  -- {'title': 'Electricians', 'basis': 'essential', 'before': 0, 'after': 1, 'total': 2, 'ready': False}
+  PASS  TC-I11c  and names the route step it made ready: Electrical Power-Line Installers  -- [{'soc_code': '49-9051.00', 'title': 'Electrical Power-Line Installers and Repairers'}]
+  PASS  TC-I11d  the count of jobs with every must-have held rises (102 -> 106)  -- 102 -> 106
+  PASS  TC-I11e  marking a skill 'learning' changes nothing, so reports no changes  -- None
+  PASS  TC-I11f  with a profile, the skill page says where the user stands
+
+TC-I12  Saved jobs and comparison  (slice 3, ADR-0010)
+  PASS  TC-I12a  saving twice keeps one copy; saved jobs come back with readiness  -- ['49-9051.00', '47-2111.00']
+  PASS  TC-I12b  a job page says whether it is saved
+  PASS  TC-I12c  compare: a job with no essential skills counts its top five, and 'to learn' agrees  -- {'basis': 'top_5', 'total': 5, 'have': 4, 'ready': False} [{'element_id': '2.B.3.k', 'name': 'Troubleshooting'}]
+  PASS  TC-I12d  compare: Electricians still needs Troubleshooting and Repairing  -- [{'element_id': '2.B.3.k', 'name': 'Troubleshooting'}, {'element_id': '2.B.3.l', 'name': 'Repairing'}]
+  PASS  TC-I12e  comparing fewer than two jobs is rejected  -- 422
+  PASS  TC-I12f  unsaving removes it
+
+TC-I13  Interest quiz  (slice 4, ADR-0011)
+  PASS  TC-I13a  twelve statements, two for each of the six interest areas
+  PASS  TC-I13b  all-hands-on answers rank jobs whose top area is Realistic first (10 of 10)  -- [['Hands-on', 'Organising'], ['Hands-on', 'Organising'], ['Hands-on', 'Organising']]
+  PASS  TC-I13c  results are ordered by fit, best first
+  PASS  TC-I13d  answers that lean nowhere get a message, not a meaningless ranking
+  PASS  TC-I13e  the school-leaver filter keeps every result at Job Zone 3 or below
+  PASS  TC-I13f  with a profile, each result also carries a skill-match label
+
+TC-I14  Progress history  (slice 5, ADR-0012)
+  PASS  TC-I14a  every change is recorded once, newest first; re-setting the same goal is not  -- [('skill', None), ('skill', 'held'), ('skill', 'learning'), ('goal', None), ('started', None)]
+  PASS  TC-I14b  each event carries the goal's readiness at that moment: 0, 0, 1, then 0 again  -- [None, 0, 0, 1, 0]
+  PASS  TC-I14c  the start event records how many skills the plan began with
+
+TC-I15  FR-09 on the newer screens: dataset and record dates
+  PASS  TC-I15a  job page: dataset plus the dates of its skill ratings and tasks  -- {'dataset': 'O*NET 29.0 (August 2024 release)', 'skill_rating_dates': ['08/2022'], 'task_dates': ['08/2022']}
+  PASS  TC-I15b  skill page: every listed job's rating carries its date, and the dates are listed
+  PASS  TC-I15c  compare: each job carries its rating dates, and the dataset is named
+  PASS  TC-I15d  quiz results: each job's interest profile carries its date
+
+TC-I16  FR-06: each recommendation says why
+  PASS  TC-I16a  every recommendation names 1-3 reasons, all of them skills the user holds  -- [['Operation and Control', 'Equipment Maintenance', 'Operations Monitoring'], ['Operation and Control', 'Equipment Maintenance', 'Operations Monitoring']]
+  PASS  TC-I16b  skills every job needs (Active Listening, Critical Thinking) are never offered as a reason
+  PASS  TC-I16c  the ranking itself is unchanged: still five, best first
+
+TC-I17  FR-08: each route step says why it is there
+  PASS  TC-I17a  the intermediate steps are ordered by their closeness score, closest first  -- [0.467, 0.391, 0.388]
+  PASS  TC-I17b  each step says how many of its skills the user has, and labels its closeness
+  PASS  TC-I17c  the demo route is unchanged  -- ['47-2011.00', '49-9051.00', '49-2094.00', '47-2111.00']
+
+TC-I18  CV scanner endpoint  (ADR-0014)
+  PASS  TC-I18a  suggests Repairing and Installation, quoting the lines, and marks skills already held  -- ['Coordination', 'Installation', 'Mathematics', 'Repairing', 'Science']
+  PASS  TC-I18b  with a profile, the goal check uses the profile's goal (Electricians) and names its evidence  -- ['Microsoft Excel', 'Multimeters']
+  PASS  TC-I18c  the response says the CV was not stored
+  PASS  TC-I18d  scanning changes nothing on the profile: same skills, same history, nothing added
+  PASS  TC-I18e  a too-short CV is rejected with 422  -- 422
+  PASS  TC-I18f  a CV over 15,000 characters is rejected with 422  -- 422
+  PASS  TC-I18g  without a profile or job there are suggestions but no goal check
+
+TC-I19  Interview practice  (ADR-0015)
+  PASS  TC-I19a  questions for the profile's goal: an opener, one per must-have, a tool where adverts name one (ADR-0024), one from a task  -- ['opener', 'skill', 'skill', 'tool', 'task']
+  PASS  TC-I19b  feedback returns a checklist with tips for what is missing, and is not stored
+  PASS  TC-I19c  questions without a job or a profile goal return 400  -- 400
+  PASS  TC-I19d  an unknown skill returns 404  -- 404
+
+TC-I20  What employers ask for  (module 4, ADR-0017)
+  PASS  TC-I20a  Electricians: enough linked adverts, labelled US with the listing month, closed, dataset named  -- 84 adverts, April 2024
+  PASS  TC-I20b  a licence or certificate is the commonest requirement; shares come as words  -- [('licence', '7 in 10'), ('driver', '3 in 10'), ('school', '3 in 10'), ('lifting', 'a few'), ('degree', 'a few')]
+  PASS  TC-I20c  skills stressed include Troubleshooting and Repairing, each lifted 1.5x+, marked from the profile  -- [('Installation', None), ('Repairing', None), ('Troubleshooting', None), ('Equipment Maintenance', 'held'), ('Quality Control Analysis', None)]
+  PASS  TC-I20d  only counts and titles come back -- no advert text, companies or links
+  PASS  TC-I20h  beginners are counted over adverts that state a level, never more than all adverts  -- 51/73/84
+  PASS  TC-I20e  an occupation with 1-4 adverts says there are too few, with no lists  -- 11-1011.03: 2
+  PASS  TC-I20f  an occupation with no linked adverts returns 0, not an error  -- 11-3051.02
+  PASS  TC-I20g  an unknown occupation returns 404  -- 404
+
+TC-I21  Jobs for you: sample listings  (module 4, ADR-0022)
+  PASS  TC-I21a  no goal yet: no listings, not an error  -- 200
+  PASS  TC-I21b  listings come from the goal and the jobs on the route, and only those  -- ['47-2011.00', '49-9051.00', '49-2094.00', '47-2111.00']
+  PASS  TC-I21c  every listing is labelled: US adverts, demo data, closed, not openings; dataset named
+  PASS  TC-I21d  best fit first: the share of named skills held never rises down the list  -- [0.38, 0.33, 0.31, 0.27, 0.22, 0.2]
+  PASS  TC-I21e  fit counts agree with the skills listed and the profile
+  PASS  TC-I21f  no advert text, company, link or pay comes back
+  PASS  TC-I21g  a job page gets at most the limit, all for that job
+  PASS  TC-I21h  an unknown occupation returns 404  -- 404
+
+TC-I22  CV advice and the technical interview question  (ADR-0024)
+  PASS  TC-I22a  a CV scan with a goal returns what to add: requirements, then skills, each with a reason and an example  -- [('requirement', 'A trade licence or certificate'), ('requirement', "A driver's licence"), ('skill', 'Troubleshooting'), ('skill', 'Repairing')]
+  PASS  TC-I22b  advert figures say how many US adverts, and when
+  PASS  TC-I22c  naming a licence in the CV removes the licence advice  -- ['Troubleshooting', 'Repairing']
+  PASS  TC-I22d  no goal, no advice: goal stays empty and nothing is stored
+  PASS  TC-I22e  a job with no adverts: skill advice only, and no advert figure claimed  -- 11-3051.02
+  PASS  TC-I22f  Electricians get a technical question about a tool the adverts name, after the skill questions  -- [{'id': 'tool', 'kind': 'tool', 'skill': None, 'tool': 'Microsoft Excel', 'text': 'Tell me about a time you used Microsoft Excel, or how you would use it in this job.'}]
+  PASS  TC-I22g  a job with no adverts gets no technical question
+  PASS  TC-I22h  feedback checks the tool is named: green when it is, a tip when it isn't
+  PASS  TC-I22i  an over-long tool name is refused (422), never stored  -- 422
+
+TC-I23  The skill-matching model, made visible  (ADR-0025)
+  PASS  TC-I23a  How we matched you: the same score, match words and reasons as the For you list  -- Gas Plant Operators: 0.641 vs 0.641
+  PASS  TC-I23b  it carries all 35 skills, each with the job's rating, its centred value, yours and the product
+  PASS  TC-I23c  with and without centring, and the range across every job  -- {'uncentred': {'low': 0.271, 'high': 0.581, 'median': 0.413}, 'centred': {'low': -0.562, 'high': 0.641, 'median': -0.048}, 'jobs': 879}
+  PASS  TC-I23d  an unknown job or profile returns 404  -- 404, 404
+  PASS  TC-I23e  a profile with no skills gets a message, not an error  -- Tick at least one skill first.
+  PASS  TC-I23f  closest jobs: five, best first, never the job itself, each marked if O*NET's experts also list it  -- [('Manufactured Buildin', False), ('Plumbers, Pipefitter', True), ('Electrical Power-Lin', True), ('Heating, Air Conditi', False), ('Weatherization Insta', False)]
+  PASS  TC-I23g  closest jobs for an unknown job: 404  -- 404
+  PASS  TC-I23h  Jobs your CV points to: ranked by the same engine, with reasons, within Job Zones 1-3 for a school-leaver  -- [('Solar Photovoltaic Instal', 2), ('Weatherization Installers', 2), ('Automotive Glass Installe', 2), ('Sheet Metal Workers', 2), ('Aircraft Structure, Surfa', 2)]
+  PASS  TC-I23i  a CV that shows no skills points to no jobs, and nothing is added to a profile
+
+TC-S01  System test: the rehearsed demo path, start to finish
+  PASS  TC-S01a  fresh run of the demo profile reproduces 6/2/26
+  PASS  TC-S01b  fresh run reproduces a 3-step pathway to Electricians
+
+TC-N01  Concurrency (NFR-01, the connection-per-request fix)
+  PASS  TC-N01a  20 concurrent requests, 20 succeeded  -- [200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]
+
+126 passed, 0 failed, 126 total
