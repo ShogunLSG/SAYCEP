@@ -123,3 +123,9 @@ moot under the Kaggle-only rule (ADR-0002). They are recorded in
 
 The fifth — a path mismatch between `CLAUDE.md` and `ROADMAP.md` — resolved
 itself when the roadmap was archived.
+
+- **A test for the skill order (ADR-0032).** The group order on the tick screen
+  and the nice-to-have order in the gap are checked only by looking and by the
+  walk, which passes whatever the order. A unit test would pin both. Left until
+  after the final presentation because a new numbered test changes the test count
+  quoted in the slides. (Noticed 2026-11-20.)

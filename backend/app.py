@@ -885,7 +885,8 @@ def set_target(profile_id: str, body: TargetIn, con=Depends(db)):
 
 @app.get("/profiles/{profile_id}/gap", tags=["profile"])
 def get_gap(profile_id: str, soc_code: str | None = None, con=Depends(db)):
-    """FR-07: missing skills, classified, ordered by importance."""
+    """FR-07: missing skills, classified. Must-haves first by importance; the
+    nice-to-haves put the skills that tell jobs apart before the everyday ones."""
     profile = _require_profile(con, profile_id)
     target = _resolve_target(profile, soc_code)
     _require_occupation(con, target)

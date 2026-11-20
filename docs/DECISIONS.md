@@ -1701,3 +1701,50 @@ study for the enrolled student".
 - School-leavers and students without a field see no change, and the journey
   is still five screens.
 - **Tests:** TC-I24j–k; `field_of_study.js` (22 checks); axe on the new tab.
+
+---
+
+## ADR-0032 — Everyday skills are shown last, not hidden
+
+**Date:** 2026-11-20
+**Status:** Accepted. The project owner asked to hide the generic skills (listening,
+speaking, reading) because they "don't look great"; after the measurements below,
+they chose to reorder instead.
+**Relates to:** ADR-0027 (the model), FR-02, FR-07.
+
+### What was measured (scratch experiments, not committed)
+
+- **Hiding a skill from the tick screen while the model still counts it costs
+  accuracy.** With the four most generic skills (Active Listening, Speaking,
+  Critical Thinking, Reading Comprehension) unticked for everyone, PT-01b falls
+  from 67.5% to 53.4% (-14 points), and from 66.5% to 50.4% for the 623 jobs that
+  list one of them as a must-have. Centring gives an unticked skill the average
+  job needs a score of -1, so every job that leans on it is quietly penalised.
+- **Removing them from the model altogether also costs accuracy.** Dropping 1-3
+  of them is within noise; dropping 5 gives 63.3%, 8 gives 57.9%.
+- **They define the jobs a student is most likely to pick.** 90% of jobs list at
+  least one of the four as a must-have, and a Registered Nurse's, a Lawyer's or
+  a teacher's must-have list is mostly these skills. 9% of jobs would have their
+  entire must-have list hidden.
+
+### Decision
+
+- **Nothing is hidden and no score changes.** Every count (6 held, 2 must-haves,
+  26 nice-to-haves for the demo) is the same.
+- **The skill groups are ordered by how generic they are** (`plain.SKILL_GROUPS`):
+  the share of jobs listing a group's skills as must-haves, fewest first. Hands-on
+  and technical 4%, managing 6%, people 15%, judgement 16%, thinking 32%, reading
+  and speaking 38%. The tick screen shows them in that order.
+- **In the gap, must-haves keep their order by importance; the nice-to-haves are
+  ordered by group first, then importance** (`gap.compute_gap`), so the short list
+  of five is not filled with listening and speaking. For the demo's Electricians
+  all five are hands-on skills.
+
+### Consequences
+
+- **A nice-to-have list is no longer strictly by importance.** Technology Design
+  (2.12) can appear above Speaking (3.38). The rating is shown on each row and the
+  full list is one tap away.
+- **Tests:** 92 unit, 137 API and the 15-step browser walk pass on the new code.
+  No new numbered test was added, so the counts quoted in the presentation stay
+  true; a test for the group and gap order is in `BACKLOG.md`.
