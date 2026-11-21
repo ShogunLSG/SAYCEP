@@ -22,5 +22,10 @@ ESSENTIAL_THRESHOLD = 3.5
 
 IMPORTANCE_SCALE_MAX = 5.0
 
-# FR-08: no fewer than three intermediate steps, plus the target itself.
-PATHWAY_INTERMEDIATE_STEPS = 3
+# FR-08 / ADR-0034: the route is a ladder of jobs at lower Job Zones, built back
+# from the target, at most this many before the target. There can be fewer, or
+# none: a step has to be a related job that is genuinely similar to the next one.
+PATHWAY_MAX_STEPS = 3
+# The model's job-to-job similarity a lower job must reach to be a step. Measured
+# (docs/plans/pathway-ladder.md): below about 0.7 the links read as nonsense.
+MIN_LINK_SIMILARITY = 0.7

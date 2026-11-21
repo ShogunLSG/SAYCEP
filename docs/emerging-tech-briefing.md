@@ -1,7 +1,8 @@
 # The emerging technology: a briefing to know and explain
 
-For you, not the app. Every number was measured on 20 November 2026 against the
-real data, and Thabo is the running example (his plan is in `docs/thabo/`).
+For you, not the app. Every number was measured against the real data (re-measured
+on 21 November 2026 for the final demo's six skills), and Thabo is the running
+example.
 
 ## In one breath
 
@@ -20,9 +21,10 @@ they fit, which is not the same as a chatbot.
 ## The four ideas, each with a picture
 
 **1. A job is a list of 35 numbers.** O\*NET rates how important each skill is to
-each job, 1 to 5. Gas Plant Operators rates Operation and Control 3.75 and
-Operations Monitoring 4.12. A person is the same 35 slots with a 1 for each skill
-they ticked and a 0 for the rest. Thabo has six 1s.
+each job, 1 to 5. Millwrights rates Installation 3.75, Equipment Maintenance 3.75
+and Troubleshooting 3.75. A person is the same 35 slots with a 1 for each skill
+they ticked and a 0 for the rest. Thabo has six 1s: Installation, Equipment
+Maintenance, Troubleshooting, Active Listening, Critical Thinking, Coordination.
 
 **2. Cosine similarity asks "do these two lists point the same way?"** It ignores
 how long the lists are. Same direction scores near 1, unrelated near 0, opposite
@@ -30,16 +32,37 @@ below 0. Think of two people walking: cosine ignores how fast, only where to.
 
 **3. Centring stops the generic skills drowning out the signal.** Almost every job
 rates listening, speaking and reading highly. Measured: a job's nearest neighbour
-scores **0.994 out of 1**, so plain cosine barely tells jobs apart. For Thabo,
-plain scores sit between **0.27 and 0.58** across all 879 jobs. After subtracting
-each skill's average they spread from **-0.47 to 0.70**.
+scores about **0.99 out of 1** (Electricians' closest neighbour, uncentred, is
+0.996), so plain cosine barely tells jobs apart. For Thabo, plain scores sit
+between **0.25 and 0.51** across all 879 jobs. After subtracting each skill's
+average they spread from about **-0.4 to 0.65**.
 *Picture:* an exam where everyone gets the easy questions right. Subtract the
 class average on each question and only the hard questions separate people.
 
 **4. Two views, averaged.** Thabo's ticks are yes or no, so we also compare them
 with each job's yes/no must-have list (skills rated 3.5 or more, or its top five
-where none are). For Gas Plant Operators his two scores are **0.641** (ratings)
-and **0.763** (must-have list), and (0.641 + 0.763) / 2 = **0.702**.
+where none are). For Millwrights, his top match, his two scores are **0.615**
+(ratings) and **0.679** (must-have list), and (0.615 + 0.679) / 2 = **0.647**.
+
+## Where the model is used in the app (your "it's used" proof)
+
+The brief asks for an observable result that the system *uses*. Say it as four
+places, all one model:
+
+1. **For you** ranks the jobs: Millwrights 0.65, Elevator and Escalator
+   Installers 0.61, Helpers--Electricians 0.57. It picks what the user can aim at.
+2. **How we matched this** shows the working: the two views and the score.
+3. **The route** (ADR-0034): the model picks each step. Building back from the
+   goal, a step is the related job one level down whose skills are most like the
+   next job, and only if the job-to-job similarity is at least **0.70**.
+   Helpers--Electricians to Electricians is 0.73. Where nothing reaches 0.70, the
+   app says "aim directly" and shows the skills gap. In **508 of 879** goals that
+   is what happens, which is the model declining to invent a step.
+4. **Jobs your CV points to**: the skills the CV scan finds go in, and jobs come
+   out, ranked by the same model.
+
+Say it in one line: "one model ranks the jobs, explains the match, builds the
+route, and reads the CV."
 
 ## Why centring matters, in four skills
 

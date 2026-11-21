@@ -501,9 +501,13 @@ function StepPathway({ profileId, onOpen }) {
     <${Head} kicker="Your route" fr="FR-08" title="How do you get there?" />
     <${Status} loading=${loading} error=${error}>
       ${data && html`
-        <p class="sub">${data.intermediate_steps} related jobs that build toward ${data.target.title.toLowerCase()},
-          starting with the one closest to what you can already do.</p>
-        <p class="model-tag"><span class="mt-b">Skill-matching model</span><span>orders these steps, closest to your skills first</span></p>
+        ${data.aim_directly
+          ? html`<p class="sub">You can aim for ${data.target.title.toLowerCase()} directly. No job one level down is
+              close enough to count as a step, so your plan is the skills below.</p>
+            <p class="model-tag"><span class="mt-b">Skill-matching model</span><span>checked the related jobs one level down; none was similar enough</span></p>`
+          : html`<p class="sub">${data.intermediate_steps === 1 ? "One job" : `${data.intermediate_steps} jobs`} to start with, one level
+              at a time, building toward ${data.target.title.toLowerCase()}.</p>
+            <p class="model-tag"><span class="mt-b">Skill-matching model</span><span>picks each step: the related job one level down whose skills are most like the next one</span></p>`}
         <div class="steps">
           ${data.steps.map((s, i) => html`
             <div key=${s.soc_code} class=${"step" + (s.is_target ? " target-step" : "")}>
@@ -518,8 +522,16 @@ function StepPathway({ profileId, onOpen }) {
                 </div>
                 <div class="zn">${s.preparation.label}<${Figure}> · Zone ${s.job_zone}<//></div>
                 ${s.closeness_label && html`<div class="why-step">
-                  ${i === 0 ? html`<b>Closest to you now.</b> ` : ""}${s.closeness_label} with your skills · you have ${s.held_count} of its ${s.required_count}
+                  ${i === 0 && !s.is_target ? html`<b>Start here.</b> ` : ""}${s.closeness_label} with your skills · you have ${s.held_count} of its ${s.required_count}
                   <${Figure}> · ${s.closeness.toFixed(3)}<//></div>`}
+                ${s.link_similarity != null && html`<div class="why-step">
+                  Leads to the next step: its skills are close to the next job's${s.same_field_as_next ? ", in the same field of work" : ""}
+                  <${Figure}> · ${s.link_similarity.toFixed(2)}<//></div>`}
+                ${s.also_at_level && s.also_at_level.length > 0 && html`
+                  <div class="also"><span class="also-l">Also at this level:</span>
+                    ${s.also_at_level.map((b) => html`
+                      <button key=${b.soc_code} class="tl" onClick=${() => onOpen(b)}>${b.title}</button>`)}
+                  </div>`}
                 ${s.focus.slice(0, 4).map((f) => html`
                   <div key=${f.element_id} class="fs">
                     <span class="n">${f.name}</span>
@@ -530,8 +542,9 @@ function StepPathway({ profileId, onOpen }) {
             </div>`)}
         </div>
         <p class="basis"><b>New to you</b> — a skill you haven't got yet. <b>Use it more</b> — you have it, but this job
-          needs more of it than the step before. Each step is a job O*NET's experts list as related to your goal.
-          Tap a job to see what it involves.</p>
+          needs more of it than the step before. Each step is a job O*NET's experts list as related, one preparation
+          level below the next, and only if its skills are close to the next job's. Jobs listed under a step are
+          alternatives at the same level. Tap a job to see what it involves.</p>
         <p class="prov">${data.source_dataset}</p>`}
     <//>`;
 }
@@ -665,7 +678,7 @@ function Plan({ profileId, onOpen, onJourney, onStartOver, onSignOut, onUnlock, 
             ? html`<p>You have every skill this job depends on. The steps before it are optional now.</p>`
             : html`<p>To be ready: ${next.ready_missing.map((m) => m.name).join(", ")}.</p>`}
         </div>
-        <p class="note route-note">Your route updates as your skills grow — the job closest to what you can do comes first.</p>
+        <p class="note route-note">Your route updates as your skills grow.</p>
         <button class="more" onClick=${() => onJourney(4, p)}>See the whole route →</button>
       </section>
 

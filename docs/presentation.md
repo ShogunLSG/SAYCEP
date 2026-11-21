@@ -126,11 +126,11 @@ submitted deck.
 
 ## 3. The demo path
 
-I ran this with a browser walk that clicks every step of this 10-minute path
-and checks every number below (and a second run that clicks all 15 steps).
-It's built to fit the brief's **10-minute demo slot**: the times are my
-estimates, so time it yourself. **Everything marked ✔ is what the app shows.** If a number
-on screen ever differs from this page, run the check in §4 and tell me.
+The walk is encoded in `frontend/tests/demo_walk.js`, which clicks every step of
+this 10-minute path and checks every number below. It's built to fit the brief's
+**10-minute demo slot**: the times are my estimates, so time it yourself.
+**Everything marked ✔ is what the app shows.** If a number on screen ever
+differs from this page, run the check in §4 and tell me.
 
 Use a first name of your choice at step 1. The walk uses *Thabo*.
 
@@ -139,12 +139,12 @@ Use a first name of your choice at step 1. The walk uses *Thabo*.
 | # | Do this | What appears ✔ | Say |
 |---|---|---|---|
 | **1** *(about 50 s)* | Open the app. Tap **I have a plan code**: the button stays greyed. Type *ZZZZZZ* and tap it. Then tap **I'm new**, type a first name, tap *Start my plan*. | "Find a career you can actually reach." "No email, no password." The wrong code gets: **"No plan matches that code. Check it and try again."** | "Bad input gets a plain message, and the button won't work until a full code is typed. There's no account: a plan code brings you back, and nothing personal is held." *(This is brief 2.1 and 2.4: validation, error feedback, protection of personal data.)* |
-| **2** | Tap **I left school**, then tick six skills: *Operation and Control, Operations Monitoring, Equipment Maintenance, Active Listening, Critical Thinking, Monitoring*. | Six skills ticked. | "This is self-reported, the same as a CV: you say what you can do." |
-| **3** | **For you**: five operator jobs, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Gas Plant Operators, Hydroelectric Plant Technicians, Service Unit Operators (oil and gas), Explosives Workers, CNC Tool Programmers (since 19 November), each "Because you have: Operation and Control, Operations Monitoring, Equipment Maintenance". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out, and it's used: it picks the target and orders the route. It says why. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
-| **4** | Continue. **The gap.** | "You already have **6 of the 34** skills." **2 must-haves**: Troubleshooting and Repairing. | "Two skills stand between this person and the job. Not a long list: the two that the job depends on." |
-| **5** | Continue. **The route.** Then *Save as my plan*. | Boilermakers → Electrical Power-Line Installers and Repairers → Electrical and Electronics Repairers → **Electricians**. Each says how close it is to you now. | "This is the Pathway: nearby jobs that need nearly the same skills, ordered so the next step is the most achievable." |
-| **6** | **Home.** On *Troubleshooting* tap **Start learning**; then **I can do this now**. | Learning changes nothing. Then the card: **1 of 2** must-haves; *Electrical Power-Line Installers* now ready; "every must-have for **106 jobs**, 4 more than before". | "Only 'I can do this now' closes a gap. 'Learning' doesn't. That's a deliberate rule, so progress isn't flattering." |
-| **7** | **Home → Check my CV.** Type *hi*: *Check my CV* stays greyed. Then **Use an example CV → Check my CV.** Add *Repairing*. | Skills with the line that triggered each. After adding: the card again, now **2 of 2** ("You now have everything this job depends on"). "How it reads for Electricians": *Microsoft Excel* and *Multimeters* named; "Troubleshooting: not shown yet". "…read and forgotten, never saved." | "It points at the evidence in your own words, and you confirm each one. Nothing is added automatically." |
+| **2** | Tap **I left school**, then tick six skills: *Installation, Equipment Maintenance, Troubleshooting, Active Listening, Critical Thinking, Coordination*. | Six skills ticked. | "This is self-reported, the same as a CV: you say what you can do." |
+| **3** | **For you**: five electrical and maintenance trades, each with **why**. Then **Search**, type *electric*, open **Electricians**, tap **Aim for this job**. | Millwrights 0.65, Elevator and Escalator Installers 0.61, **Helpers--Electricians 0.57**, Maintenance and Repair Workers 0.57, Telecommunications Installers 0.57; each "Because you have: …". The job panel has *A day in this job*. | "**This is the emerging-technology step.** Your six skills go in as a 35-number vector; a ranked list comes out. Notice the third one is a **helper** role — the engine's view of what's nearby. I want the trade itself, so I search for it. Search works on other names too." *(Brief 2.2: valid input, observable result used by the system.)* |
+| **4** | Continue. **The gap.** | "You already have **6 of the 34** skills." **2 must-haves, 1 missing: Repairing**; 27 desirable. | "One skill stands between this person and the job. Not a long list: the one the job depends on." |
+| **5** | Continue. **The route.** Then *Save as my plan*. | **Helpers--Electricians → Electricians.** The helper step says *Start here*, how close it is to you now, and "Leads to the next step: its skills are close to the next job's, in the same field of work". **"Also at this level"** lists the other related jobs at that level (Power-Line Installers, Assemblers) as tappable alternatives. | "This is the Pathway, one level at a time: a helper role first, then the trade. Each step is a job the experts list as related, one preparation level down, and only if its skills are close to the next job's. Where nothing is close enough, it says you can aim for the goal directly. The jobs under a step are alternatives at the same level." |
+| **6** | **Home.** On *Repairing* tap **Start learning**. | Learning changes nothing: the card stays at **1 of 2** must-haves. | "Learning doesn't close a gap. The card refuses to move until I can actually do it — that's deliberate, so progress isn't flattering." |
+| **7** | **Home → Check my CV.** Type *hi*: *Check my CV* stays greyed. Then **Use an example CV → Check my CV.** Add *Repairing*. | Skills with the line that triggered each. Adding **Repairing** — the one missing must-have — turns the goal to **2 of 2**: "You now have everything this job depends on." "…read and forgotten, never saved." | "The CV found the exact skill the job was missing. I confirm only what is true, and that closes the goal." |
 | **8** | **Home → What employers ask for → See what employers ask for.** | "**84** real adverts… **United States**, listed in **April 2024**. They've closed." Of the 73 that said a level, **7 in 10** open to beginners; **7 in 10** mention a trade licence; **3 in 10** a driver's licence; skills: Installation, Repairing, Troubleshooting. | "Real adverts, but American and expired, so this shows what employers asked for, not jobs to apply for. I looked for South African data twice. Both sets failed verification." |
 | **9** | **Home → Practise for an interview.** Question 2. Type *I fixed it.* → **Get feedback**. Paste the full story → **Get feedback**. | **2 of 7** with tips. Then **7 of 7**. | "It's guidance, not a chatbot. There's no language model in this build. The feedback is a checklist: situation, action, result, your own part." |
 | **10** | **Me → Print my plan.** Note the plan code. **Sign out**, then **I have a plan code**. | A one-page plan. The plan comes back, Electricians still the goal. | "That's the whole 'login': a six-character code, and the screen says it's the only key. Nothing from the CV or the interview answers is saved. Saved data is a first name and a skills list." *(Brief 2.4: access control, protection of personal data.)* |
@@ -183,7 +183,7 @@ on screen.**
 
 | # | Do this | What appears | Say |
 |---|---|---|---|
-| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the five steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the job's must-have list; the score as two views averaged (ratings 0.64, must-have list 0.76, score 0.70); two ranges: without centring 0.27–0.58, the model −0.47 to 0.70. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. And because your answers are yes or no, it also compares them with the job's must-have list, and averages the two. That second view is what took it from 58.5% to 67.5%." |
+| **N5** *(step 3, For you)* | Point at the **Skill-matching model** tag. Tap **How we matched this** under the first job. Scroll through the five steps to **Why step 3 matters**. | The job's 35 ratings; your 6 ticks; what makes this job different (bars left and right); the job's must-have list; the score as two views averaged (ratings 0.61, must-have list 0.68, score 0.65); two ranges: without centring 0.25–0.51, the model −0.39 to 0.65. | "This is the emerging technology. The job is 35 numbers, you're 35 numbers. Subtract the average job, so only what makes this job different counts, then measure how closely the two lists point the same way. And because your answers are yes or no, it also compares them with the job's must-have list, and averages the two. That second view is what took it from 58.5% to 67.5%." |
 | **N6** *(on a job page)* | Scroll to **Jobs with the closest skills**. | Five jobs, some marked "also listed by O\*NET's experts". | "The same model compares jobs with jobs. It agrees with O\*NET's experts for 61% of jobs, against 5% by chance: that's PT-05." |
 | **N7** *(step 7, after the CV check)* | Scroll to **Jobs your CV points to**. | Five jobs, each "Because your CV shows: …". | "The CV feeds the same model: the skills it finds go in, and jobs come out." |
 
@@ -193,7 +193,7 @@ on screen.**
 |---|---|---|---|
 | **a** | **Explore → Search** *conduit installer* | Electricians, "also called Conduit Installer". Its page: tools of the trade, software, jobs like this. *Save this job*; save two more. | "Search covers the names people actually use." |
 | **b** | **Explore → Interests**, answer the 12 | "You lean towards…", jobs that fit. "Simplified." | "For someone who doesn't know job names yet. It's twelve statements of mine matched to O\*NET's interest profiles, labelled as simplified." |
-| **c** | **Skills → Repairing → I can already** | **2 of 2**: "You now have everything this job depends on." About **131 jobs** with every must-have. | "That's the goal done. And it opens the door to more jobs." |
+| **c** | **Skills → Repairing → I can already** | **2 of 2**: "You now have everything this job depends on." About **42 jobs** with every must-have. | "That's the goal done. And it opens the door to more jobs." |
 | **d** | **Home → Saved jobs →** tick three → **Compare**. Then *Your progress*. | Three columns side by side. Progress **0 → 0 → 1 → 2**. | "Compare, and a record of how the plan moved." |
 | **e** | Add `?presenter` to the address. | Job codes, Job Zones and ratings appear. | "The figures stay behind a switch for the marker. Users never see a rating of 4.00." |
 
@@ -245,8 +245,7 @@ use them). From the repo folder: `npm i --no-save playwright`, then
 `npx playwright install chromium`.
 
 ```
-SHORT=1 node frontend/tests/demo_walk.js     # the 10-minute path, about 15 seconds
-node frontend/tests/demo_walk.js             # all 15 steps
+node frontend/tests/demo_walk.js     # the whole final path, about 40 seconds
 ```
 
 It prints PASS or FAIL for each check and ends with **DEMO PATH OK** if every

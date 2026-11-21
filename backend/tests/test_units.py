@@ -442,6 +442,59 @@ def main():
     trade = cvscan.tools_named(ix_, "Weighed samples on an analytical balance and checked readings with a multimeter.")
     check("TC-U20b", "the real tools still match: a multi-word 'analytical balance', and a one-word multimeter",
           len(trade) == 2, str(sorted(trade)))
+    print("\nTC-U21  the Pathway is a ladder of lower job zones  (FR-08, ADR-0034)")
+
+    model = recommend.Model.load(con)
+
+    def ladder(soc):
+        return pathway._ladder(con, model, soc, repository.get_occupation(con, soc)["job_zone"])
+
+    helper = ladder("47-3013.00")                  # Helpers--Electricians, zone 2
+    check("TC-U21a", "a zone-2 helper role with no close job below it gets no ladder", helper == [],
+          str([r["title"] for r in helper]))
+    trade = ladder("47-2111.00")                   # Electricians, zone 3
+    check("TC-U21b", "Electricians: one step, Helpers--Electricians, one zone below, similarity at or above the cutoff",
+          [r["soc_code"] for r in trade] == ["47-3013.00"] and trade[0]["job_zone"] == 2
+          and trade[0]["link_similarity"] >= pathway.MIN_LINK_SIMILARITY, str([r["title"] for r in trade]))
+
+    zones = {r["soc_code"]: r["job_zone"] for r in con.execute("select soc_code, job_zone from occupations")}
+    shapes_ok, longest, climbs, zone1 = True, 0, True, True
+    for soc, z in zones.items():
+        lad = ladder(soc)
+        longest = max(longest, len(lad))
+        zs = [r["job_zone"] for r in lad] + [z]
+        climbs = climbs and all(x < y for x, y in zip(zs, zs[1:]))
+        shapes_ok = shapes_ok and all(r["link_similarity"] >= pathway.MIN_LINK_SIMILARITY for r in lad)
+        if z == 1:
+            zone1 = zone1 and lad == []
+    check("TC-U21c", f"over all {len(zones)} goals: never more than {pathway.PATHWAY_MAX_STEPS} steps, always climbing, every link above the cutoff",
+          longest <= pathway.PATHWAY_MAX_STEPS and climbs and shapes_ok, f"longest {longest}")
+    check("TC-U21d", "a zone-1 goal never has a ladder: nothing sits below it", zone1)
+
+    def route_steps(target_soc):
+        held = [r[0] for r in con.execute("select element_id from skills limit 6")]
+        pid = repository.create_profile(con, "school_leaver", held,
+                                        target_soc_code=target_soc, display_name="ZoneTest")
+        try:
+            return pathway.generate_pathway(con, pid, target_soc)["steps"]
+        finally:
+            con.execute("delete from user_skills where profile_id=?", (pid,))
+            con.execute("delete from progress_events where profile_id=?", (pid,))
+            con.execute("delete from saved_occupations where profile_id=?", (pid,))
+            con.execute("delete from users where profile_id=?", (pid,))
+            con.commit()
+
+    trade_steps = route_steps("47-2111.00")
+    on_route = {s["soc_code"] for s in trade_steps}
+    seen, branch_ok = set(), True
+    for s in trade_steps:
+        for b in s["also_at_level"]:
+            if b["job_zone"] != s["job_zone"] or b["soc_code"] in on_route or b["soc_code"] in seen:
+                branch_ok = False
+            seen.add(b["soc_code"])
+    check("TC-U21e", "same-level branches stay at that level, never on the route, never repeated (ADR-0033)",
+          branch_ok)
+
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(PASS)+len(FAIL)} total")
     return 1 if FAIL else 0
 

@@ -87,7 +87,9 @@ def main():
     print("\nTC-I04  Pathway generation  (FR-08)")
     s, pw = call("GET", f"/profiles/{pid}/pathway")
     check("TC-I04a", "GET pathway returns 200", s == 200)
-    check("TC-I04b", "at least 3 intermediate steps", pw["intermediate_steps"] >= 3, str(pw["intermediate_steps"]))
+    zs = [st["job_zone"] for st in pw["steps"]]
+    check("TC-I04b", "at most 3 steps before the goal, each at a lower job zone than the next (ADR-0034)",
+          0 <= pw["intermediate_steps"] <= 3 and all(a < b for a, b in zip(zs, zs[1:])), str(zs))
     check("TC-I04c", "every step names at least one skill", all(len(st["focus"]) > 0 for st in pw["steps"]))
     check("TC-I04d", "the final step is flagged as the target", pw["steps"][-1]["is_target"] is True)
 
@@ -148,8 +150,9 @@ def main():
           g["missing_essential_count"] == 1 and dash["readiness"]["have"] == 1 and dash["learning_count"] == 0,
           f'{g["missing_essential_count"]}, {dash["readiness"]["have"]}')
     s, pw2 = call("GET", f"/profiles/{ppid}/pathway")
-    check("TC-I07d", "the pathway recomputes and still has 3 steps, each saying whether it is ready",
-          s == 200 and pw2["intermediate_steps"] >= 3 and all("ready" in st for st in pw2["steps"]))
+    check("TC-I07d", "the pathway recomputes with the same steps, each saying whether it is ready",
+          s == 200 and [st["soc_code"] for st in pw2["steps"]] == [st["soc_code"] for st in pw["steps"]]
+          and all("ready" in st for st in pw2["steps"]))
     s, r = call("DELETE", f"/profiles/{ppid}/skills/{trouble}")
     s, g = call("GET", f"/profiles/{ppid}/gap")
     check("TC-I07e", "DELETE undoes it: back to 2 must-haves missing", g["missing_essential_count"] == 2,
@@ -319,14 +322,20 @@ def main():
 
     print("\nTC-I17  FR-08: each route step says why it is there")
     s, rw = call("GET", f"/profiles/{pid}/pathway")
-    closes = [st["closeness"] for st in rw["steps"][:-1]]
-    check("TC-I17a", "the intermediate steps are ordered by their closeness score, closest first",
-          all(a >= b for a, b in zip(closes, closes[1:])), str([round(c, 3) for c in closes]))
+    links = [st["link_similarity"] for st in rw["steps"][:-1]]
+    check("TC-I17a", "each step before the goal says how like the next one it is, at or above the 0.7 cutoff",
+          all(x is not None and x >= 0.7 for x in links) and rw["steps"][-1]["link_similarity"] is None,
+          str(links))
     check("TC-I17b", "each step says how many of its skills the user has, and labels its closeness",
           all(st["required_count"] > 0 and 0 <= st["held_count"] <= st["required_count"] and st["closeness_label"]
               for st in rw["steps"]))
-    check("TC-I17c", "the demo route is unchanged", [st["soc_code"] for st in rw["steps"]] ==
-          ["47-2011.00", "49-9051.00", "49-2094.00", "47-2111.00"], str([st["soc_code"] for st in rw["steps"]]))
+    check("TC-I17c", "the route to Electricians starts at Helpers--Electricians (ADR-0034)",
+          [st["soc_code"] for st in rw["steps"]] == ["47-3013.00", "47-2111.00"],
+          str([st["soc_code"] for st in rw["steps"]]))
+    s, hw = call("GET", f"/profiles/{pid}/pathway?soc_code=47-3013.00")
+    check("TC-I17d", "a goal with no close job below it (a helper role) says so: aim directly, goal only",
+          s == 200 and hw["aim_directly"] is True and len(hw["steps"]) == 1 and hw["steps"][0]["is_target"]
+          and hw["intermediate_steps"] == 0, str(hw.get("intermediate_steps")))
 
     print("\nTC-I18  CV scanner endpoint  (ADR-0014)")
     sample_cv = ("Career objective: become an electrician.\nMatric with Mathematics and Physical Science.\n"
@@ -589,8 +598,9 @@ def main():
     s, spw = call("GET", f"/profiles/{spid}/pathway")
     check("TC-S01a", "fresh run of the demo profile reproduces 6/2/26",
           (sgap["already_held_count"], sgap["missing_essential_count"], sgap["missing_desirable_count"]) == (6, 2, 26))
-    check("TC-S01b", "fresh run reproduces a 3-step pathway to Electricians",
-          spw["intermediate_steps"] == 3 and spw["target"]["title"] == "Electricians")
+    check("TC-S01b", "fresh run reproduces the route to Electricians: Helpers--Electricians, then the goal",
+          [st["soc_code"] for st in spw["steps"]] == ["47-3013.00", "47-2111.00"]
+          and spw["target"]["title"] == "Electricians")
 
     print("\nTC-N01  Concurrency (NFR-01, the connection-per-request fix)")
     paths = [f"/recommendations?profile_id={pid}&limit=5&max_job_zone=3", "/occupations?zone=3&limit=300",
