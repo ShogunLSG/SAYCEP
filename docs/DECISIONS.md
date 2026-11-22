@@ -1701,3 +1701,154 @@ study for the enrolled student".
 - School-leavers and students without a field see no change, and the journey
   is still five screens.
 - **Tests:** TC-I24j–k; `field_of_study.js` (22 checks); axe on the new tab.
+
+---
+
+## ADR-0032 — Everyday skills are shown last, not hidden
+
+**Date:** 2026-11-20
+**Status:** Accepted. The project owner asked to hide the generic skills (listening,
+speaking, reading) because they "don't look great"; after the measurements below,
+they chose to reorder instead.
+**Relates to:** ADR-0027 (the model), FR-02, FR-07.
+
+### What was measured (scratch experiments, not committed)
+
+- **Hiding a skill from the tick screen while the model still counts it costs
+  accuracy.** With the four most generic skills (Active Listening, Speaking,
+  Critical Thinking, Reading Comprehension) unticked for everyone, PT-01b falls
+  from 67.5% to 53.4% (-14 points), and from 66.5% to 50.4% for the 623 jobs that
+  list one of them as a must-have. Centring gives an unticked skill the average
+  job needs a score of -1, so every job that leans on it is quietly penalised.
+- **Removing them from the model altogether also costs accuracy.** Dropping 1-3
+  of them is within noise; dropping 5 gives 63.3%, 8 gives 57.9%.
+- **They define the jobs a student is most likely to pick.** 90% of jobs list at
+  least one of the four as a must-have, and a Registered Nurse's, a Lawyer's or
+  a teacher's must-have list is mostly these skills. 9% of jobs would have their
+  entire must-have list hidden.
+
+### Decision
+
+- **Nothing is hidden and no score changes.** Every count (6 held, 2 must-haves,
+  26 nice-to-haves for the demo) is the same.
+- **The skill groups are ordered by how generic they are** (`plain.SKILL_GROUPS`):
+  the share of jobs listing a group's skills as must-haves, fewest first. Hands-on
+  and technical 4%, managing 6%, people 15%, judgement 16%, thinking 32%, reading
+  and speaking 38%. The tick screen shows them in that order.
+- **In the gap, must-haves keep their order by importance; the nice-to-haves are
+  ordered by group first, then importance** (`gap.compute_gap`), so the short list
+  of five is not filled with listening and speaking. For the demo's Electricians
+  all five are hands-on skills.
+
+### Consequences
+
+- **A nice-to-have list is no longer strictly by importance.** Technology Design
+  (2.12) can appear above Speaking (3.38). The rating is shown on each row and the
+  full list is one tap away.
+- **Tests:** 92 unit, 137 API and the 15-step browser walk pass on the new code.
+  No new numbered test was added, so the counts quoted in the presentation stay
+  true; a test for the group and gap order is in `BACKLOG.md`.
+
+---
+
+## ADR-0033 — The Pathway climbs; same-level jobs are branches, not steps
+
+**Date:** 2026-11-20
+**Status:** Accepted.
+**Relates to:** FR-08, `plans/pathway-progression.md`, TC-U16.
+
+### Context
+
+A route to **Helpers--Electricians** (zone 2) climbed to **Electricians**
+(zone 3) and came back down to the helper role: the candidates were all the
+target's related jobs, ordered only by closeness to the user, with no check on
+preparation level. Measured over 879 targets: **260 routes contained a step more
+senior than the target**, and 50 targets had fewer than three related jobs at or
+below their own zone. Same-zone jobs were also presented as sequential steps,
+which read as unrelated hops.
+
+### Decision
+
+- **No step may be more senior than the target** (higher O*NET Job Zone).
+- **The first step is the closest to the user; each later step is at least as
+  senior as the one before** — closest-first, never down.
+- If fewer than three related jobs exist at or below the target's zone, the rule
+  relaxes by one level (then two); the response carries `zone_fallback`.
+- **Same-level related jobs are branches, not steps.** Each level's alternatives
+  are listed once, under the first step of that level, as `also_at_level`
+  (max 5, with their zone), and are not part of the ordered climb.
+- The API's `ordering_basis` says all of this in words.
+
+### Consequences
+
+- **After:** 813 of 879 routes have no relaxation, no senior step and no step
+  down; 49 relax one level, 1 relaxes two, 16 cannot climb and keep the closest
+  jobs. Those 50 account for the only senior steps; the 16 for the only
+  step-downs. **No route has fewer than three steps.**
+- The demo route is unchanged: Helpers--Electricians (0.57) → Powerhouse
+  Repairers (0.56) → Commercial Repairers (0.52) → Electricians (0.48).
+- **No schema or data change.** Two response fields added (`zone_fallback`,
+  `also_at_level`), one UI block, and TC-U16a–d.
+- A stricter "all lower zones before any higher zone" order was measured and
+  rejected: it put an assembler at 0.20 into the Electricians route.
+
+---
+
+## ADR-0034 — The Pathway is a ladder of lower job zones, not a tour of related jobs
+
+**Date:** 2026-11-21
+**Status:** Accepted. Supersedes the sequencing rule of ADR-0033 (closest first,
+never down); ADR-0033's same-level *branches* stay.
+**Relates to:** FR-08, `plans/pathway-ladder.md`, TC-U21, TC-I04b, TC-I17.
+
+### Context
+
+After ADR-0033 a route to Electricians was Helpers--Electricians, two repair
+roles at the same level, then Electricians. The repair roles were not steps
+toward anything: they sat at the target's own level. Before that, the route
+included jobs like a millwright between a helper and an electrician. A route
+should look like a step-by-step climb, one level at a time, and a goal with
+nothing sensible below it should say so instead of padding.
+
+### Decision
+
+- The route is built **backwards from the target**. For the step below, take the
+  jobs O*NET's experts list as related to the current job (either direction,
+  because the lists are one-way) that sit in a **lower Job Zone, nearest zone
+  first**. Prefer the same field of work (same SOC major group), then O*NET's own
+  review order; it must reach **0.70 job-to-job similarity** (the model's centred
+  ratings view, as in ADR-0025). Repeat from that step, at most **three** steps.
+- If nothing qualifies there are **no steps**. The response sets `aim_directly`,
+  the screen says the goal can be aimed for directly, and the plan is the skills
+  gap. A Zone 1 goal never has a ladder.
+- Each step reports `link_similarity` (how like the next job it is) and
+  `same_field_as_next`. Same-level related jobs remain "Also at this level".
+- The old FR-08 wording "no fewer than three intermediate steps" no longer holds;
+  FR-08 is the author's text and has **not** been edited (see Consequences).
+
+### Why 0.70, and why only O*NET-related jobs
+
+Measured on the 879 occupations (`ladder_experiment*.py`, `ladder3.py` kept in the
+session scratchpad). Choosing the most similar lower-zone job from the whole
+catalogue gave nonsense: Dental Assistants after Logging Equipment Operators,
+Helpers--Electricians after Agricultural Equipment Operators, a Welder after a
+Textile Presser. Restricting to O*NET-related jobs fixed most of it; a floor of
+0.70 removed the rest (a helper electrician's only lower related job, a painters'
+helper, scored 0.58).
+
+### Consequences
+
+- **Over all 879 goals:** 508 get no ladder (all 31 in Zone 1, 200 of 285 in
+  Zone 2), 296 get one step, 60 two, 15 three. No route fails to climb strictly;
+  70% of steps are in the same field as the next job; median link similarity 0.80.
+- **Demo:** Electricians is now **Helpers--Electricians → Electricians** (link
+  0.73). Plumbers gets Septic Tank Servicers → Pipelayers → the goal.
+- **Honest limit:** only 31 jobs sit in Zone 1, so a Zone 2 goal rarely has a
+  sensible step below it. That is the data, not the rule.
+- **Tests:** TC-U21a-e replace the old TC-U16a-d (which also clashed with the CV
+  advice tests' ids); TC-I04b, I07d, I17a, I17c, S01b changed; TC-I17d new.
+  96 -> 97 unit, 137 -> 138 API.
+- **FR-08 wording** ("no fewer than three intermediate steps") and the
+  documents that quote it are the author's to update.
+- No schema change, no new dependency. New: `repository.lower_zone_links`,
+  `PATHWAY_MAX_STEPS`, `MIN_LINK_SIMILARITY`.

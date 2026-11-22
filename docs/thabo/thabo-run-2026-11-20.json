@@ -1,0 +1,1987 @@
+{
+ "for_you": {
+  "profile_id": "7a20555c072d",
+  "method": "the skill-matching model: mean-centred cosine similarity over 35 O*NET skills, averaging two views of each job, its importance ratings and its must-have list (ADR-0027); a student's field of study, if given, counts for a tenth (ADR-0029)",
+  "field": null,
+  "max_job_zone": 3,
+  "recommendations": [
+   {
+    "soc_code": "51-8092.00",
+    "title": "Gas Plant Operators",
+    "score": 0.702,
+    "match": "Strong match",
+    "job_zone": 2,
+    "because": [
+     "Operation and Control",
+     "Operations Monitoring",
+     "Equipment Maintenance"
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    }
+   },
+   {
+    "soc_code": "51-8013.04",
+    "title": "Hydroelectric Plant Technicians",
+    "score": 0.679,
+    "match": "Strong match",
+    "job_zone": 3,
+    "because": [
+     "Equipment Maintenance",
+     "Operation and Control",
+     "Operations Monitoring"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "47-5013.00",
+    "title": "Service Unit Operators, Oil and Gas",
+    "score": 0.67,
+    "match": "Strong match",
+    "job_zone": 2,
+    "because": [
+     "Operation and Control",
+     "Operations Monitoring",
+     "Equipment Maintenance"
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    }
+   },
+   {
+    "soc_code": "47-5032.00",
+    "title": "Explosives Workers, Ordnance Handling Experts, and Blasters",
+    "score": 0.663,
+    "match": "Strong match",
+    "job_zone": 2,
+    "because": [
+     "Operation and Control",
+     "Operations Monitoring",
+     "Equipment Maintenance"
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    }
+   },
+   {
+    "soc_code": "51-9161.00",
+    "title": "Computer Numerically Controlled Tool Operators",
+    "score": 0.658,
+    "match": "Strong match",
+    "job_zone": 2,
+    "because": [
+     "Operation and Control",
+     "Operations Monitoring",
+     "Equipment Maintenance"
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    }
+   }
+  ],
+  "message": null
+ },
+ "gap": {
+  "profile_id": "7a20555c072d",
+  "target": {
+   "soc_code": "47-2111.00",
+   "title": "Electricians",
+   "description": "Install, maintain, and repair electrical wiring, equipment, and fixtures. Ensure that work is in accordance with relevant codes. May install or service street lights, intercom systems, or electrical control systems.",
+   "job_zone": 3,
+   "source_dataset": "O*NET 29.0 (August 2024 release)",
+   "zone_name": "Job Zone Three: Medium Preparation Needed",
+   "education": "Most occupations in this zone require training in vocational schools, related on-the-job experience, or an associate's degree.",
+   "experience": "Previous work-related skill, knowledge, or experience is required for these occupations. For example, an electrician must have completed three or four years of apprenticeship or several years of vocational training, and often must have passed a licensing exam, in order to perform the job.",
+   "training": "Employees in these occupations usually need one or two years of training involving both on-the-job experience and informal training with experienced workers. A recognized apprenticeship program may be associated with these occupations.",
+   "preparation": {
+    "label": "Vocational training or an apprenticeship",
+    "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+   }
+  },
+  "threshold": 3.5,
+  "missing": [
+   {
+    "element_id": "2.B.3.k",
+    "name": "Troubleshooting",
+    "description": "Determining causes of operating errors and deciding what to do about it.",
+    "importance": 4.0,
+    "importance_scale_max": 5.0,
+    "classification": "essential",
+    "source_date": "08/2022",
+    "level": "Critical for this job"
+   },
+   {
+    "element_id": "2.B.3.l",
+    "name": "Repairing",
+    "description": "Repairing machines or systems using the needed tools.",
+    "importance": 3.5,
+    "importance_scale_max": 5.0,
+    "classification": "essential",
+    "source_date": "08/2022",
+    "level": "Very important"
+   },
+   {
+    "element_id": "2.B.3.d",
+    "name": "Installation",
+    "description": "Installing equipment, machines, wiring, or programs to meet specifications.",
+    "importance": 3.25,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.3.m",
+    "name": "Quality Control Analysis",
+    "description": "Conducting tests and inspections of products, services, or processes to evaluate quality or performance.",
+    "importance": 3.25,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.3.c",
+    "name": "Equipment Selection",
+    "description": "Determining the kind of tools and equipment needed to do a job.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.3.a",
+    "name": "Operations Analysis",
+    "description": "Analyzing needs and product requirements to create a design.",
+    "importance": 2.75,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.3.b",
+    "name": "Technology Design",
+    "description": "Generating or adapting equipment and technology to serve user needs.",
+    "importance": 2.12,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.5.a",
+    "name": "Time Management",
+    "description": "Managing one's own time and the time of others.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.5.d",
+    "name": "Management of Personnel Resources",
+    "description": "Motivating, developing, and directing people as they work, identifying the best people for the job.",
+    "importance": 2.88,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.5.b",
+    "name": "Management of Financial Resources",
+    "description": "Determining how money will be spent to get the work done, and accounting for these expenditures.",
+    "importance": 2.38,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.5.c",
+    "name": "Management of Material Resources",
+    "description": "Obtaining and seeing to the appropriate use of equipment, facilities, and materials needed to do certain work.",
+    "importance": 2.38,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.1.b",
+    "name": "Coordination",
+    "description": "Adjusting actions in relation to others' actions.",
+    "importance": 3.12,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.1.c",
+    "name": "Persuasion",
+    "description": "Persuading others to change their minds or behavior.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.1.e",
+    "name": "Instructing",
+    "description": "Teaching others how to do something.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.1.f",
+    "name": "Service Orientation",
+    "description": "Actively looking for ways to help people.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.1.a",
+    "name": "Social Perceptiveness",
+    "description": "Being aware of others' reactions and understanding why they react as they do.",
+    "importance": 2.88,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.1.d",
+    "name": "Negotiation",
+    "description": "Bringing others together and trying to reconcile differences.",
+    "importance": 2.25,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.B.4.e",
+    "name": "Judgment and Decision Making",
+    "description": "Considering the relative costs and benefits of potential actions to choose the most appropriate one.",
+    "importance": 3.25,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.4.g",
+    "name": "Systems Analysis",
+    "description": "Determining how a system should work and how changes in conditions, operations, and the environment will affect outcomes.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.4.h",
+    "name": "Systems Evaluation",
+    "description": "Identifying measures or indicators of system performance and the actions needed to improve or correct performance, relative to the goals of the system.",
+    "importance": 2.88,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   },
+   {
+    "element_id": "2.A.2.b",
+    "name": "Active Learning",
+    "description": "Understanding the implications of new information for both current and future problem-solving and decision-making.",
+    "importance": 3.25,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.B.2.i",
+    "name": "Complex Problem Solving",
+    "description": "Identifying complex problems and reviewing related information to develop and evaluate options and implement solutions.",
+    "importance": 3.12,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.2.c",
+    "name": "Learning Strategies",
+    "description": "Selecting and using training/instructional methods and procedures appropriate for the situation when learning or teaching new things.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.1.d",
+    "name": "Speaking",
+    "description": "Talking to others to convey information effectively.",
+    "importance": 3.38,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.1.a",
+    "name": "Reading Comprehension",
+    "description": "Understanding written sentences and paragraphs in work-related documents.",
+    "importance": 3.12,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.1.c",
+    "name": "Writing",
+    "description": "Communicating effectively in writing as appropriate for the needs of the audience.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.1.e",
+    "name": "Mathematics",
+    "description": "Using mathematics to solve problems.",
+    "importance": 3.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Important"
+   },
+   {
+    "element_id": "2.A.1.f",
+    "name": "Science",
+    "description": "Using scientific rules and methods to solve problems.",
+    "importance": 2.0,
+    "importance_scale_max": 5.0,
+    "classification": "desirable",
+    "source_date": "08/2022",
+    "level": "Useful"
+   }
+  ],
+  "missing_essential_count": 2,
+  "missing_desirable_count": 26,
+  "already_held_count": 6,
+  "required_total": 34,
+  "message": null
+ },
+ "pathway": {
+  "profile_id": "7a20555c072d",
+  "target": {
+   "soc_code": "47-2111.00",
+   "title": "Electricians",
+   "description": "Install, maintain, and repair electrical wiring, equipment, and fixtures. Ensure that work is in accordance with relevant codes. May install or service street lights, intercom systems, or electrical control systems.",
+   "job_zone": 3,
+   "source_dataset": "O*NET 29.0 (August 2024 release)",
+   "zone_name": "Job Zone Three: Medium Preparation Needed",
+   "education": "Most occupations in this zone require training in vocational schools, related on-the-job experience, or an associate's degree.",
+   "experience": "Previous work-related skill, knowledge, or experience is required for these occupations. For example, an electrician must have completed three or four years of apprenticeship or several years of vocational training, and often must have passed a licensing exam, in order to perform the job.",
+   "training": "Employees in these occupations usually need one or two years of training involving both on-the-job experience and informal training with experienced workers. A recognized apprenticeship program may be associated with these occupations.",
+   "preparation": {
+    "label": "Vocational training or an apprenticeship",
+    "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+   }
+  },
+  "intermediate_steps": 3,
+  "steps": [
+   {
+    "step": 1,
+    "soc_code": "47-2011.00",
+    "title": "Boilermakers",
+    "job_zone": 3,
+    "relatedness_tier": "Primary-Long",
+    "expert_review_index": 9,
+    "focus": [
+     {
+      "element_id": "2.B.3.g",
+      "name": "Operations Monitoring",
+      "importance": 3.75,
+      "essential": true,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.h",
+      "name": "Operation and Control",
+      "importance": 3.62,
+      "essential": true,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.A.2.a",
+      "name": "Critical Thinking",
+      "importance": 3.5,
+      "essential": true,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.m",
+      "name": "Quality Control Analysis",
+      "importance": 3.38,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.B.3.j",
+      "name": "Equipment Maintenance",
+      "importance": 3.38,
+      "essential": false,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting",
+      "importance": 3.25,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     }
+    ],
+    "is_target": false,
+    "held_count": 6,
+    "required_count": 34,
+    "closeness": 0.5540196243556368,
+    "ready": true,
+    "ready_basis": "essential",
+    "ready_total": 3,
+    "ready_missing": [],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    },
+    "closeness_label": "Strong match"
+   },
+   {
+    "step": 2,
+    "soc_code": "49-9051.00",
+    "title": "Electrical Power-Line Installers and Repairers",
+    "job_zone": 2,
+    "relatedness_tier": "Primary-Short",
+    "expert_review_index": 4,
+    "focus": [
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting",
+      "importance": 3.38,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.A.1.b",
+      "name": "Active Listening",
+      "importance": 3.38,
+      "essential": false,
+      "badge": "deeper",
+      "from": 3.0,
+      "to": 3.38,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.A.2.d",
+      "name": "Monitoring",
+      "importance": 3.25,
+      "essential": false,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.B.3.g",
+      "name": "Operations Monitoring",
+      "importance": 3.25,
+      "essential": false,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.B.3.h",
+      "name": "Operation and Control",
+      "importance": 3.25,
+      "essential": false,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.B.1.b",
+      "name": "Coordination",
+      "importance": 3.12,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     }
+    ],
+    "is_target": false,
+    "held_count": 6,
+    "required_count": 34,
+    "closeness": 0.5313791666676728,
+    "ready": false,
+    "ready_basis": "top_5",
+    "ready_total": 5,
+    "ready_missing": [
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting"
+     }
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    },
+    "closeness_label": "Good match"
+   },
+   {
+    "step": 3,
+    "soc_code": "49-2094.00",
+    "title": "Electrical and Electronics Repairers, Commercial and Industrial Equipment",
+    "job_zone": 3,
+    "relatedness_tier": "Primary-Long",
+    "expert_review_index": 10,
+    "focus": [
+     {
+      "element_id": "2.B.3.l",
+      "name": "Repairing",
+      "importance": 3.88,
+      "essential": true,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.g",
+      "name": "Operations Monitoring",
+      "importance": 3.88,
+      "essential": true,
+      "badge": "deeper",
+      "from": 3.25,
+      "to": 3.88,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting",
+      "importance": 3.75,
+      "essential": true,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.m",
+      "name": "Quality Control Analysis",
+      "importance": 3.75,
+      "essential": true,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.A.2.a",
+      "name": "Critical Thinking",
+      "importance": 3.75,
+      "essential": true,
+      "badge": "deeper",
+      "from": 3.12,
+      "to": 3.75,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.B.3.j",
+      "name": "Equipment Maintenance",
+      "importance": 3.75,
+      "essential": true,
+      "badge": "deeper",
+      "from": 3.0,
+      "to": 3.75,
+      "level": "Very important"
+     }
+    ],
+    "is_target": false,
+    "held_count": 6,
+    "required_count": 35,
+    "closeness": 0.4317774252863864,
+    "ready": false,
+    "ready_basis": "essential",
+    "ready_total": 6,
+    "ready_missing": [
+     {
+      "element_id": "2.B.3.l",
+      "name": "Repairing"
+     },
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting"
+     },
+     {
+      "element_id": "2.B.3.m",
+      "name": "Quality Control Analysis"
+     }
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    },
+    "closeness_label": "Good match"
+   },
+   {
+    "step": 4,
+    "soc_code": "47-2111.00",
+    "title": "Electricians",
+    "job_zone": 3,
+    "relatedness_tier": null,
+    "expert_review_index": null,
+    "focus": [
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting",
+      "importance": 4.0,
+      "essential": true,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Critical for this job"
+     },
+     {
+      "element_id": "2.B.3.l",
+      "name": "Repairing",
+      "importance": 3.5,
+      "essential": true,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Very important"
+     },
+     {
+      "element_id": "2.A.1.d",
+      "name": "Speaking",
+      "importance": 3.38,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.A.1.b",
+      "name": "Active Listening",
+      "importance": 3.38,
+      "essential": false,
+      "badge": "deeper",
+      "from": 3.12,
+      "to": 3.38,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.A.2.a",
+      "name": "Critical Thinking",
+      "importance": 3.38,
+      "essential": false,
+      "badge": null,
+      "from": null,
+      "to": null,
+      "level": "Important"
+     },
+     {
+      "element_id": "2.A.2.b",
+      "name": "Active Learning",
+      "importance": 3.25,
+      "essential": false,
+      "badge": "new",
+      "from": null,
+      "to": null,
+      "level": "Important"
+     }
+    ],
+    "is_target": true,
+    "held_count": 6,
+    "required_count": 34,
+    "closeness": 0.1995538821207153,
+    "ready": false,
+    "ready_basis": "essential",
+    "ready_total": 2,
+    "ready_missing": [
+     {
+      "element_id": "2.B.3.k",
+      "name": "Troubleshooting"
+     },
+     {
+      "element_id": "2.B.3.l",
+      "name": "Repairing"
+     }
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    },
+    "closeness_label": "Some overlap"
+   }
+  ],
+  "source_dataset": "O*NET 29.0 (August 2024 release)",
+  "ordering_basis": "Candidates are the target's primary related occupations, ordered by O*NET expert review; among them, steps are sequenced by similarity to the user's current skill profile, most achievable first.",
+  "skills_basis": "Consecutive occupations on a pathway require very nearly the same skills (measured cosine 0.987-0.996), so each step lists the skills that matter most in that role by O*NET importance, badged as new to the user or as demanding more depth than the previous step."
+ },
+ "scan_builtin": {
+  "suggestions": [
+   {
+    "element_id": "2.B.1.b",
+    "name": "Coordination",
+    "evidence": "working in a team;",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.d",
+    "name": "Installation",
+    "evidence": "Helped my uncle install wiring and plug points in new houses on weekends.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.5.c",
+    "name": "Management of Material Resources",
+    "evidence": "Worked at a hardware store: served customers, checked stock and kept records.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.e",
+    "name": "Mathematics",
+    "evidence": "Education: Matric (2025) with Mathematics and Physical Science.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.a",
+    "name": "Reading Comprehension",
+    "evidence": "reading circuit diagrams.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.l",
+    "name": "Repairing",
+    "evidence": "Fixed broken bicycles and small appliances for neighbours.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.f",
+    "name": "Science",
+    "evidence": "Education: Matric (2025) with Mathematics and Physical Science.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.1.f",
+    "name": "Service Orientation",
+    "evidence": "Worked at a hardware store: served customers, checked stock and kept records.",
+    "lines": 1,
+    "status": null
+   }
+  ],
+  "software_named": [
+   "Microsoft Excel"
+  ],
+  "tools_named": [
+   "Bicycles",
+   "Irons",
+   "Multimeters",
+   "Power drills",
+   "Soldering irons"
+  ],
+  "checks": [
+   {
+    "key": "objective",
+    "label": "A line about what you want to do",
+    "present": true
+   },
+   {
+    "key": "education",
+    "label": "Your education (school, matric, college)",
+    "present": true
+   },
+   {
+    "key": "experience",
+    "label": "Experience (jobs, piece work, volunteering)",
+    "present": true
+   },
+   {
+    "key": "skills",
+    "label": "A list of your skills",
+    "present": true
+   },
+   {
+    "key": "contact",
+    "label": "How to reach you (phone or email)",
+    "present": true
+   }
+  ],
+  "points_to": [
+   {
+    "soc_code": "47-2152.04",
+    "title": "Solar Thermal Installers and Technicians",
+    "score": 0.399,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Installation",
+     "Repairing"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "17-3029.08",
+    "title": "Photonics Technicians",
+    "score": 0.387,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Installation",
+     "Repairing",
+     "Science"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "49-2021.00",
+    "title": "Radio, Cellular, and Tower Equipment Installers and Repairers",
+    "score": 0.386,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Repairing",
+     "Installation"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "47-2111.00",
+    "title": "Electricians",
+    "score": 0.382,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Repairing",
+     "Installation",
+     "Management of Material Resources"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "49-9091.00",
+    "title": "Coin, Vending, and Amusement Machine Servicers and Repairers",
+    "score": 0.355,
+    "match": "Some overlap",
+    "job_zone": 2,
+    "because": [
+     "Repairing",
+     "Installation",
+     "Management of Material Resources"
+    ],
+    "preparation": {
+     "label": "Some preparation — usually matric",
+     "detail": "Usually needs matric and a little work experience, often learned on the job."
+    }
+   }
+  ],
+  "points_to_basis": "The skills your CV seems to show, matched by the skill-matching model.",
+  "goal": {
+   "soc_code": "47-2111.00",
+   "title": "Electricians",
+   "score": 0.2161,
+   "overlap": 0.1421,
+   "coverage": 0.2464,
+   "named_for_this_job": [
+    "Microsoft Excel",
+    "Multimeters"
+   ],
+   "key_skills": [
+    {
+     "element_id": "2.B.3.k",
+     "name": "Troubleshooting",
+     "evidence": null,
+     "held": false
+    },
+    {
+     "element_id": "2.B.3.l",
+     "name": "Repairing",
+     "evidence": "Fixed broken bicycles and small appliances for neighbours.",
+     "held": false
+    }
+   ],
+   "worth_mentioning": [
+    "Adobe Acrobat",
+    "Autodesk AutoCAD",
+    "Microsoft Office software",
+    "Microsoft Outlook",
+    "Microsoft Windows",
+    "Microsoft Word"
+   ],
+   "basis": "Measured on 172 held-out CVs: the goal score tracks human match scores better than naive word overlap. See ADR-0014.",
+   "add": [
+    {
+     "kind": "requirement",
+     "title": "A driver's licence",
+     "why": "3 in 10 of the 84 US adverts for this job (April 2024) mention a driver's licence. Your CV doesn't.",
+     "example": "If you have a driver's licence, give the code, for example: “Code 8 driver's licence.”"
+    },
+    {
+     "kind": "skill",
+     "title": "Troubleshooting",
+     "why": "O*NET rates this as essential for the job, and your CV doesn't show it yet.",
+     "example": "For example: “When the lights at home stopped working, I tested each plug point and found the loose wire.”"
+    }
+   ]
+  },
+  "stored": false
+ },
+ "scan_draft": {
+  "suggestions": [
+   {
+    "element_id": "2.A.1.a",
+    "name": "Reading Comprehension",
+    "evidence": "Read circuit diagrams and cut cable to length.",
+    "lines": 2,
+    "status": null
+   },
+   {
+    "element_id": "2.A.2.b",
+    "name": "Active Learning",
+    "evidence": "I like practical work, I learn quickly, and I am ready to start at the bottom and work my way up.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.b",
+    "name": "Active Listening",
+    "evidence": "Served customers and listened carefully to what they needed before recommending products.",
+    "lines": 1,
+    "status": "held"
+   },
+   {
+    "element_id": "2.B.1.b",
+    "name": "Coordination",
+    "evidence": "working in a team;",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.d",
+    "name": "Installation",
+    "evidence": "Helped install wiring and plug points in new houses.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.5.c",
+    "name": "Management of Material Resources",
+    "evidence": "Checked stock levels, counted deliveries and kept records in a stock book.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.e",
+    "name": "Mathematics",
+    "evidence": "Matric (National Senior Certificate), 2025: Mathematics and Physical Science.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.l",
+    "name": "Repairing",
+    "evidence": "Fixed broken bicycles and small appliances for neighbours.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.A.1.f",
+    "name": "Science",
+    "evidence": "Matric (National Senior Certificate), 2025: Mathematics and Physical Science.",
+    "lines": 1,
+    "status": null
+   },
+   {
+    "element_id": "2.B.1.f",
+    "name": "Service Orientation",
+    "evidence": "Served customers and listened carefully to what they needed before recommending products.",
+    "lines": 1,
+    "status": null
+   }
+  ],
+  "software_named": [
+   "Microsoft Excel"
+  ],
+  "tools_named": [
+   "Bicycles",
+   "Irons",
+   "Multimeters",
+   "Power drills",
+   "Soldering irons"
+  ],
+  "checks": [
+   {
+    "key": "objective",
+    "label": "A line about what you want to do",
+    "present": true
+   },
+   {
+    "key": "education",
+    "label": "Your education (school, matric, college)",
+    "present": true
+   },
+   {
+    "key": "experience",
+    "label": "Experience (jobs, piece work, volunteering)",
+    "present": true
+   },
+   {
+    "key": "skills",
+    "label": "A list of your skills",
+    "present": true
+   },
+   {
+    "key": "contact",
+    "label": "How to reach you (phone or email)",
+    "present": true
+   }
+  ],
+  "points_to": [
+   {
+    "soc_code": "47-2111.00",
+    "title": "Electricians",
+    "score": 0.296,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Repairing",
+     "Installation",
+     "Management of Material Resources"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "47-2152.04",
+    "title": "Solar Thermal Installers and Technicians",
+    "score": 0.295,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Installation",
+     "Repairing"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "17-3023.00",
+    "title": "Electrical and Electronic Engineering Technologists and Technicians",
+    "score": 0.294,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Repairing",
+     "Installation",
+     "Reading Comprehension"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "49-2021.00",
+    "title": "Radio, Cellular, and Tower Equipment Installers and Repairers",
+    "score": 0.28,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Repairing",
+     "Installation"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   },
+   {
+    "soc_code": "17-3029.08",
+    "title": "Photonics Technicians",
+    "score": 0.274,
+    "match": "Some overlap",
+    "job_zone": 3,
+    "because": [
+     "Installation",
+     "Repairing",
+     "Science"
+    ],
+    "preparation": {
+     "label": "Vocational training or an apprenticeship",
+     "detail": "Usually needs a trade qualification, an apprenticeship or a college course, plus some related experience."
+    }
+   }
+  ],
+  "points_to_basis": "The skills your CV seems to show, matched by the skill-matching model.",
+  "goal": {
+   "soc_code": "47-2111.00",
+   "title": "Electricians",
+   "score": 0.2887,
+   "overlap": 0.1421,
+   "coverage": 0.4885,
+   "named_for_this_job": [
+    "Microsoft Excel",
+    "Multimeters"
+   ],
+   "key_skills": [
+    {
+     "element_id": "2.B.3.k",
+     "name": "Troubleshooting",
+     "evidence": null,
+     "held": false
+    },
+    {
+     "element_id": "2.B.3.l",
+     "name": "Repairing",
+     "evidence": "Fixed broken bicycles and small appliances for neighbours.",
+     "held": false
+    }
+   ],
+   "worth_mentioning": [
+    "Adobe Acrobat",
+    "Autodesk AutoCAD",
+    "Microsoft Office software",
+    "Microsoft Outlook",
+    "Microsoft Windows",
+    "Microsoft Word"
+   ],
+   "basis": "Measured on 172 held-out CVs: the goal score tracks human match scores better than naive word overlap. See ADR-0014.",
+   "add": [
+    {
+     "kind": "requirement",
+     "title": "A driver's licence",
+     "why": "3 in 10 of the 84 US adverts for this job (April 2024) mention a driver's licence. Your CV doesn't.",
+     "example": "If you have a driver's licence, give the code, for example: “Code 8 driver's licence.”"
+    },
+    {
+     "kind": "skill",
+     "title": "Troubleshooting",
+     "why": "O*NET rates this as essential for the job, and your CV doesn't show it yet.",
+     "example": "For example: “When the lights at home stopped working, I tested each plug point and found the loose wire.”"
+    }
+   ]
+  },
+  "stored": false
+ },
+ "match_top": {
+  "profile_id": "7a20555c072d",
+  "soc_code": "51-8092.00",
+  "title": "Gas Plant Operators",
+  "method": "the skill-matching model: mean-centred cosine similarity over 35 O*NET skills, averaging two views of each job, its importance ratings and its must-have list (ADR-0027); a student's field of study, if given, counts for a tenth (ADR-0029)",
+  "explained": true,
+  "score": 0.702,
+  "match": "Strong match",
+  "score_ratings": 0.641,
+  "score_must_haves": 0.763,
+  "score_skills": 0.702,
+  "field": null,
+  "score_uncentred": 0.515,
+  "spread": {
+   "uncentred": {
+    "low": 0.271,
+    "high": 0.581,
+    "median": 0.413
+   },
+   "centred": {
+    "low": -0.472,
+    "high": 0.702,
+    "median": -0.06
+   },
+   "jobs": 879
+  },
+  "because": [
+   "Operation and Control",
+   "Operations Monitoring",
+   "Equipment Maintenance"
+  ],
+  "skills": [
+   {
+    "element_id": "2.A.1.a",
+    "name": "Reading Comprehension",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 3.12,
+    "average": 3.477,
+    "job_centred": -0.357,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.623,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.092,
+    "contribution": 0.0462
+   },
+   {
+    "element_id": "2.A.1.b",
+    "name": "Active Listening",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 3.0,
+    "average": 3.594,
+    "job_centred": -0.594,
+    "typical": true,
+    "held": true,
+    "must_have": false,
+    "must_have_share": 0.777,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": -0.041,
+    "contribution": -0.0206
+   },
+   {
+    "element_id": "2.A.1.c",
+    "name": "Writing",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 3.0,
+    "average": 3.186,
+    "job_centred": -0.186,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.38,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.034,
+    "contribution": 0.0172
+   },
+   {
+    "element_id": "2.A.1.d",
+    "name": "Speaking",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 3.0,
+    "average": 3.537,
+    "job_centred": -0.537,
+    "typical": true,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.695,
+    "you_centred": -1.0,
+    "part_ratings": 0.058,
+    "part_must_haves": 0.115,
+    "contribution": 0.0865
+   },
+   {
+    "element_id": "2.A.1.e",
+    "name": "Mathematics",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 2.88,
+    "average": 2.556,
+    "job_centred": 0.324,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.081,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.002,
+    "contribution": 0.0008
+   },
+   {
+    "element_id": "2.A.1.f",
+    "name": "Science",
+    "group": "Reading, writing, speaking and maths",
+    "importance": 2.0,
+    "average": 1.615,
+    "job_centred": 0.385,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.091,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.002,
+    "contribution": 0.001
+   },
+   {
+    "element_id": "2.A.2.a",
+    "name": "Critical Thinking",
+    "group": "Thinking and problem solving",
+    "importance": 3.5,
+    "average": 3.511,
+    "job_centred": -0.011,
+    "typical": true,
+    "held": true,
+    "must_have": true,
+    "must_have_share": 0.685,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.024,
+    "contribution": 0.0118
+   },
+   {
+    "element_id": "2.A.2.b",
+    "name": "Active Learning",
+    "group": "Thinking and problem solving",
+    "importance": 2.88,
+    "average": 3.117,
+    "job_centred": -0.237,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.287,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.02,
+    "contribution": 0.0098
+   },
+   {
+    "element_id": "2.A.2.c",
+    "name": "Learning Strategies",
+    "group": "Thinking and problem solving",
+    "importance": 2.75,
+    "average": 2.789,
+    "job_centred": -0.039,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.113,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.003,
+    "contribution": 0.0015
+   },
+   {
+    "element_id": "2.A.2.d",
+    "name": "Monitoring",
+    "group": "Thinking and problem solving",
+    "importance": 3.62,
+    "average": 3.305,
+    "job_centred": 0.315,
+    "typical": false,
+    "held": true,
+    "must_have": true,
+    "must_have_share": 0.452,
+    "you_centred": 1.0,
+    "part_ratings": 0.034,
+    "part_must_haves": 0.071,
+    "contribution": 0.0528
+   },
+   {
+    "element_id": "2.B.1.a",
+    "name": "Social Perceptiveness",
+    "group": "Working with people",
+    "importance": 2.88,
+    "average": 3.169,
+    "job_centred": -0.289,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.288,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.02,
+    "contribution": 0.0098
+   },
+   {
+    "element_id": "2.B.1.b",
+    "name": "Coordination",
+    "group": "Working with people",
+    "importance": 3.0,
+    "average": 3.123,
+    "job_centred": -0.123,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.261,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.016,
+    "contribution": 0.0081
+   },
+   {
+    "element_id": "2.B.1.c",
+    "name": "Persuasion",
+    "group": "Working with people",
+    "importance": 2.62,
+    "average": 2.749,
+    "job_centred": -0.129,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.086,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.002,
+    "contribution": 0.0009
+   },
+   {
+    "element_id": "2.B.1.d",
+    "name": "Negotiation",
+    "group": "Working with people",
+    "importance": 2.5,
+    "average": 2.612,
+    "job_centred": -0.112,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.05,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0003
+   },
+   {
+    "element_id": "2.B.1.e",
+    "name": "Instructing",
+    "group": "Working with people",
+    "importance": 2.75,
+    "average": 2.831,
+    "job_centred": -0.081,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.118,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.003,
+    "contribution": 0.0017
+   },
+   {
+    "element_id": "2.B.1.f",
+    "name": "Service Orientation",
+    "group": "Working with people",
+    "importance": 2.25,
+    "average": 2.945,
+    "job_centred": -0.695,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.205,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.01,
+    "contribution": 0.005
+   },
+   {
+    "element_id": "2.B.2.i",
+    "name": "Complex Problem Solving",
+    "group": "Thinking and problem solving",
+    "importance": 3.0,
+    "average": 3.211,
+    "job_centred": -0.211,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.331,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.026,
+    "contribution": 0.013
+   },
+   {
+    "element_id": "2.B.3.a",
+    "name": "Operations Analysis",
+    "group": "Hands-on and technical",
+    "importance": 1.88,
+    "average": 1.862,
+    "job_centred": 0.018,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.018,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.3.b",
+    "name": "Technology Design",
+    "group": "Hands-on and technical",
+    "importance": 1.88,
+    "average": 1.593,
+    "job_centred": 0.287,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.001,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.3.c",
+    "name": "Equipment Selection",
+    "group": "Hands-on and technical",
+    "importance": 2.25,
+    "average": 1.273,
+    "job_centred": 0.977,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.003,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.3.d",
+    "name": "Installation",
+    "group": "Hands-on and technical",
+    "importance": 0.0,
+    "average": 0.417,
+    "job_centred": -0.417,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.008,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.3.e",
+    "name": "Programming",
+    "group": "Hands-on and technical",
+    "importance": 1.62,
+    "average": 1.288,
+    "job_centred": 0.332,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.011,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.3.g",
+    "name": "Operations Monitoring",
+    "group": "Hands-on and technical",
+    "importance": 4.12,
+    "average": 2.534,
+    "job_centred": 1.586,
+    "typical": false,
+    "held": true,
+    "must_have": true,
+    "must_have_share": 0.205,
+    "you_centred": 1.0,
+    "part_ratings": 0.172,
+    "part_must_haves": 0.15,
+    "contribution": 0.1611
+   },
+   {
+    "element_id": "2.B.3.h",
+    "name": "Operation and Control",
+    "group": "Hands-on and technical",
+    "importance": 3.75,
+    "average": 1.952,
+    "job_centred": 1.798,
+    "typical": false,
+    "held": true,
+    "must_have": true,
+    "must_have_share": 0.131,
+    "you_centred": 1.0,
+    "part_ratings": 0.195,
+    "part_must_haves": 0.18,
+    "contribution": 0.1872
+   },
+   {
+    "element_id": "2.B.3.j",
+    "name": "Equipment Maintenance",
+    "group": "Hands-on and technical",
+    "importance": 2.88,
+    "average": 1.203,
+    "job_centred": 1.677,
+    "typical": false,
+    "held": true,
+    "must_have": false,
+    "must_have_share": 0.031,
+    "you_centred": 1.0,
+    "part_ratings": 0.182,
+    "part_must_haves": -0.007,
+    "contribution": 0.0873
+   },
+   {
+    "element_id": "2.B.3.k",
+    "name": "Troubleshooting",
+    "group": "Hands-on and technical",
+    "importance": 3.0,
+    "average": 1.834,
+    "job_centred": 1.166,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.052,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0003
+   },
+   {
+    "element_id": "2.B.3.l",
+    "name": "Repairing",
+    "group": "Hands-on and technical",
+    "importance": 2.88,
+    "average": 1.151,
+    "job_centred": 1.729,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.051,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0003
+   },
+   {
+    "element_id": "2.B.3.m",
+    "name": "Quality Control Analysis",
+    "group": "Hands-on and technical",
+    "importance": 3.25,
+    "average": 2.329,
+    "job_centred": 0.921,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.06,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0004
+   },
+   {
+    "element_id": "2.B.4.e",
+    "name": "Judgment and Decision Making",
+    "group": "Judgement and decisions",
+    "importance": 3.25,
+    "average": 3.251,
+    "job_centred": -0.001,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.34,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.027,
+    "contribution": 0.0137
+   },
+   {
+    "element_id": "2.B.4.g",
+    "name": "Systems Analysis",
+    "group": "Judgement and decisions",
+    "importance": 2.75,
+    "average": 2.702,
+    "job_centred": 0.048,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.088,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.002,
+    "contribution": 0.0009
+   },
+   {
+    "element_id": "2.B.4.h",
+    "name": "Systems Evaluation",
+    "group": "Judgement and decisions",
+    "importance": 2.62,
+    "average": 2.647,
+    "job_centred": -0.027,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.074,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0006
+   },
+   {
+    "element_id": "2.B.5.a",
+    "name": "Time Management",
+    "group": "Managing time, money and people",
+    "importance": 3.0,
+    "average": 3.093,
+    "job_centred": -0.093,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.179,
+    "you_centred": 0.0,
+    "part_ratings": -0.0,
+    "part_must_haves": 0.008,
+    "contribution": 0.0038
+   },
+   {
+    "element_id": "2.B.5.b",
+    "name": "Management of Financial Resources",
+    "group": "Managing time, money and people",
+    "importance": 2.0,
+    "average": 1.793,
+    "job_centred": 0.207,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.005,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.5.c",
+    "name": "Management of Material Resources",
+    "group": "Managing time, money and people",
+    "importance": 2.0,
+    "average": 1.917,
+    "job_centred": 0.083,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.002,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.0,
+    "contribution": 0.0
+   },
+   {
+    "element_id": "2.B.5.d",
+    "name": "Management of Personnel Resources",
+    "group": "Managing time, money and people",
+    "importance": 2.75,
+    "average": 2.601,
+    "job_centred": 0.149,
+    "typical": false,
+    "held": false,
+    "must_have": false,
+    "must_have_share": 0.069,
+    "you_centred": 0.0,
+    "part_ratings": 0.0,
+    "part_must_haves": 0.001,
+    "contribution": 0.0006
+   }
+  ],
+  "dataset": "O*NET 29.0 (August 2024 release)"
+ },
+ "adverts": {
+  "soc_code": "47-2111.00",
+  "title": "Electricians",
+  "loaded": true,
+  "adverts": 84,
+  "enough": true,
+  "min_adverts": 5,
+  "note": "Real job adverts from the United States, listed in April 2024. They have closed — this shows what employers asked for, not jobs to apply for.",
+  "period": "April 2024",
+  "dataset": "LinkedIn Job Postings 2023-2024 (Kaggle arshkon/linkedin-job-postings, CC BY-SA 4.0)",
+  "listed_from": "2024-04-05",
+  "listed_to": "2024-04-19",
+  "levels_stated": 73,
+  "entry_level": 51,
+  "entry_words": "7 in 10",
+  "years": {
+   "stated": 30,
+   "median": 4.0
+  },
+  "requirements": [
+   {
+    "key": "licence",
+    "label": "A licence or certificate for the trade",
+    "n": 62,
+    "share": 0.738,
+    "words": "7 in 10"
+   },
+   {
+    "key": "driver",
+    "label": "A driver's licence",
+    "n": 21,
+    "share": 0.25,
+    "words": "3 in 10"
+   },
+   {
+    "key": "school",
+    "label": "A high-school diploma (about the same as matric)",
+    "n": 21,
+    "share": 0.25,
+    "words": "3 in 10"
+   },
+   {
+    "key": "lifting",
+    "label": "Physical work (lifting)",
+    "n": 7,
+    "share": 0.083,
+    "words": "a few"
+   },
+   {
+    "key": "degree",
+    "label": "A college diploma or degree",
+    "n": 6,
+    "share": 0.071,
+    "words": "a few"
+   }
+  ],
+  "tools": [
+   {
+    "name": "Microsoft Excel",
+    "kind": "software",
+    "n": 7,
+    "share": 0.083,
+    "words": "a few"
+   },
+   {
+    "name": "Respirators",
+    "kind": "tool",
+    "n": 5,
+    "share": 0.06,
+    "words": "a few"
+   }
+  ],
+  "skills": [
+   {
+    "element_id": "2.B.3.d",
+    "name": "Installation",
+    "n": 68,
+    "share": 0.81,
+    "lift": 15.47,
+    "words": "8 in 10",
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.l",
+    "name": "Repairing",
+    "n": 57,
+    "share": 0.679,
+    "lift": 9.36,
+    "words": "7 in 10",
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.k",
+    "name": "Troubleshooting",
+    "n": 59,
+    "share": 0.702,
+    "lift": 5.19,
+    "words": "7 in 10",
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.j",
+    "name": "Equipment Maintenance",
+    "n": 51,
+    "share": 0.607,
+    "lift": 4.69,
+    "words": "6 in 10",
+    "status": null
+   },
+   {
+    "element_id": "2.B.3.m",
+    "name": "Quality Control Analysis",
+    "n": 33,
+    "share": 0.393,
+    "lift": 4.14,
+    "words": "4 in 10",
+    "status": null
+   }
+  ],
+  "titles": [
+   {
+    "title": "Electrician",
+    "n": 42
+   },
+   {
+    "title": "Industrial Electrician",
+    "n": 20
+   },
+   {
+    "title": "Journeyman Electrician",
+    "n": 11
+   },
+   {
+    "title": "Maintenance Electrician",
+    "n": 5
+   },
+   {
+    "title": "Licensed Electrician",
+    "n": 2
+   }
+  ],
+  "basis": "Skills are the ones these adverts mention noticeably more than adverts in general. Checked against O*NET's ratings: a weak but real agreement (ADR-0017)."
+ },
+ "_about": "Real output of the SAYCEP API for the fictional person Thabo Mokoena (a school-leaver who ticked six skills and aims at Electricians), taken on 20 November 2026. docs/thabo/build-thabo.js builds the plan handout from this file, so no figure in it is retyped."
+}

@@ -59,15 +59,24 @@ ZONES = {
 
 # O*NET groups its 35 skills by element ID. These headings replace the content
 # model's own names ("Basic Skills: Content", "Resource Management Skills").
+#
+# The ORDER is a presentation choice with a measured basis (20 November): the
+# groups whose skills the fewest jobs list as must-haves come first, so what
+# tells jobs apart leads and the everyday skills nearly every job needs come
+# last. Share of the 879 jobs listing a group's skills as must-haves, on
+# average: hands-on and technical 4%, managing 6%, people 15%, judgement 16%,
+# thinking 32%, reading and speaking 38%. Nothing is hidden and no score
+# depends on this order; it sets the order of the tick screen and of the
+# "nice to have" list in the gap (see skill_group_rank).
 SKILL_GROUPS = [
-    ("2.A.1", "Reading, writing, speaking and maths"),
+    ("2.B.3", "Hands-on and technical"),
+    ("2.B.5", "Managing time, money and people"),
+    ("2.B.1", "Working with people"),
+    ("2.B.4", "Judgement and decisions"),
     # 2.B.2 holds one skill, Complex Problem Solving; it sits with its neighbours.
     ("2.A.2", "Thinking and problem solving"),
     ("2.B.2", "Thinking and problem solving"),
-    ("2.B.1", "Working with people"),
-    ("2.B.3", "Hands-on and technical"),
-    ("2.B.4", "Judgement and decisions"),
-    ("2.B.5", "Managing time, money and people"),
+    ("2.A.1", "Reading, writing, speaking and maths"),
 ]
 
 
@@ -91,6 +100,15 @@ def preparation(zone):
 def skill_group(element_id):
     return next((name for prefix, name in SKILL_GROUPS
                  if element_id.startswith(prefix)), "Other skills")
+
+
+def skill_group_rank(element_id):
+    """Where this skill's group sits in SKILL_GROUPS: 0 for the most
+    distinctive group, last for the everyday skills. A skill in no group sorts
+    after all of them."""
+    order = list(dict.fromkeys(name for _, name in SKILL_GROUPS))
+    name = skill_group(element_id)
+    return order.index(name) if name in order else len(order)
 
 
 # Plain examples under each O*NET knowledge area, so a student can find their

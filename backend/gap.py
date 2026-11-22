@@ -9,6 +9,7 @@ rather than by a rule the user has to be told about.
 """
 
 from config import ESSENTIAL_THRESHOLD
+import plain
 import repository
 
 
@@ -29,6 +30,15 @@ def compute_gap(con, profile_id, soc_code):
             "source_date": row["source_date"],
         }
         (already_held if row["element_id"] in held else missing).append(entry)
+
+    # Must-haves keep their order, most important first. Among the nice-to-haves
+    # the skills that tell jobs apart come before the everyday ones (listening,
+    # speaking, reading) that nearly every job rates highly, so a short list of
+    # five is not filled with them. Same skills, same counts, only the order.
+    missing.sort(key=lambda m: (
+        m["classification"] != "essential",
+        0 if m["classification"] == "essential" else plain.skill_group_rank(m["element_id"]),
+        -m["importance"]))
 
     essential = [m for m in missing if m["classification"] == "essential"]
 

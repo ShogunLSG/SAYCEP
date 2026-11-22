@@ -319,6 +319,23 @@ def interest_profiles(con, max_job_zone=None):
     return out
 
 
+def lower_zone_links(con, soc_code, zone):
+    """Jobs in Job Zone `zone` that O*NET's experts list as (primary) related to
+    this job, in either direction -- the lists are one-way, so a helper role may
+    only appear in the trade's list or the trade only in the helper's (ADR-0034)."""
+    return con.execute(
+        "SELECT o.soc_code AS soc_code, o.title AS title, o.job_zone AS job_zone,"
+        "       r.tier AS tier, r.sort_index AS sort_index"
+        "  FROM related_occupations r JOIN occupations o ON o.soc_code = r.related_soc_code"
+        " WHERE r.soc_code = ? AND r.tier LIKE 'Primary%' AND o.job_zone = ?"
+        " UNION "
+        "SELECT o.soc_code, o.title, o.job_zone, r.tier, r.sort_index"
+        "  FROM related_occupations r JOIN occupations o ON o.soc_code = r.soc_code"
+        " WHERE r.related_soc_code = ? AND r.tier LIKE 'Primary%' AND o.job_zone = ?"
+        " ORDER BY 1",
+        (soc_code, zone, soc_code, zone)).fetchall()
+
+
 def related_occupations(con, soc_code, primary_only=True):
     sql = ("SELECT r.related_soc_code, r.tier, r.sort_index, o.title, o.job_zone"
            "  FROM related_occupations r JOIN occupations o"

@@ -45,7 +45,7 @@ if (Any must-have skill missing?) then (no)
 else (yes)
   :Classify each missing skill\nas essential (3.5 or more) or desirable;
 endif
-:Generate the pathway: three steps plus the target;
+:Generate the pathway: up to three lower-level steps,\nthen the target (none if no related job is close enough);
 :Save as my plan (plan code issued);
 
 while (Keep going?) is (yes)
